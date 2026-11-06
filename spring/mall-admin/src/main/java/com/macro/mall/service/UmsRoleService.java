@@ -8,58 +8,58 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 后台角色管理Service
+ * 관리자 역할 관리Service
  * Created by macro on 2018/9/30.
  */
 public interface UmsRoleService {
     /**
-     * 添加角色
+     * 역할 추가
      */
     int create(UmsRole role);
 
     /**
-     * 修改角色信息
+     * 역할 정보 수정
      */
     int update(Long id, UmsRole role);
 
     /**
-     * 批量删除角色
+     * 역할 일괄 삭제
      */
     int delete(List<Long> ids);
 
     /**
-     * 获取所有角色列表
+     * 전체 역할 목록 조회
      */
     List<UmsRole> list();
 
     /**
-     * 分页获取角色列表
+     * 역할 목록 페이지 조회
      */
     List<UmsRole> list(String keyword, Integer pageSize, Integer pageNum);
 
     /**
-     * 根据管理员ID获取对应菜单
+     * 관리자 ID로 해당 메뉴 조회
      */
     List<UmsMenu> getMenuList(Long adminId);
 
     /**
-     * 获取角色相关菜单
+     * 역할 관련 메뉴 조회
      */
     List<UmsMenu> listMenu(Long roleId);
 
     /**
-     * 获取角色相关资源
+     * 역할 관련 리소스 조회
      */
     List<UmsResource> listResource(Long roleId);
 
     /**
-     * 给角色分配菜单
+     * 역할에 메뉴 할당
      */
     @Transactional
     int allocMenu(Long roleId, List<Long> menuIds);
 
     /**
-     * 给角色分配资源
+     * 역할에 리소스 할당
      */
     @Transactional
     int allocResource(Long roleId, List<Long> resourceIds);

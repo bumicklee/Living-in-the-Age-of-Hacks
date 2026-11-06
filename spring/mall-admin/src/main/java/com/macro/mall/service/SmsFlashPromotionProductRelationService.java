@@ -7,43 +7,43 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 限时购商品关联管理Service
+ * 타임 세일 상품 연관 관리Service
  * Created by macro on 2018/11/16.
  */
 public interface SmsFlashPromotionProductRelationService {
     /**
-     * 批量添加关联
+     * 연관 상품 일괄 추가
      */
     @Transactional
     int create(List<SmsFlashPromotionProductRelation> relationList);
 
     /**
-     * 修改关联信息
+     * 연관 정보 수정
      */
     int update(Long id, SmsFlashPromotionProductRelation relation);
 
     /**
-     * 删除关联
+     * 연관 삭제
      */
     int delete(Long id);
 
     /**
-     * 获取关联详情
+     * 연관 상세 조회
      */
     SmsFlashPromotionProductRelation getItem(Long id);
 
     /**
-     * 分页查询相关商品及限时购促销信息
+     * 관련 상품 및 타임 세일 프로모션 정보 페이지 조회
      *
-     * @param flashPromotionId        限时购id
-     * @param flashPromotionSessionId 限时购场次id
+     * @param flashPromotionId        타임 세일id
+     * @param flashPromotionSessionId 타임 세일 회차id
      */
     List<SmsFlashPromotionProduct> list(Long flashPromotionId, Long flashPromotionSessionId, Integer pageSize, Integer pageNum);
 
     /**
-     * 根据活动和场次id获取商品关系数量
-     * @param flashPromotionId        限时购id
-     * @param flashPromotionSessionId 限时购场次id
+     * 이벤트와 회차 id로 상품 관계 수 조회
+     * @param flashPromotionId        타임 세일id
+     * @param flashPromotionSessionId 타임 세일 회차id
      */
     long getCount(Long flashPromotionId,Long flashPromotionSessionId);
 }

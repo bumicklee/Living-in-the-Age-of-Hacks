@@ -10,7 +10,7 @@ export default function useResizeHandler() {
   const route = useRoute()
   const appStore = useAppStore()
 
-  // 监听路由变化
+  // 라우트 변경 감시
   watch(
     () => route,
     () => {
@@ -20,7 +20,7 @@ export default function useResizeHandler() {
     },
   )
 
-  // 判断是否为移动端访问
+  // 모바일 접속 여부 판단
   const isMobile = () => {
     const rect = body.getBoundingClientRect()
     return rect.width - RATIO < WIDTH
@@ -37,12 +37,12 @@ export default function useResizeHandler() {
     }
   }
 
-  // 在组件挂在之前调用
+  // 컴포넌트 마운트 전에 호출
   onBeforeMount(() => {
     window.addEventListener('resize', resizeHandler)
   })
 
-  // 在组件挂在之后调用
+  // 컴포넌트 마운트 후에 호출
   onMounted(() => {
     const mobile = isMobile()
     if (mobile) {
@@ -51,7 +51,7 @@ export default function useResizeHandler() {
     }
   })
 
-  // 在组件卸载之前调用
+  // 컴포넌트 언마운트 전에 호출
   onBeforeUnmount(() => {
     window.removeEventListener('resize', resizeHandler)
   })

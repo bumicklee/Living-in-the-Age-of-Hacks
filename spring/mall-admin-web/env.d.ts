@@ -1,16 +1,16 @@
 /// <reference types="vite/client" />
-/** 扩展import.meta.env对象类型，配置.env文件中的环境变量 */
+/** import.meta.env 객체 타입 확장, .env 파일의 환경 변수 설정 */
 interface ImportMetaEnv {
-  /** 后端API基础路径 */
+  /** 백엔드 API 기본 경로 */
   readonly VITE_BASE_SERVER_URL: string
-  /** 是否使用OSS对象存储 */
+  /** OSS 오브젝트 스토리지 사용 여부 */
   readonly VITE_USE_OSS: string
-  /** OSS上传路径 */
+  /** OSS업로드 경로 */
   readonly VITE_OSS_UPLOAD_URL: string
-  /** Minio上传相对路径 */
+  /** Minio업로드 상대 경로 */
   readonly VITE_MINIO_UPLOAD_URL: string
 }
-/** 扩展import.meta对象类型 */
+/** import.meta 객체 타입 확장 */
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }

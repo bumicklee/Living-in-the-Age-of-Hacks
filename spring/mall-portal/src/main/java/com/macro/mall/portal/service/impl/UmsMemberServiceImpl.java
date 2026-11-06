@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * 会员管理Service实现类
+ * 회원 관리 Service 구현 클래스
  * Created by macro on 2018/8/3.
  */
 @Service
@@ -76,26 +76,26 @@ public class UmsMemberServiceImpl implements UmsMemberService {
 
     @Override
     public void register(String username, String password, String telephone, String authCode) {
-        //验证验证码
+        //인증 코드 검증
         if(!verifyAuthCode(authCode,telephone)){
-            Asserts.fail("验证码错误");
+            Asserts.fail("인증 코드 오류");
         }
-        //查询是否已有该用户
+        //이미 있는 사용자인지 조회
         UmsMemberExample example = new UmsMemberExample();
         example.createCriteria().andUsernameEqualTo(username);
         example.or(example.createCriteria().andPhoneEqualTo(telephone));
         List<UmsMember> umsMembers = memberMapper.selectByExample(example);
         if (!CollectionUtils.isEmpty(umsMembers)) {
-            Asserts.fail("该用户已经存在");
+            Asserts.fail("이미 존재하는 사용자입니다");
         }
-        //没有该用户进行添加操作
+        //해당 사용자가 없어 추가 작업을 수행하지 않음
         UmsMember umsMember = new UmsMember();
         umsMember.setUsername(username);
         umsMember.setPhone(telephone);
         umsMember.setPassword(passwordEncoder.encode(password));
         umsMember.setCreateTime(new Date());
         umsMember.setStatus(1);
-        //获取默认会员等级并设置
+        //기본 회원 등급 조회 후 설정
         UmsMemberLevelExample levelExample = new UmsMemberLevelExample();
         levelExample.createCriteria().andDefaultStatusEqualTo(1);
         List<UmsMemberLevel> memberLevelList = memberLevelMapper.selectByExample(levelExample);
@@ -108,7 +108,7 @@ public class UmsMemberServiceImpl implements UmsMemberService {
 
     @Override
     public String generateAuthCode(String telephone) {
-        // 此处使用模拟生成验证码逻辑，真实环境应接入短信服务，可使用SMS4J来实现
+        // 여기서는 인증 코드 생성 로직을 모의로 구현했으며, 실제 환경에서는 SMS 서비스를 연동해야 함(SMS4J 사용 가능)
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
         for(int i=0;i<6;i++){
@@ -124,11 +124,11 @@ public class UmsMemberServiceImpl implements UmsMemberService {
         example.createCriteria().andPhoneEqualTo(telephone);
         List<UmsMember> memberList = memberMapper.selectByExample(example);
         if(CollectionUtils.isEmpty(memberList)){
-            Asserts.fail("该账号不存在");
+            Asserts.fail("존재하지 않는 계정입니다");
         }
-        //验证验证码
+        //인증 코드 검증
         if(!verifyAuthCode(authCode,telephone)){
-            Asserts.fail("验证码错误");
+            Asserts.fail("인증 코드 오류");
         }
         UmsMember umsMember = memberList.get(0);
         umsMember.setPassword(passwordEncoder.encode(password));
@@ -159,23 +159,23 @@ public class UmsMemberServiceImpl implements UmsMemberService {
         if(member!=null){
             return new MemberDetails(member);
         }
-        throw new UsernameNotFoundException("用户名或密码错误");
+        throw new UsernameNotFoundException("사용자 이름 또는 비밀번호 오류");
     }
 
     @Override
     public String login(String username, String password) {
         String token = null;
-        //密码需要客户端加密后传递
+        //비밀번호는 클라이언트에서 암호화한 뒤 전달해야 함
         try {
             UserDetails userDetails = loadUserByUsername(username);
             if(!passwordEncoder.matches(password,userDetails.getPassword())){
-                throw new BadCredentialsException("密码不正确");
+                throw new BadCredentialsException("비밀번호가 올바르지 않습니다");
             }
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
             token = jwtTokenUtil.generateToken(userDetails);
         } catch (AuthenticationException e) {
-            LOGGER.warn("登录异常:{}", e.getMessage());
+            LOGGER.warn("로그인 예외:{}", e.getMessage());
         }
         return token;
     }
@@ -185,7 +185,7 @@ public class UmsMemberServiceImpl implements UmsMemberService {
         return jwtTokenUtil.refreshHeadToken(token);
     }
 
-    //对输入的验证码进行校验
+    //입력한 인증 코드 검증
     private boolean verifyAuthCode(String authCode, String telephone){
         if(StrUtil.isEmpty(authCode)){
             return false;

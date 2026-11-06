@@ -27,11 +27,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 后台用户管理Controller
+ * 관리자 사용자 관리Controller
  * Created by macro on 2018/4/26.
  */
 @Controller
-@Tag(name = "UmsAdminController", description = "后台用户管理")
+@Tag(name = "UmsAdminController", description = "관리자 사용자 관리")
 @RequestMapping("/admin")
 public class UmsAdminController {
     @Value("${jwt.tokenHeader}")
@@ -43,7 +43,7 @@ public class UmsAdminController {
     @Autowired
     private UmsRoleService roleService;
 
-    @Operation(summary = "用户注册")
+    @Operation(summary = "사용자 회원가입")
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult<UmsAdmin> register(@Validated @RequestBody UmsAdminParam umsAdminParam) {
@@ -54,13 +54,13 @@ public class UmsAdminController {
         return CommonResult.success(umsAdmin);
     }
 
-    @Operation(summary = "登录以后返回token")
+    @Operation(summary = "로그인 후 반환되는token")
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult login(@Validated @RequestBody UmsAdminLoginParam umsAdminLoginParam) {
         String token = adminService.login(umsAdminLoginParam.getUsername(), umsAdminLoginParam.getPassword());
         if (token == null) {
-            return CommonResult.validateFailed("用户名或密码错误");
+            return CommonResult.validateFailed("사용자 이름 또는 비밀번호 오류");
         }
         Map<String, String> tokenMap = new HashMap<>();
         tokenMap.put("token", token);
@@ -68,14 +68,14 @@ public class UmsAdminController {
         return CommonResult.success(tokenMap);
     }
 
-    @Operation(summary = "刷新token")
+    @Operation(summary = "새로고침token")
     @RequestMapping(value = "/refreshToken", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult refreshToken(HttpServletRequest request) {
         String token = request.getHeader(tokenHeader);
         String refreshToken = adminService.refreshToken(token);
         if (refreshToken == null) {
-            return CommonResult.failed("token已经过期！");
+            return CommonResult.failed("token이미 만료되었습니다!");
         }
         Map<String, String> tokenMap = new HashMap<>();
         tokenMap.put("token", refreshToken);
@@ -83,7 +83,7 @@ public class UmsAdminController {
         return CommonResult.success(tokenMap);
     }
 
-    @Operation(summary = "获取当前登录用户信息")
+    @Operation(summary = "현재 로그인한 사용자 정보 조회")
     @RequestMapping(value = "/info", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult getAdminInfo(Principal principal) {
@@ -104,7 +104,7 @@ public class UmsAdminController {
         return CommonResult.success(data);
     }
 
-    @Operation(summary = "登出功能")
+    @Operation(summary = "로그아웃 기능")
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult logout(Principal principal) {
@@ -112,7 +112,7 @@ public class UmsAdminController {
         return CommonResult.success(null);
     }
 
-    @Operation(summary = "根据用户名或姓名分页获取用户列表")
+    @Operation(summary = "사용자 이름 또는 성명으로 사용자 목록 페이징 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<UmsAdmin>> list(@RequestParam(value = "keyword", required = false) String keyword,
@@ -122,7 +122,7 @@ public class UmsAdminController {
         return CommonResult.success(CommonPage.restPage(adminList));
     }
 
-    @Operation(summary = "获取指定用户信息")
+    @Operation(summary = "지정한 사용자 정보 조회")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<UmsAdmin> getItem(@PathVariable Long id) {
@@ -130,7 +130,7 @@ public class UmsAdminController {
         return CommonResult.success(admin);
     }
 
-    @Operation(summary = "修改指定用户信息")
+    @Operation(summary = "지정한 사용자 정보 수정")
     @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult update(@PathVariable Long id, @RequestBody UmsAdmin admin) {
@@ -141,7 +141,7 @@ public class UmsAdminController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "修改指定用户密码")
+    @Operation(summary = "지정한 사용자 비밀번호 변경")
     @RequestMapping(value = "/updatePassword", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult updatePassword(@Validated @RequestBody UpdateAdminPasswordParam updatePasswordParam) {
@@ -149,17 +149,17 @@ public class UmsAdminController {
         if (status > 0) {
             return CommonResult.success(status);
         } else if (status == -1) {
-            return CommonResult.failed("提交参数不合法");
+            return CommonResult.failed("제출한 파라미터가 올바르지 않습니다");
         } else if (status == -2) {
-            return CommonResult.failed("找不到该用户");
+            return CommonResult.failed("해당 사용자를 찾을 수 없습니다");
         } else if (status == -3) {
-            return CommonResult.failed("旧密码错误");
+            return CommonResult.failed("기존 비밀번호가 올바르지 않습니다");
         } else {
             return CommonResult.failed();
         }
     }
 
-    @Operation(summary = "删除指定用户信息")
+    @Operation(summary = "지정한 사용자 정보 삭제")
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(@PathVariable Long id) {
@@ -170,7 +170,7 @@ public class UmsAdminController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "修改帐号状态")
+    @Operation(summary = "계정 상태 수정")
     @RequestMapping(value = "/updateStatus/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult updateStatus(@PathVariable Long id,@RequestParam(value = "status") Integer status) {
@@ -183,7 +183,7 @@ public class UmsAdminController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "给用户分配角色")
+    @Operation(summary = "사용자에게 역할 할당")
     @RequestMapping(value = "/role/update", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult updateRole(@RequestParam("adminId") Long adminId,
@@ -195,7 +195,7 @@ public class UmsAdminController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "获取指定用户的角色")
+    @Operation(summary = "지정한 사용자의 역할 조회")
     @RequestMapping(value = "/role/{adminId}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<List<UmsRole>> getRoleList(@PathVariable Long adminId) {

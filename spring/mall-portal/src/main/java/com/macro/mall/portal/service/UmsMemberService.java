@@ -5,60 +5,60 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 会员管理Service
+ * 회원 관리Service
  * Created by macro on 2018/8/3.
  */
 public interface UmsMemberService {
     /**
-     * 根据用户名获取会员
+     * 사용자 이름으로 회원 조회
      */
     UmsMember getByUsername(String username);
 
     /**
-     * 根据会员编号获取会员
+     * 회원 번호로 회원 조회
      */
     UmsMember getById(Long id);
 
     /**
-     * 用户注册
+     * 사용자 회원가입
      */
     @Transactional
     void register(String username, String password, String telephone, String authCode);
 
     /**
-     * 生成验证码
+     * 인증 코드 생성
      */
     String generateAuthCode(String telephone);
 
     /**
-     * 修改密码
+     * 비밀번호 변경
      */
     @Transactional
     void updatePassword(String telephone, String password, String authCode);
 
     /**
-     * 获取当前登录会员
+     * 현재 로그인한 회원 조회
      */
     UmsMember getCurrentMember();
 
     /**
-     * 根据会员id修改会员积分
+     * 회원 id로 회원 포인트 수정
      */
     void updateIntegration(Long id,Integer integration);
 
 
     /**
-     * 获取用户信息
+     * 사용자 정보 조회
      */
     UserDetails loadUserByUsername(String username);
 
     /**
-     * 登录后获取token
+     * 로그인 후 조회token
      */
     String login(String username, String password);
 
     /**
-     * 刷新token
+     * 새로고침token
      */
     String refreshToken(String token);
 }

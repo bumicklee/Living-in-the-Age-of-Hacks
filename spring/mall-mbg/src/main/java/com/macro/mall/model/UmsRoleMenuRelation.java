@@ -6,10 +6,10 @@ import java.io.Serializable;
 public class UmsRoleMenuRelation implements Serializable {
     private Long id;
 
-    @Schema(title = "角色ID")
+    @Schema(title = "역할ID")
     private Long roleId;
 
-    @Schema(title = "菜单ID")
+    @Schema(title = "메뉴ID")
     private Long menuId;
 
     private static final long serialVersionUID = 1L;

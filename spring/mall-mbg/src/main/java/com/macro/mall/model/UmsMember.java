@@ -9,55 +9,55 @@ public class UmsMember implements Serializable {
 
     private Long memberLevelId;
 
-    @Schema(title = "用户名")
+    @Schema(title = "사용자 이름")
     private String username;
 
-    @Schema(title = "密码")
+    @Schema(title = "비밀번호")
     private String password;
 
-    @Schema(title = "昵称")
+    @Schema(title = "닉네임")
     private String nickname;
 
-    @Schema(title = "手机号码")
+    @Schema(title = "휴대폰 번호")
     private String phone;
 
-    @Schema(title = "帐号启用状态:0->禁用；1->启用")
+    @Schema(title = "계정 사용 상태:0->사용 안 함;1->사용")
     private Integer status;
 
-    @Schema(title = "注册时间")
+    @Schema(title = "가입 시간")
     private Date createTime;
 
-    @Schema(title = "头像")
+    @Schema(title = "프로필 이미지")
     private String icon;
 
-    @Schema(title = "性别：0->未知；1->男；2->女")
+    @Schema(title = "성별:0->알 수 없음;1->남;2->여")
     private Integer gender;
 
-    @Schema(title = "生日")
+    @Schema(title = "생일")
     private Date birthday;
 
-    @Schema(title = "所做城市")
+    @Schema(title = "해당 도시")
     private String city;
 
-    @Schema(title = "职业")
+    @Schema(title = "직업")
     private String job;
 
-    @Schema(title = "个性签名")
+    @Schema(title = "자기소개")
     private String personalizedSignature;
 
-    @Schema(title = "用户来源")
+    @Schema(title = "사용자 유입 경로")
     private Integer sourceType;
 
-    @Schema(title = "积分")
+    @Schema(title = "포인트")
     private Integer integration;
 
-    @Schema(title = "成长值")
+    @Schema(title = "성장 포인트")
     private Integer growth;
 
-    @Schema(title = "剩余抽奖次数")
+    @Schema(title = "남은 추첨 횟수")
     private Integer luckeyCount;
 
-    @Schema(title = "历史积分数量")
+    @Schema(title = "누적 포인트 수량")
     private Integer historyIntegration;
 
     private static final long serialVersionUID = 1L;

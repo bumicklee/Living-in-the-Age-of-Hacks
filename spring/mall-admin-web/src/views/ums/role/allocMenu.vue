@@ -2,32 +2,32 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox, ElTree } from 'element-plus'
-import { getMenuTreeListAPI } from '@/apis/menu.ts' // 修改路径为apis
-import { roleListMenuByRoleIdAPI, roleAllocMenuAPI } from '@/apis/role' // 修改路径为apis
+import { getMenuTreeListAPI } from '@/apis/menu.ts' // 경로를 다음으로 변경apis
+import { roleListMenuByRoleIdAPI, roleAllocMenuAPI } from '@/apis/role' // 경로를 다음으로 변경apis
 import type { TreeNodeData } from 'element-plus/es/components/tree/src/tree.type'
 import type { UmsMenuNode } from '@/types/menu'
 
-// 获取路由参数
+// 라우트 파라미터 조회
 const router = useRouter()
 const route = useRoute()
 
-// 当前角色ID
+// 현재 역할ID
 const roleId = ref<number>()
-// 所有菜单树形结构列表
+// 전체 메뉴 트리 구조 목록
 const menuTreeList = ref<UmsMenuNode[]>([])
-// 创建对树组件的引用
+// 트리 컴포넌트 참조 생성
 const treeRef = ref<InstanceType<typeof ElTree>>()
-// 定义树组件属性
+// 트리 컴포넌트 속성 정의
 const defaultProps = {
   children: 'children',
   label: 'title'
 }
-// 获取菜单树列表
+// 메뉴 트리 목록 조회
 const treeList = async () => {
   const res = await getMenuTreeListAPI()
   menuTreeList.value = res.data
 }
-// 获取角色对应的菜单
+// 역할에 해당하는 메뉴 조회
 const getRoleMenu = async () => {
   const res = await roleListMenuByRoleIdAPI(roleId.value!)
   const menuList = res.data
@@ -35,14 +35,14 @@ const getRoleMenu = async () => {
   treeRef.value!.setCheckedKeys(checkedMenuIds)
 }
 
-// 页面创建时执行
+// 페이지 생성 시 실행
 onMounted(() => {
   roleId.value = Number(route.query.roleId)
   treeList()
   getRoleMenu()
 })
 
-// 保存菜单分配
+// 메뉴 할당 저장
 const handleSave = async () => {
   const checkedNodes = treeRef.value!.getCheckedNodes() as TreeNodeData[]
   const checkedMenuIds = new Set<number>()
@@ -52,21 +52,21 @@ const handleSave = async () => {
       checkedMenuIds.add(item.parentId)
     }
   })
-  await ElMessageBox.confirm('是否分配菜单？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('메뉴를 할당할까요?', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning'
   })
   await roleAllocMenuAPI({ roleId: roleId.value!, menuIds: Array.from(checkedMenuIds).join(',') })
   ElMessage({
-    message: '分配成功',
+    message: '할당 성공',
     type: 'success',
     duration: 1000
   })
   router.back()
 }
 
-// 清空选中项
+// 선택 항목 비우기
 const handleClear = () => {
   treeRef.value!.setCheckedKeys([])
 }
@@ -78,8 +78,8 @@ const handleClear = () => {
       highlight-current>
     </el-tree>
     <div style="margin-top: 20px" align="center">
-      <el-button type="primary" @click="handleSave()">保存</el-button>
-      <el-button @click="handleClear()">清空</el-button>
+      <el-button type="primary" @click="handleSave()">저장</el-button>
+      <el-button @click="handleClear()">비우기</el-button>
     </div>
   </el-card>
 </template>

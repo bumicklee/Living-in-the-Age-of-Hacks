@@ -14,13 +14,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * JwtToken生成的工具类
- * JWT token的格式：header.payload.signature
- * header的格式（算法、token的类型）：
+ * JwtToken생성된 유틸 클래스
+ * JWT token형식:header.payload.signature
+ * header형식(알고리즘, token 유형):
  * {"alg": "HS512","typ": "JWT"}
- * payload的格式（用户名、创建时间、生成时间）：
+ * payload형식(사용자 이름, 생성 시간, 발급 시간):
  * {"sub":"wang","created":1489079981393,"exp":1489684781}
- * signature的生成算法：
+ * signature생성 알고리즘:
  * HMACSHA512(base64UrlEncode(header) + "." +base64UrlEncode(payload),secret)
  * Created by macro on 2018/4/26.
  * Refactored to use Hutool JWTUtil
@@ -37,42 +37,42 @@ public class JwtTokenUtil {
     private String tokenHead;
 
     /**
-     * 获取签名密钥
+     * 서명 키 조회
      */
     private byte[] getSigningKey() {
         return secret.getBytes(StandardCharsets.UTF_8);
     }
 
     /**
-     * 根据负责生成JWT的token
+     * JWT 생성을 담당하는token
      */
     private String generateToken(Map<String, Object> claims) {
-        // 设置过期时间
+        // 만료 시간 설정
         long expireTime = System.currentTimeMillis() + expiration * 1000;
         claims.put("exp", expireTime);
         return JWTUtil.createToken(claims, getSigningKey());
     }
 
     /**
-     * 从token中获取JWT中的负载
+     * token에서 JWT 페이로드 조회
      */
     private Map<String, Object> getPayloadFromToken(String token) {
         try {
-            // 验证token签名
+            // token 서명 검증
             if (!JWTUtil.verify(token, getSigningKey())) {
-                LOGGER.info("JWT签名验证失败:{}", token);
+                LOGGER.info("JWT서명 검증 실패:{}", token);
                 return null;
             }
-            // 解析token payload
+            // 파싱token payload
             return JWTUtil.parseToken(token).getPayloads();
         } catch (Exception e) {
-            LOGGER.info("JWT格式验证失败:{}", token);
+            LOGGER.info("JWT형식 검증 실패:{}", token);
             return null;
         }
     }
 
     /**
-     * 从token中获取登录用户名
+     * token에서 로그인 사용자 이름 조회
      */
     public String getUserNameFromToken(String token) {
         String username;
@@ -86,10 +86,10 @@ public class JwtTokenUtil {
     }
 
     /**
-     * 验证token是否还有效
+     * token이 아직 유효한지 검증
      *
-     * @param token       客户端传入的token
-     * @param userDetails 从数据库中查询出来的用户信息
+     * @param token       클라이언트가 전달한token
+     * @param userDetails 데이터베이스에서 조회한 사용자 정보
      */
     public boolean validateToken(String token, UserDetails userDetails) {
         String username = getUserNameFromToken(token);
@@ -99,11 +99,11 @@ public class JwtTokenUtil {
     }
 
     /**
-     * 判断token是否已经失效
+     * token이 이미 만료되었는지 판단
      */
     private boolean isTokenExpired(String token) {
         try {
-            // 手动检查 exp 字段判断是否过期
+            // exp 필드를 직접 확인해 만료 여부 판단
             Map<String, Object> payload = getPayloadFromToken(token);
             if (payload == null) {
                 return true;
@@ -120,7 +120,7 @@ public class JwtTokenUtil {
     }
 
     /**
-     * 从token中获取过期时间
+     * token에서 만료 시간 조회
      */
     private Date getExpiredDateFromToken(String token) {
         Map<String, Object> payload = getPayloadFromToken(token);
@@ -137,7 +137,7 @@ public class JwtTokenUtil {
     }
 
     /**
-     * 根据用户信息生成token
+     * 사용자 정보로 생성token
      */
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
@@ -147,9 +147,9 @@ public class JwtTokenUtil {
     }
 
     /**
-     * 当原来的token没过期时是可以刷新的
+     * 기존 token이 만료되지 않았을 때는 갱신할 수 있음
      *
-     * @param oldToken 带tokenHead的token
+     * @param oldToken tokenHead가 붙은token
      */
     public String refreshHeadToken(String oldToken) {
         if (StrUtil.isEmpty(oldToken)) {
@@ -159,16 +159,16 @@ public class JwtTokenUtil {
         if (StrUtil.isEmpty(token)) {
             return null;
         }
-        // token校验不通过
+        // token검증 실패
         Map<String, Object> payload = getPayloadFromToken(token);
         if (payload == null) {
             return null;
         }
-        // 如果token已经过期，不支持刷新
+        // token이 이미 만료되었으면 갱신을 지원하지 않음
         if (isTokenExpired(token)) {
             return null;
         }
-        // 如果token在30分钟之内刚刷新过，返回原token
+        // token을 30분 이내에 방금 갱신했다면 기존 값을 반환token
         if (tokenRefreshJustBefore(token, 30 * 60)) {
             return token;
         } else {
@@ -178,10 +178,10 @@ public class JwtTokenUtil {
     }
 
     /**
-     * 判断token在指定时间内是否刚刚刷新过
+     * token이 지정 시간 내에 방금 갱신되었는지 판단
      *
-     * @param token 原token
-     * @param time  指定时间（秒）
+     * @param token 기존token
+     * @param time  지정 시간(초)
      */
     private boolean tokenRefreshJustBefore(String token, int time) {
         Map<String, Object> payload = getPayloadFromToken(token);
@@ -199,7 +199,7 @@ public class JwtTokenUtil {
             return false;
         }
         Date refreshDate = new Date();
-        // 刷新时间在创建时间的指定时间内
+        // 갱신 시간이 생성 시간 기준 지정 시간 이내
         return refreshDate.after(createdDate) && refreshDate.before(DateUtil.offsetSecond(createdDate, time));
     }
 }

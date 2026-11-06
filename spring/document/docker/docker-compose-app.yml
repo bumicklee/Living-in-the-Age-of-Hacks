@@ -11,7 +11,7 @@ services:
     environment:
       - 'TZ="Asia/Shanghai"'
     external_links:
-      - mysql:db #可以用db这个域名访问mysql服务
+      - mysql:db #db 도메인으로 mysql 서비스에 접근 가능
   mall-search:
     image: mall/mall-search:1.0-SNAPSHOT
     container_name: mall-search
@@ -23,8 +23,8 @@ services:
     environment:
       - 'TZ="Asia/Shanghai"'
     external_links:
-      - elasticsearch:es #可以用es这个域名访问elasticsearch服务
-      - mysql:db #可以用db这个域名访问mysql服务
+      - elasticsearch:es #es 도메인으로 elasticsearch 서비스에 접근 가능
+      - mysql:db #db 도메인으로 mysql 서비스에 접근 가능
   mall-portal:
     image: mall/mall-portal:1.0-SNAPSHOT
     container_name: mall-portal
@@ -36,7 +36,7 @@ services:
     environment:
       - 'TZ="Asia/Shanghai"'
     external_links:
-      - redis:redis #可以用redis这个域名访问redis服务
-      - mongo:mongo #可以用mongo这个域名访问mongo服务
-      - mysql:db #可以用db这个域名访问mysql服务
-      - rabbitmq:rabbit #可以用rabbit这个域名访问rabbitmq服务
+      - redis:redis #redis 도메인으로 redis 서비스에 접근 가능
+      - mongo:mongo #mongo 도메인으로 mongo 서비스에 접근 가능
+      - mysql:db #db 도메인으로 mysql 서비스에 접근 가능
+      - rabbitmq:rabbit #rabbit 도메인으로 rabbitmq 서비스에 접근 가능

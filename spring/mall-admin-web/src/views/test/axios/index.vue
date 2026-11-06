@@ -25,13 +25,13 @@ const getInfo = async () => {
 </script>
 
 <template>
-  <button @click="onLogin">登陆</button>
+  <button @click="onLogin">로그인</button>
   <div>
-    接口返回结果：{{ loginData }}
+    API 반환 결과:{{ loginData }}
   </div>
-  <button @click="getInfo">获取用户信息</button>
+  <button @click="getInfo">사용자 정보 조회</button>
   <div>
-    接口返回结果：{{ infoData }}
+    API 반환 결과:{{ infoData }}
   </div>
 </template>
 

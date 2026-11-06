@@ -1,29 +1,29 @@
-/** 会员等级信息 */
+/** 회원 등급 정보 */
 export type UmsMemberLevel = {
   /** ID */
   id?: number
-  /** 等级名称 */
+  /** 등급 이름 */
   name: string
-  /** 成长点数 */
+  /** 성장 포인트 */
   growthPoint: number
-  /** 是否为默认等级：0->不是；1->是 */
+  /** 기본 등급 여부:0->아니요;1->예 */
   defaultStatus: number
-  /** 免运费标准 */
+  /** 무료 배송 기준 */
   freeFreightPoint: number
-  /** 每次评价获取的成长值 */
+  /** 리뷰 1건당 획득 성장 포인트 */
   commentGrowthPoint: number
-  /** 是否有免邮特权 */
+  /** 무료 배송 혜택 여부 */
   priviledgeFreeFreight: number
-  /** 是否有签到特权 */
+  /** 출석 체크 혜택 여부 */
   priviledgeSignIn: number
-  /** 是否有评论获奖励特权 */
+  /** 리뷰 작성 보상 혜택 여부 */
   priviledgeComment: number
-  /** 是否有专享活动特权 */
+  /** 전용 이벤트 혜택 여부 */
   priviledgePromotion: number
-  /** 是否有会员价格特权 */
+  /** 회원 가격 혜택 여부 */
   priviledgeMemberPrice: number
-  /** 是否有生日特权 */
+  /** 생일 혜택 여부 */
   priviledgeBirthday: number
-  /** 备注 */
+  /** 메모 */
   note: string
 }

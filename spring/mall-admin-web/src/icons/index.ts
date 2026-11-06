@@ -1,15 +1,15 @@
-import SvgIcon from '@/components/SvgIcon/index.vue' // svg组件
+import SvgIcon from '@/components/SvgIcon/index.vue' // svg컴포넌트
 import type { App } from 'vue'
 
-// 导出组件注册函数，在main.js中使用
+// 컴포넌트 등록 함수 export, main.js에서 사용
 export function setupSvgIcon(app: App) {
   app.component('svg-icon', SvgIcon)
 }
 
-// 用import.meta.glob自动导入所有svg图标
+// import.meta.glob으로 모든 svg 아이콘 자동 임포트
 const modules = import.meta.glob('./svg/*.svg')
 
-// 加载所有svg模块
+// 모든 svg 모듈 로드
 Object.keys(modules).forEach(key => {
   const module = modules[key]
   if (module) {

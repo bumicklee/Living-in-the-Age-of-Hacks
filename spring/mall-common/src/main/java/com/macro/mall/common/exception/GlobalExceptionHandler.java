@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.sql.SQLSyntaxErrorException;
 
 /**
- * 全局异常处理类
+ * 전역 예외 처리 클래스
  * Created by macro on 2020/2/27.
  */
 @ControllerAdvice
@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
     public CommonResult handleSQLSyntaxErrorException(SQLSyntaxErrorException e) {
         String message = e.getMessage();
         if (StrUtil.isNotEmpty(message) && message.contains("denied")) {
-            message = "演示环境暂无修改权限，如需修改数据可本地搭建后台服务！";
+            message = "데모 환경에서는 수정 권한이 없습니다. 데이터를 수정하려면 로컬에 관리자 서비스를 구축하세요!";
         }
         return CommonResult.failed(message);
     }

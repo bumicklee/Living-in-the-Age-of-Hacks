@@ -3,7 +3,7 @@ import type { CommonPage, PageParam } from '@/types/common'
 import http from '@/utils/http'
 
 /**
- * 根据品牌名称分页获取品牌列表
+ * 브랜드 이름으로 브랜드 목록 페이징 조회
  */
 export function getBrandListAPI(params: PageParam) {
   return http<CommonPage<PmsBrand>>({
@@ -14,7 +14,7 @@ export function getBrandListAPI(params: PageParam) {
 }
 
 /**
- * 添加品牌
+ * 브랜드 추가
  */
 export function createBrandAPI(data: PmsBrand) {
   return http({
@@ -25,7 +25,7 @@ export function createBrandAPI(data: PmsBrand) {
 }
 
 /**
- * 批量更新显示状态
+ * 표시 상태 일괄 업데이트
  */
 export function brandUpdateShowStatusAPI(params: { ids: string; showStatus: number }) {
   return http({
@@ -36,7 +36,7 @@ export function brandUpdateShowStatusAPI(params: { ids: string; showStatus: numb
 }
 
 /**
- * 批量更新厂家制造商状态
+ * 제조사 상태 일괄 업데이트
  */
 export function brandUpdateFactoryStatusAPI(params: { ids: string; factoryStatus: number }) {
   return http({
@@ -47,7 +47,7 @@ export function brandUpdateFactoryStatusAPI(params: { ids: string; factoryStatus
 }
 
 /**
- * 根据品牌ID删除品牌
+ * 브랜드 ID로 브랜드 삭제
  */
 export function brandDeleteByIdAPI(id: number) {
   return http({
@@ -57,7 +57,7 @@ export function brandDeleteByIdAPI(id: number) {
 }
 
 /**
- * 根据ID获取品牌详情
+ * ID로 브랜드 상세 조회
  */
 export function getBrandAPI(id: number) {
   return http<PmsBrand>({
@@ -67,7 +67,7 @@ export function getBrandAPI(id: number) {
 }
 
 /**
- * 根据品牌ID修改品牌信息
+ * 브랜드 ID로 브랜드 정보 수정
  */
 export function updateBrandAPI(id: number, data: PmsBrand) {
   return http({

@@ -14,17 +14,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 商品属性分类管理Controller
+ * 상품 속성 카테고리 관리Controller
  * Created by macro on 2018/4/26.
  */
 @Controller
-@Tag(name = "PmsProductAttributeCategoryController", description = "商品属性分类管理")
+@Tag(name = "PmsProductAttributeCategoryController", description = "상품 속성 카테고리 관리")
 @RequestMapping("/productAttribute/category")
 public class PmsProductAttributeCategoryController {
     @Autowired
     private PmsProductAttributeCategoryService productAttributeCategoryService;
 
-    @Operation(summary = "添加商品属性分类")
+    @Operation(summary = "상품 속성 카테고리 추가")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult create(@RequestParam String name) {
@@ -36,7 +36,7 @@ public class PmsProductAttributeCategoryController {
         }
     }
 
-    @Operation(summary = "修改商品属性分类")
+    @Operation(summary = "상품 속성 카테고리 수정")
     @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult update(@PathVariable Long id, @RequestParam String name) {
@@ -48,7 +48,7 @@ public class PmsProductAttributeCategoryController {
         }
     }
 
-    @Operation(summary = "删除单个商品属性分类")
+    @Operation(summary = "단일 상품 속성 카테고리 삭제")
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult delete(@PathVariable Long id) {
@@ -60,7 +60,7 @@ public class PmsProductAttributeCategoryController {
         }
     }
 
-    @Operation(summary = "获取单个商品属性分类信息")
+    @Operation(summary = "단일 상품 속성 카테고리 정보 조회")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<PmsProductAttributeCategory> getItem(@PathVariable Long id) {
@@ -68,7 +68,7 @@ public class PmsProductAttributeCategoryController {
         return CommonResult.success(productAttributeCategory);
     }
 
-    @Operation(summary = "分页获取所有商品属性分类")
+    @Operation(summary = "모든 상품 속성 카테고리 페이지 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<PmsProductAttributeCategory>> getList(@RequestParam(defaultValue = "5") Integer pageSize, @RequestParam(defaultValue = "1") Integer pageNum) {
@@ -76,7 +76,7 @@ public class PmsProductAttributeCategoryController {
         return CommonResult.success(CommonPage.restPage(productAttributeCategoryList));
     }
 
-    @Operation(summary = "获取所有商品属性分类及其下属性")
+    @Operation(summary = "전체 상품 속성 카테고리 및 하위 속성 조회")
     @RequestMapping(value = "/list/withAttr", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<List<PmsProductAttributeCategoryItem>> getListWithAttr() {

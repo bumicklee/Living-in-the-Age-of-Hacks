@@ -6,14 +6,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 消息队列相关配置
+ * 메시지 큐 관련 설정
  * Created by macro on 2018/9/14.
  */
 @Configuration
 public class RabbitMqConfig {
 
     /**
-     * 订单消息实际消费队列所绑定的交换机
+     * 주문 메시지 실제 소비 큐에 바인딩된 익스체인지
      */
     @Bean
     DirectExchange orderDirect() {
@@ -24,7 +24,7 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 订单延迟队列队列所绑定的交换机
+     * 주문 지연 큐에 바인딩된 익스체인지
      */
     @Bean
     DirectExchange orderTtlDirect() {
@@ -35,7 +35,7 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 订单实际消费队列
+     * 주문 실제 소비 큐
      */
     @Bean
     public Queue orderQueue() {
@@ -43,19 +43,19 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 订单延迟队列（死信队列）
+     * 주문 지연 큐(데드 레터 큐)
      */
     @Bean
     public Queue orderTtlQueue() {
         return QueueBuilder
                 .durable(QueueEnum.QUEUE_TTL_ORDER_CANCEL.getName())
-                .withArgument("x-dead-letter-exchange", QueueEnum.QUEUE_ORDER_CANCEL.getExchange())//到期后转发的交换机
-                .withArgument("x-dead-letter-routing-key", QueueEnum.QUEUE_ORDER_CANCEL.getRouteKey())//到期后转发的路由键
+                .withArgument("x-dead-letter-exchange", QueueEnum.QUEUE_ORDER_CANCEL.getExchange())//만료 후 전달할 익스체인지
+                .withArgument("x-dead-letter-routing-key", QueueEnum.QUEUE_ORDER_CANCEL.getRouteKey())//만료 후 전달할 라우팅 키
                 .build();
     }
 
     /**
-     * 将订单队列绑定到交换机
+     * 주문 큐를 익스체인지에 바인딩
      */
     @Bean
     Binding orderBinding(DirectExchange orderDirect,Queue orderQueue){
@@ -66,7 +66,7 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 将订单延迟队列绑定到交换机
+     * 주문 지연 큐를 익스체인지에 바인딩
      */
     @Bean
     Binding orderTtlBinding(DirectExchange orderTtlDirect,Queue orderTtlQueue){

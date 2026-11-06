@@ -4,7 +4,7 @@ import type { UmsRole } from '@/types/role'
 import http from '@/utils/http'
 
 /**
- * 后台管理员登录以后返回token
+ * 관리자 로그인 후 반환token
  */
 export function adminLoginAPI(data: LoginParam) {
   return http<LoginResult>({
@@ -15,7 +15,7 @@ export function adminLoginAPI(data: LoginParam) {
 }
 
 /**
- * 后台管理员退出登录
+ * 관리자 로그아웃
  */
 export function adminLogoutAPI() {
   return http({
@@ -25,7 +25,7 @@ export function adminLogoutAPI() {
 }
 
 /**
- * 获取当前登录用户信息
+ * 현재 로그인한 사용자 정보 조회
  */
 export function getAdminInfoAPI() {
   return http<UserInfoResult>({
@@ -35,7 +35,7 @@ export function getAdminInfoAPI() {
 }
 
 /**
- * 根据用户名或姓名分页获取用户列表
+ * 사용자 이름 또는 성명으로 사용자 목록 페이징 조회
  */
 export function getAdminListAPI(params: PageParam) {
   return http<CommonPage<UmsAdmin>>({
@@ -46,7 +46,7 @@ export function getAdminListAPI(params: PageParam) {
 }
 
 /**
- * 后台用户注册
+ * 관리자 사용자 회원가입
  */
 export function adminRegisterAPI(data: UmsAdmin) {
   return http({
@@ -57,7 +57,7 @@ export function adminRegisterAPI(data: UmsAdmin) {
 }
 
 /**
- * 根据ID修改指定用户信息
+ * ID로 지정한 사용자 정보 수정
  */
 export function adminUpdateByIdAPI(id: number, data: UmsAdmin) {
   return http({
@@ -68,7 +68,7 @@ export function adminUpdateByIdAPI(id: number, data: UmsAdmin) {
 }
 
 /**
- * 根据用户ID修改账号启用状态
+ * 사용자 ID로 계정 사용 상태 수정
  */
 export function adminUpdateStatusByIdAPI(id: number, params: { status: number }) {
   return http({
@@ -79,7 +79,7 @@ export function adminUpdateStatusByIdAPI(id: number, params: { status: number })
 }
 
 /**
- * 根据ID删除用户
+ * ID로 사용자 삭제
  */
 export function adminDeleteByIdAPI(id: number) {
   return http({
@@ -89,7 +89,7 @@ export function adminDeleteByIdAPI(id: number) {
 }
 
 /**
- * 根据用户ID获取分配的角色
+ * 사용자 ID로 할당된 역할 조회
  */
 export function getRoleByAdminIdAPI(id: number) {
   return http<UmsRole[]>({
@@ -99,7 +99,7 @@ export function getRoleByAdminIdAPI(id: number) {
 }
 
 /**
- * 给指定ID的用户分配角色
+ * 지정한 ID의 사용자에게 역할 할당
  */
 export function adminRoleUpdateAPI(params: { roleIds: string; adminId: number }) {
   return http({

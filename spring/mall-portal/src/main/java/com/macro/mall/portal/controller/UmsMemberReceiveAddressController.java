@@ -12,17 +12,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 会员收货地址管理Controller
+ * 회원 배송지 관리Controller
  * Created by macro on 2018/8/28.
  */
 @Controller
-@Tag(name = "UmsMemberReceiveAddressController", description = "会员收货地址管理")
+@Tag(name = "UmsMemberReceiveAddressController", description = "회원 배송지 관리")
 @RequestMapping("/member/address")
 public class UmsMemberReceiveAddressController {
     @Autowired
     private UmsMemberReceiveAddressService memberReceiveAddressService;
 
-    @Operation(summary = "添加收货地址")
+    @Operation(summary = "배송지 추가")
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult add(@RequestBody UmsMemberReceiveAddress address) {
@@ -33,7 +33,7 @@ public class UmsMemberReceiveAddressController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "删除收货地址")
+    @Operation(summary = "배송지 삭제")
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(@PathVariable Long id) {
@@ -44,7 +44,7 @@ public class UmsMemberReceiveAddressController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "修改收货地址")
+    @Operation(summary = "배송지 수정")
     @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult update(@PathVariable Long id, @RequestBody UmsMemberReceiveAddress address) {
@@ -55,7 +55,7 @@ public class UmsMemberReceiveAddressController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "获取所有收货地址")
+    @Operation(summary = "전체 배송지 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<List<UmsMemberReceiveAddress>> list() {
@@ -63,7 +63,7 @@ public class UmsMemberReceiveAddressController {
         return CommonResult.success(addressList);
     }
 
-    @Operation(summary = "获取收货地址详情")
+    @Operation(summary = "배송지 상세 조회")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<UmsMemberReceiveAddress> getItem(@PathVariable Long id) {

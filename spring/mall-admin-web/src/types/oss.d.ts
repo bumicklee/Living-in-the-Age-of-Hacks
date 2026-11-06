@@ -1,15 +1,15 @@
 /**
- * OSS上传文件授权返回结果
+ * OSS업로드 파일 권한 부여 반환 결과
  */
 export type OssPolicyResult = {
-  /** 用户表单上传的策略,经过base64编码过的字符串 */
+  /** 사용자 폼 업로드 정책, base64로 인코딩된 문자열 */
   policy: string
-  /** 对policy签名后的字符串 */
+  /** policy에 서명한 문자열 */
   signature: string
-  /** 访问身份验证中用到用户标识 */
+  /** 접근 인증에 사용되는 사용자 식별자 */
   accessKeyId: string
-  /** 上传文件夹路径前缀 */
+  /** 업로드 폴더 경로 접두사 */
   dir: string
-  /** oss对外服务的访问域名 */
+  /** oss외부 서비스 접근 도메인 */
   host: string
 }

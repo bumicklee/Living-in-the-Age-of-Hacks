@@ -11,12 +11,12 @@ public class PmsProductVertifyRecord implements Serializable {
 
     private Date createTime;
 
-    @Schema(title = "审核人")
+    @Schema(title = "심사자")
     private String vertifyMan;
 
     private Integer status;
 
-    @Schema(title = "反馈详情")
+    @Schema(title = "피드백 상세")
     private String detail;
 
     private static final long serialVersionUID = 1L;

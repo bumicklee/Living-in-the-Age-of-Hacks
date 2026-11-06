@@ -38,7 +38,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 后台用户管理Service实现类
+ * 관리자 사용자 관리 Service 구현 클래스
  * Created by macro on 2018/4/26.
  */
 @Service
@@ -59,16 +59,16 @@ public class UmsAdminServiceImpl implements UmsAdminService {
 
     @Override
     public UmsAdmin getAdminByUsername(String username) {
-        //先从缓存中获取数据
+        //먼저 캐시에서 데이터 조회
         UmsAdmin admin = getCacheService().getAdmin(username);
         if (admin != null) return admin;
-        //缓存中没有从数据库中获取
+        //캐시에 없으면 데이터베이스에서 조회
         UmsAdminExample example = new UmsAdminExample();
         example.createCriteria().andUsernameEqualTo(username);
         List<UmsAdmin> adminList = adminMapper.selectByExample(example);
         if (adminList != null && adminList.size() > 0) {
             admin = adminList.get(0);
-            //将数据库中的数据存入缓存中
+            //데이터베이스의 데이터를 캐시에 저장
             getCacheService().setAdmin(admin);
             return admin;
         }
@@ -81,14 +81,14 @@ public class UmsAdminServiceImpl implements UmsAdminService {
         BeanUtils.copyProperties(umsAdminParam, umsAdmin);
         umsAdmin.setCreateTime(new Date());
         umsAdmin.setStatus(1);
-        //查询是否有相同用户名的用户
+        //동일한 사용자명의 사용자가 있는지 조회
         UmsAdminExample example = new UmsAdminExample();
         example.createCriteria().andUsernameEqualTo(umsAdmin.getUsername());
         List<UmsAdmin> umsAdminList = adminMapper.selectByExample(example);
         if (umsAdminList.size() > 0) {
             return null;
         }
-        //将密码进行加密操作
+        //비밀번호 암호화
         String encodePassword = passwordEncoder.encode(umsAdmin.getPassword());
         umsAdmin.setPassword(encodePassword);
         adminMapper.insert(umsAdmin);
@@ -98,14 +98,14 @@ public class UmsAdminServiceImpl implements UmsAdminService {
     @Override
     public String login(String username, String password) {
         String token = null;
-        //密码需要客户端加密后传递
+        //비밀번호는 클라이언트에서 암호화한 뒤 전달해야 함
         try {
             UserDetails userDetails = loadUserByUsername(username);
             if(!passwordEncoder.matches(password,userDetails.getPassword())){
-                Asserts.fail("密码不正确");
+                Asserts.fail("비밀번호가 올바르지 않습니다");
             }
             if(!userDetails.isEnabled()){
-                Asserts.fail("帐号已被禁用");
+                Asserts.fail("계정이 사용 중지되었습니다");
             }
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -113,14 +113,14 @@ public class UmsAdminServiceImpl implements UmsAdminService {
 //            updateLoginTimeByUsername(username);
             insertLoginLog(username);
         } catch (AuthenticationException e) {
-            LOGGER.warn("登录异常:{}", e.getMessage());
+            LOGGER.warn("로그인 예외:{}", e.getMessage());
         }
         return token;
     }
 
     /**
-     * 添加登录记录
-     * @param username 用户名
+     * 로그인 기록 추가
+     * @param username 사용자 이름
      */
     private void insertLoginLog(String username) {
         UmsAdmin admin = getAdminByUsername(username);
@@ -135,7 +135,7 @@ public class UmsAdminServiceImpl implements UmsAdminService {
     }
 
     /**
-     * 根据用户名修改登录时间
+     * 사용자 이름으로 로그인 시간 수정
      */
     private void updateLoginTimeByUsername(String username) {
         UmsAdmin record = new UmsAdmin();
@@ -172,10 +172,10 @@ public class UmsAdminServiceImpl implements UmsAdminService {
         admin.setId(id);
         UmsAdmin rawAdmin = adminMapper.selectByPrimaryKey(id);
         if(rawAdmin.getPassword().equals(admin.getPassword())){
-            //与原加密密码相同的不需要修改
+            //기존 암호화 비밀번호와 같으면 수정 불필요
             admin.setPassword(null);
         }else{
-            //与原加密密码不同的需要加密修改
+            //기존 암호화 비밀번호와 다르면 암호화하여 수정해야 함
             if(StrUtil.isEmpty(admin.getPassword())){
                 admin.setPassword(null);
             }else{
@@ -198,11 +198,11 @@ public class UmsAdminServiceImpl implements UmsAdminService {
     @Override
     public int updateRole(Long adminId, List<Long> roleIds) {
         int count = roleIds == null ? 0 : roleIds.size();
-        //先删除原来的关系
+        //기존 관계 먼저 삭제
         UmsAdminRoleRelationExample adminRoleRelationExample = new UmsAdminRoleRelationExample();
         adminRoleRelationExample.createCriteria().andAdminIdEqualTo(adminId);
         adminRoleRelationMapper.deleteByExample(adminRoleRelationExample);
-        //建立新关系
+        //새 관계 생성
         if (!CollectionUtils.isEmpty(roleIds)) {
             List<UmsAdminRoleRelation> list = new ArrayList<>();
             for (Long roleId : roleIds) {
@@ -224,15 +224,15 @@ public class UmsAdminServiceImpl implements UmsAdminService {
 
     @Override
     public List<UmsResource> getResourceList(Long adminId) {
-        //先从缓存中获取数据
+        //먼저 캐시에서 데이터 조회
         List<UmsResource> resourceList = getCacheService().getResourceList(adminId);
         if(CollUtil.isNotEmpty(resourceList)){
             return  resourceList;
         }
-        //缓存中没有从数据库中获取
+        //캐시에 없으면 데이터베이스에서 조회
         resourceList = adminRoleRelationDao.getResourceList(adminId);
         if(CollUtil.isNotEmpty(resourceList)){
-            //将数据库中的数据存入缓存中
+            //데이터베이스의 데이터를 캐시에 저장
             getCacheService().setResourceList(adminId,resourceList);
         }
         return resourceList;
@@ -263,13 +263,13 @@ public class UmsAdminServiceImpl implements UmsAdminService {
 
     @Override
     public UserDetails loadUserByUsername(String username){
-        //获取用户信息
+        //사용자 정보 조회
         UmsAdmin admin = getAdminByUsername(username);
         if (admin != null) {
             List<UmsResource> resourceList = getResourceList(admin.getId());
             return new AdminUserDetails(admin,resourceList);
         }
-        throw new UsernameNotFoundException("用户名或密码错误");
+        throw new UsernameNotFoundException("사용자 이름 또는 비밀번호 오류");
     }
 
     @Override
@@ -279,7 +279,7 @@ public class UmsAdminServiceImpl implements UmsAdminService {
 
     @Override
     public void logout(String username) {
-        //清空缓存中的用户相关数据
+        //캐시의 사용자 관련 데이터 비우기
         UmsAdmin admin = getCacheService().getAdmin(username);
         getCacheService().delAdmin(admin.getId());
         getCacheService().delResourceList(admin.getId());

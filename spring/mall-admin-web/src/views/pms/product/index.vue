@@ -19,21 +19,21 @@ import type { ElCascaderDataVo, ElSelectDataVo } from '@/types/common'
 import type { PmsSkuStock } from '@/types/skuStock'
 import type { PmsProductAttribute } from '@/types/productAttr'
 
-// 获取路由
+// 라우트 조회
 const router = useRouter()
 
-// 列表查询参数
+// 목록 조회 파라미터
 const listQuery = ref<ProductQueryParam>({
   pageNum: 1,
   pageSize: 10
 })
-// 列表数据
+// 목록 데이터
 const list = ref<PmsProduct[]>([])
-// 总条数
+// 총 건수
 const total = ref(0)
-// 加载状态
+// 로딩 상태
 const listLoading = ref(true)
-// 获取列表数据
+// 목록 데이터 조회
 const getList = async () => {
   listLoading.value = true
   try {
@@ -46,18 +46,18 @@ const getList = async () => {
     console.error(error)
   }
 }
-// 筛选搜索中的品牌数据
+// 필터 검색의 브랜드 데이터
 const brandOptions = ref<ElSelectDataVo[]>([])
-// 获取品牌列表数据
+// 브랜드 목록 데이터 조회
 const getBrandList = async () => {
   const res = await getBrandListAPI({ pageNum: 1, pageSize: 100 })
   brandOptions.value = res.data.list.map(item => ({ label: item.name, value: item.id!.toString() }))
 }
-// 筛选搜索中的商品分类数据
+// 필터 검색의 상품 카테고리 데이터
 const productCateOptions = ref<ElCascaderDataVo[]>([])
-// 筛选搜索中当前选中的商品分类，结构为：[父分类ID,分类ID]
+// 필터 검색에서 현재 선택된 상품 카테고리, 구조: [상위 카테고리 ID, 카테고리ID]
 const selectProductCateValue = ref([])
-// 获取商品分类列表数据
+// 상품 카테고리 목록 데이터 조회
 const getProductCateList = async () => {
   const res = await getProductCategoryListWithChildrenAPI()
   const list = res.data
@@ -67,30 +67,30 @@ const getProductCateList = async () => {
     children: item.children?.map(it => ({ label: it.name, value: it.id! }))
   }))
 }
-// 筛选搜索中的上下架状态
+// 필터 검색의 판매/판매 중지 상태
 const publishStatusOptions = ref([
   {
     value: 1,
-    label: '上架'
+    label: '판매 중'
   },
   {
     value: 0,
-    label: '下架'
+    label: '판매 중지'
   }
 ])
-// 筛选搜索中的审核状态
+// 필터 검색의 심사 상태
 const verifyStatusOptions = ref([
   {
     value: 1,
-    label: '审核通过'
+    label: '심사 통과'
   },
   {
     value: 0,
-    label: '未审核'
+    label: '미심사'
   }
 ])
 
-// 监听改变，通过修改列表查询中的productCategoryId数据
+// 변경을 감시하여 목록 조회의 productCategoryId 데이터 수정
 watch(selectProductCateValue, (newValue) => {
   if (newValue != null && newValue.length == 2) {
     listQuery.value.productCategoryId = newValue[1]
@@ -99,54 +99,54 @@ watch(selectProductCateValue, (newValue) => {
   }
 }, { immediate: true })
 
-// 组件挂载后执行
+// 컴포넌트 마운트 후 실행
 onMounted(() => {
   getList()
   getBrandList()
   getProductCateList()
 })
 
-// 批量操作类型
+// 일괄 작업 유형
 const operates = ref([
   {
-    label: "商品上架",
+    label: "상품 판매 개시",
     value: "publishOn"
   },
   {
-    label: "商品下架",
+    label: "상품 판매 중지",
     value: "publishOff"
   },
   {
-    label: "设为推荐",
+    label: "추천으로 설정",
     value: "recommendOn"
   },
   {
-    label: "取消推荐",
+    label: "추천 해제",
     value: "recommendOff"
   },
   {
-    label: "设为新品",
+    label: "신상품으로 설정",
     value: "newOn"
   },
   {
-    label: "取消新品",
+    label: "신상품 해제",
     value: "newOff"
   },
   {
-    label: "移入回收站",
+    label: "휴지통으로 이동",
     value: "recycle"
   },
   {
-    label: "转移到分类",
+    label: "카테고리로 이동",
     value: "transferCategory"
   }
 ])
-// 当前批量操作
+// 현재 일괄 작업
 const operateType = ref<string>()
-// 当前选中的条目
+// 현재 선택된 항목
 const multipleSelection = ref<PmsProduct[]>([])
 
-// SKU库存弹框数据
+// SKU재고 팝업 데이터
 const editSkuInfo = reactive({
   dialogVisible: false,
   productId: 0,
@@ -157,7 +157,7 @@ const editSkuInfo = reactive({
   keyword: undefined
 })
 
-// 从PmsSkuStock的spData中获取规格对应的值
+// PmsSkuStock의 spData에서 규격에 해당하는 값 조회
 const getProductSkuSp = (row: PmsSkuStock, index: number) => {
   const spData = JSON.parse(row.spData!)
   if (spData && index < spData.length) {
@@ -189,20 +189,20 @@ const handleSearchEditSku = async () => {
 const handleEditSkuConfirm = async () => {
   if (!editSkuInfo.stockList || editSkuInfo.stockList.length <= 0) {
     ElMessage({
-      message: '暂无sku信息',
+      message: 'sku 정보 없음',
       type: 'warning',
       duration: 1000
     })
     return
   }
-  await ElMessageBox.confirm('是否要进行修改', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('수정할까요?', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning'
   })
   await skuUpdateByPidAPI(editSkuInfo.productId, editSkuInfo.stockList)
   ElMessage({
-    message: '修改成功',
+    message: '수정 성공',
     type: 'success',
     duration: 1000
   })
@@ -221,7 +221,7 @@ const handleAddProduct = () => {
 const handleBatchOperate = async () => {
   if (!operateType.value) {
     ElMessage({
-      message: '请选择操作类型',
+      message: '작업 유형을 선택하세요',
       type: 'warning',
       duration: 1000
     })
@@ -229,15 +229,15 @@ const handleBatchOperate = async () => {
   }
   if (!multipleSelection.value || multipleSelection.value.length < 1) {
     ElMessage({
-      message: '请选择要操作的商品',
+      message: '작업할 상품을 선택하세요',
       type: 'warning',
       duration: 1000
     })
     return
   }
-  await ElMessageBox.confirm('是否要进行该批量操作?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('이 일괄 작업을 진행할까요??', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning'
   })
   const ids = multipleSelection.value.map(item => item.id!)
@@ -326,7 +326,7 @@ const handleShowLog = (index: number, row: PmsProduct) => {
 const updatePublishStatus = async (publishStatus: number, ids: number[]) => {
   await productUpdatePublishStatusAPI({ ids: ids.join(','), publishStatus: publishStatus })
   ElMessage({
-    message: '修改成功',
+    message: '수정 성공',
     type: 'success',
     duration: 1000
   })
@@ -335,7 +335,7 @@ const updatePublishStatus = async (publishStatus: number, ids: number[]) => {
 const updateNewStatus = async (newStatus: number, ids: number[]) => {
   await productUpdateNewStatusAPI({ ids: ids.join(','), newStatus: newStatus })
   ElMessage({
-    message: '修改成功',
+    message: '수정 성공',
     type: 'success',
     duration: 1000
   })
@@ -344,7 +344,7 @@ const updateNewStatus = async (newStatus: number, ids: number[]) => {
 const updateRecommendStatus = async (recommendStatus: number, ids: number[]) => {
   await productUpdateRecommendStatusAPI({ ids: ids.join(','), recommendStatus: recommendStatus })
   ElMessage({
-    message: '修改成功',
+    message: '수정 성공',
     type: 'success',
     duration: 1000
   })
@@ -353,19 +353,19 @@ const updateRecommendStatus = async (recommendStatus: number, ids: number[]) => 
 const updateDeleteStatus = async (deleteStatus: number, ids: number[]) => {
   await productUpdateDeleteStatusAPI({ ids: ids.join(','), deleteStatus: deleteStatus })
   ElMessage({
-    message: '删除成功',
+    message: '삭제 성공',
     type: 'success',
     duration: 1000
   })
   getList()
 }
 
-// 过滤器函数
+// 필터 함수
 const verifyStatusFilter = (value: number) => {
   if (value === 1) {
-    return '审核通过'
+    return '심사 통과'
   } else {
-    return '未审核'
+    return '미심사'
   }
 }
 </script>
@@ -377,40 +377,40 @@ const verifyStatusFilter = (value: number) => {
         <el-icon class="el-icon-middle">
           <Search />
         </el-icon>
-        <span>筛选搜索</span>
+        <span>필터 검색</span>
         <el-button style="float: right" @click="handleSearchList()" type="primary">
-          查询结果
+          조회 결과
         </el-button>
         <el-button style="float: right;margin-right: 15px" @click="handleResetSearch()">
-          重置
+          초기화
         </el-button>
       </div>
       <div style="margin-top: 20px">
         <el-form :inline="true" :model="listQuery" label-width="140px">
-          <el-form-item label="输入搜索：">
-            <el-input style="width: 203px" v-model="listQuery.keyword" placeholder="商品名称"></el-input>
+          <el-form-item label="검색어 입력:">
+            <el-input style="width: 203px" v-model="listQuery.keyword" placeholder="상품명"></el-input>
           </el-form-item>
-          <el-form-item label="商品货号：">
-            <el-input style="width: 203px" v-model="listQuery.productSn" placeholder="商品货号"></el-input>
+          <el-form-item label="상품 코드:">
+            <el-input style="width: 203px" v-model="listQuery.productSn" placeholder="상품 코드"></el-input>
           </el-form-item>
-          <el-form-item label="商品分类：">
+          <el-form-item label="상품 카테고리:">
             <el-cascader clearable v-model="selectProductCateValue" :options="productCateOptions">
             </el-cascader>
           </el-form-item>
-          <el-form-item label="商品品牌：">
-            <el-select v-model="listQuery.brandId" placeholder="请选择品牌" clearable style="width: 203px;">
+          <el-form-item label="상품 브랜드:">
+            <el-select v-model="listQuery.brandId" placeholder="브랜드를 선택하세요" clearable style="width: 203px;">
               <el-option v-for="item in brandOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="上架状态：">
-            <el-select v-model="listQuery.publishStatus" placeholder="全部" clearable style="width: 203px;">
+          <el-form-item label="판매 상태:">
+            <el-select v-model="listQuery.publishStatus" placeholder="전체" clearable style="width: 203px;">
               <el-option v-for="item in publishStatusOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="审核状态：">
-            <el-select v-model="listQuery.verifyStatus" placeholder="全部" clearable style="width: 203px;">
+          <el-form-item label="심사 상태:">
+            <el-select v-model="listQuery.verifyStatus" placeholder="전체" clearable style="width: 203px;">
               <el-option v-for="item in verifyStatusOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
@@ -422,85 +422,85 @@ const verifyStatusFilter = (value: number) => {
       <el-icon class="el-icon-middle">
         <Tickets />
       </el-icon>
-      <span>数据列表</span>
+      <span>데이터 목록</span>
       <el-button class="btn-add" @click="handleAddProduct()">
-        添加
+        추가
       </el-button>
     </el-card>
     <div class="table-container">
       <el-table ref="productTable" :data="list" style="width: 100%" @selection-change="handleSelectionChange"
         v-loading="listLoading" border>
         <el-table-column type="selection" width="60" align="center"></el-table-column>
-        <el-table-column label="编号" width="100" align="center">
+        <el-table-column label="번호" width="100" align="center">
           <template #default="scope">{{ scope.row.id }}</template>
         </el-table-column>
-        <el-table-column label="商品图片" width="120" align="center">
+        <el-table-column label="상품 이미지" width="120" align="center">
           <template #default="scope"><img style="height: 80px" :src="scope.row.pic"></template>
         </el-table-column>
-        <el-table-column label="商品名称" align="center">
+        <el-table-column label="상품명" align="center">
           <template #default="scope">
             <p>{{ scope.row.name }}</p>
-            <p>品牌：{{ scope.row.brandName }}</p>
+            <p>브랜드:{{ scope.row.brandName }}</p>
           </template>
         </el-table-column>
-        <el-table-column label="价格/货号" width="120" align="center">
+        <el-table-column label="가격/상품번호" width="120" align="center">
           <template #default="scope">
-            <p>价格：￥{{ scope.row.price }}</p>
-            <p>货号：{{ scope.row.productSn }}</p>
+            <p>가격: ₩{{ scope.row.price }}</p>
+            <p>상품 번호:{{ scope.row.productSn }}</p>
           </template>
         </el-table-column>
-        <el-table-column label="标签" width="140" align="center">
+        <el-table-column label="태그" width="140" align="center">
           <template #default="scope">
-            <p style="margin: 6px 0px;">上架：
+            <p style="margin: 6px 0px;">판매 중:
               <el-switch @change="handlePublishStatusChange(scope.$index, scope.row)" :active-value="1"
                 :inactive-value="0" v-model="scope.row.publishStatus">
               </el-switch>
             </p>
-            <p style="margin: 6px 0px;">新品：
+            <p style="margin: 6px 0px;">신상품:
               <el-switch @change="handleNewStatusChange(scope.$index, scope.row)" :active-value="1" :inactive-value="0"
                 v-model="scope.row.newStatus">
               </el-switch>
             </p>
-            <p style="margin: 6px 0px;">推荐：
+            <p style="margin: 6px 0px;">추천:
               <el-switch @change="handleRecommendStatusChange(scope.$index, scope.row)" :active-value="1"
                 :inactive-value="0" v-model="scope.row.recommandStatus">
               </el-switch>
             </p>
           </template>
         </el-table-column>
-        <el-table-column label="排序" width="100" align="center">
+        <el-table-column label="정렬" width="100" align="center">
           <template #default="scope">{{ scope.row.sort }}</template>
         </el-table-column>
-        <el-table-column label="SKU库存" width="100" align="center">
+        <el-table-column label="SKU재고" width="100" align="center">
           <template #default="scope">
             <el-button type="primary" :icon="Edit" size="large"
               @click="handleShowSkuEditDialog(scope.$index, scope.row)" circle></el-button>
           </template>
         </el-table-column>
-        <el-table-column label="销量" width="100" align="center">
+        <el-table-column label="판매량" width="100" align="center">
           <template #default="scope">{{ scope.row.sale }}</template>
         </el-table-column>
-        <el-table-column label="审核状态" width="100" align="center">
+        <el-table-column label="심사 상태" width="100" align="center">
           <template #default="scope">
             <p>{{ verifyStatusFilter(scope.row.verifyStatus) }}</p>
             <p>
-              <el-button type="primary" link @click="handleShowVerifyDetail(scope.$index, scope.row)">审核详情
+              <el-button type="primary" link @click="handleShowVerifyDetail(scope.$index, scope.row)">심사 상세
               </el-button>
             </p>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="160" align="center">
+        <el-table-column label="작업" width="160" align="center">
           <template #default="scope">
             <p>
-              <el-button size="small" @click="handleShowProduct(scope.$index, scope.row)">查看
+              <el-button size="small" @click="handleShowProduct(scope.$index, scope.row)">보기
               </el-button>
-              <el-button size="small" @click="handleUpdateProduct(scope.$index, scope.row)">编辑
+              <el-button size="small" @click="handleUpdateProduct(scope.$index, scope.row)">편집
               </el-button>
             </p>
             <p>
-              <el-button size="small" @click="handleShowLog(scope.$index, scope.row)">日志
+              <el-button size="small" @click="handleShowLog(scope.$index, scope.row)">로그
               </el-button>
-              <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">删除
+              <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">삭제
               </el-button>
             </p>
           </template>
@@ -508,12 +508,12 @@ const verifyStatusFilter = (value: number) => {
       </el-table>
     </div>
     <div class="batch-operate-container">
-      <el-select v-model="operateType" placeholder="批量操作">
+      <el-select v-model="operateType" placeholder="일괄 작업">
         <el-option v-for="item in operates" :key="item.value" :label="item.label" :value="item.value">
         </el-option>
       </el-select>
       <el-button style="margin-left: 20px" class="search-button" @click="handleBatchOperate()" type="primary">
-        确定
+        확인
       </el-button>
     </div>
     <div class="pagination-container">
@@ -522,16 +522,16 @@ const verifyStatusFilter = (value: number) => {
         v-model:current-page="listQuery.pageNum" :total="total">
       </el-pagination>
     </div>
-    <el-dialog title="编辑货品信息" v-model="editSkuInfo.dialogVisible" width="40%">
-      <span>商品货号：</span>
+    <el-dialog title="상품 정보 편집" v-model="editSkuInfo.dialogVisible" width="40%">
+      <span>상품 코드:</span>
       <span>{{ editSkuInfo.productSn }}</span>
-      <el-input placeholder="按sku编号搜索" v-model="editSkuInfo.keyword" style="width: 60%;margin-left: 20px">
+      <el-input placeholder="sku 번호로 검색" v-model="editSkuInfo.keyword" style="width: 60%;margin-left: 20px">
         <template #append>
           <el-button :icon="Search" @click="handleSearchEditSku"></el-button>
         </template>
       </el-input>
       <el-table style="width: 100%;margin-top: 20px" :data="editSkuInfo.stockList" border>
-        <el-table-column label="SKU编号" align="center">
+        <el-table-column label="SKU번호" align="center">
           <template #default="scope">
             <el-input v-model="scope.row.skuCode"></el-input>
           </template>
@@ -542,17 +542,17 @@ const verifyStatusFilter = (value: number) => {
             {{ getProductSkuSp(scope.row, index) }}
           </template>
         </el-table-column>
-        <el-table-column label="销售价格" width="80" align="center">
+        <el-table-column label="판매 가격" width="80" align="center">
           <template #default="scope">
             <el-input v-model="scope.row.price"></el-input>
           </template>
         </el-table-column>
-        <el-table-column label="商品库存" width="80" align="center">
+        <el-table-column label="상품 재고" width="80" align="center">
           <template #default="scope">
             <el-input v-model="scope.row.stock"></el-input>
           </template>
         </el-table-column>
-        <el-table-column label="库存预警值" width="100" align="center">
+        <el-table-column label="재고 경고 기준값" width="100" align="center">
           <template #default="scope">
             <el-input v-model="scope.row.lowStock"></el-input>
           </template>
@@ -560,8 +560,8 @@ const verifyStatusFilter = (value: number) => {
       </el-table>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="editSkuInfo.dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="handleEditSkuConfirm">确 定</el-button>
+          <el-button @click="editSkuInfo.dialogVisible = false">취 소</el-button>
+          <el-button type="primary" @click="handleEditSkuConfirm">확 인</el-button>
         </span>
       </template>
     </el-dialog>

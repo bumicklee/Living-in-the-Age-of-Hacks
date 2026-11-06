@@ -9,13 +9,13 @@ public class PmsProductLadder implements Serializable {
 
     private Long productId;
 
-    @Schema(title = "满足的商品数量")
+    @Schema(title = "충족한 상품 수량")
     private Integer count;
 
-    @Schema(title = "折扣")
+    @Schema(title = "할인")
     private BigDecimal discount;
 
-    @Schema(title = "折后价格")
+    @Schema(title = "할인 후 가격")
     private BigDecimal price;
 
     private static final long serialVersionUID = 1L;

@@ -1,29 +1,29 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-// 定义组件的props
+// 컴포넌트의 정의props
 const props = defineProps({
   modelValue: Boolean
 })
 
-// 定义组件的emits
+// 컴포넌트의 정의emits
 const emit = defineEmits(['update:modelValue'])
 
-// 默认物流列表数据
+// 기본 배송 목록 데이터
 const defaultLogisticsList = [
-  { name: '订单已提交，等待付款', time: '2017-04-01 12:00:00 ' },
-  { name: '订单付款成功', time: '2017-04-01 12:00:00 ' },
-  { name: '在北京市进行下级地点扫描，等待付款', time: '2017-04-01 12:00:00 ' },
-  { name: '在分拨中心广东深圳公司进行卸车扫描，等待付款', time: '2017-04-01 12:00:00 ' },
-  { name: '在广东深圳公司进行发出扫描', time: '2017-04-01 12:00:00 ' },
-  { name: '到达目的地网点广东深圳公司，快件将很快进行派送', time: '2017-04-01 12:00:00 ' },
-  { name: '订单已签收，期待再次为您服务', time: '2017-04-01 12:00:00 ' }
+  { name: '주문이 접수되었습니다. 결제를 기다리고 있습니다', time: '2017-04-01 12:00:00 ' },
+  { name: '주문 결제 성공', time: '2017-04-01 12:00:00 ' },
+  { name: '베이징시에서 다음 거점 스캔 완료, 결제 대기 중', time: '2017-04-01 12:00:00 ' },
+  { name: '광둥 선전 물류센터에서 하차 스캔 완료, 결제 대기 중', time: '2017-04-01 12:00:00 ' },
+  { name: '광둥 선전 지점에서 발송 스캔 완료', time: '2017-04-01 12:00:00 ' },
+  { name: '목적지 지점 광둥 선전 회사에 도착했으며, 택배가 곧 배송될 예정입니다', time: '2017-04-01 12:00:00 ' },
+  { name: '주문이 수령 처리되었습니다. 다시 이용해 주세요', time: '2017-04-01 12:00:00 ' }
 ]
 
-// 物流列表数据
+// 배송 목록 데이터
 const logisticsList = ref(Object.assign([], defaultLogisticsList))
 
-// 控制对话框显示的计算属性
+// 대화상자 표시를 제어하는 계산 속성
 const visible = computed({
   get() {
     return props.modelValue
@@ -33,19 +33,19 @@ const visible = computed({
   }
 })
 
-// 发出输入事件
+// input 이벤트 발생
 const emitInput = (val: boolean) => {
   emit('update:modelValue', val)
 }
 
-// 处理关闭对话框
+// 대화 상자 닫기 처리
 const handleClose = () => {
   emitInput(false)
 }
 </script>
 
 <template>
-  <el-dialog title="订单跟踪" v-model="visible" :before-close="handleClose" width="40%">
+  <el-dialog title="주문 추적" v-model="visible" :before-close="handleClose" width="40%">
     <el-steps direction="vertical" :active="6" finish-status="success" space="50px">
       <el-step v-for="item in logisticsList" :key="item.name" :title="item.name" :description="item.time"></el-step>
     </el-steps>

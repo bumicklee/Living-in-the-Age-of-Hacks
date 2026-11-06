@@ -1,148 +1,148 @@
-# Linux常用命令
+# Linux주요 명령어
 
-## 系统服务管理
+## 시스템 서비스 관리
 
 ### systemctl
 
-- 启动服务：systemctl start httpd.service
-- 关闭服务：systemctl stop httpd.service
-- 重启服务（不管是否在运行）：systemctl restart httpd.service
-- 重新载入配置（不中断服务）：systemctl reload httpd.service
-- 查看运行状态：systemctl status httpd.service
-- 设置开机启动：systemctl enable httpd.service
-- 禁止开机启动：systemctl disable httpd.service
-- 查看系统安装的服务：systemctl list-units --type=service
+- 서비스 시작:systemctl start httpd.service
+- 서비스 종료:systemctl stop httpd.service
+- 서비스 재시작(실행 여부와 관계없이):systemctl restart httpd.service
+- 설정 다시 불러오기(서비스 중단 없이):systemctl reload httpd.service
+- 실행 상태 확인:systemctl status httpd.service
+- 부팅 시 자동 시작 설정:systemctl enable httpd.service
+- 부팅 시 자동 시작 금지:systemctl disable httpd.service
+- 시스템에 설치된 서비스 확인:systemctl list-units --type=service
 
-## 文件管理
+## 파일 관리
 
 ### ls
-列出/home目录下的子目录：ls -l /home
-列出当前文件夹下所有文件夹及文件大小：ls -lht 
+/home 디렉터리 아래 하위 디렉터리 나열:ls -l /home
+현재 폴더 아래 모든 폴더와 파일 크기 나열:ls -lht 
 
 ### pwd
-显示当前工作目录
+현재 작업 디렉터리 표시
 
 ### cd
-切换目录： cd /usr/local
+디렉터리 이동: cd /usr/local
 
 ### date
-以指定格式显示日期；date '+date:%x time:%X'
+지정한 형식으로 날짜 표시;date '+date:%x time:%X'
 
 ### passwd
-修改root密码：passwd root
+root 비밀번호 변경:passwd root
 
 ### su
-普通用户切换到超级用户：su -
+일반 사용자에서 슈퍼유저로 전환:su -
 
 ### clear
-清除屏幕信息
+화면 정보 지우기
 
 ### man
-查看ls命令的帮助信息：man ls
+ls 명령어 도움말 확인:man ls
 
 ### who
-- 查看当前运行级别：who -r
-- 显示用的登录详情：who -buT
+- 현재 런레벨 확인:who -r
+- 화면에 표시할 로그인 상세:who -buT
 
 ### free
-以MB显示内存使用状态：free -m
+메모리 사용 상태를 MB 단위로 표시:free -m
 
 ### ps
-查看系统所有进程：ps -ef
-查看运行的java进程： ps -ef | grep java
+시스템의 모든 프로세스 확인:ps -ef
+실행 중인 java 프로세스 확인: ps -ef | grep java
 
 ### top
-查看系统当前活跃进程信息
+시스템에서 현재 활성 프로세스 정보 확인
 
 ### mkdir
-创建目录
+디렉터리 생성
 
 ### more 
 
-分页查看  
-每10行显示一屏查看：more -c -10 
+페이지별 조회  
+10행씩 한 화면으로 보기:more -c -10 
 
 ### cat
-查看config文件：cat -Ab config
+config 파일 확인:cat -Ab config
 
 ### rm
-- 删除文件：rm a.txt
-- 删除文件夹： rm -rf a/
+- 파일 삭제:rm a.txt
+- 폴더 삭제: rm -rf a/
 
 ### touch
-创建一个文件：touch a.txt
+파일 생성:touch a.txt
 
 ### cp
-将目录a的文件拷贝到目录b: cp -r /home/a /home/b
+디렉터리 a의 파일을 다음 디렉터리로 복사:b: cp -r /home/a /home/b
 
 ### mv
-移动或覆盖文件：mv a.txt b.txt
+파일 이동 또는 덮어쓰기:mv a.txt b.txt
 
-## 压缩与解压
+## 압축 및 압축 해제
 
 ### tar
-- 打包文件夹到单独的文件：tar -cvf /opt/etc.tar /etc
-- 压缩文件夹到压缩文件（gzip）：tar -zcvf /opt/etc.tar.gz /etc
-- 压缩文件夹到压缩文件（bzip2）：tar -jcvf /opt/etc.tar.bz2 /etc
-- 查阅压缩包中内容（gzip）：tar -ztvf /opt/etc.tar.gz /etc
-- 解压文件到当前目录（gzip）：tar -zxvf /opt/etc.tar.gz
+- 폴더를 별도 파일로 압축:tar -cvf /opt/etc.tar /etc
+- 폴더를 압축 파일로 압축(gzip):tar -zcvf /opt/etc.tar.gz /etc
+- 폴더를 압축 파일로 압축(bzip2):tar -jcvf /opt/etc.tar.bz2 /etc
+- 압축 파일 내용 확인(gzip):tar -ztvf /opt/etc.tar.gz /etc
+- 현재 디렉터리에 파일 압축 해제(gzip):tar -zxvf /opt/etc.tar.gz
 
-## 磁盘和网络管理
+## 디스크 및 네트워크 관리
 
 ### df
-查看磁盘占用情况：df -hT
+디스크 사용량 확인:df -hT
 
 ### ifconfig
-查看当前网络接口状态
+현재 네트워크 인터페이스 상태 확인
 
 ### netstat
 
-- 查看路由信息：netstat -rn
-- 查看所有有效TCP连接：netstat -an
-- 查看系统中启动的监听服务：netstat -tulnp
-- 查看处于连接状态的系统资源信息：netstat -atunp
+- 라우트 정보 확인:netstat -rn
+- 유효한 모든 TCP 연결 확인:netstat -an
+- 시스템에서 실행 중인 리스닝 서비스 확인:netstat -tulnp
+- 연결 상태인 시스템 리소스 정보 확인:netstat -atunp
 
 ### wget
-从网络上下载软件
+네트워크에서 소프트웨어 다운로드
 
-## 软件的安装与管理
+## 소프트웨어 설치 및 관리
 
 ### rpm
 
-- 安装软件包：rpm -ivh nginx-1.12.2-2.el7.x86_64.rpm
-- 模糊搜索软件包：rpm -qa | grep nginx
-- 精确查找软件包：rpm -qa nginx
-- 查询软件包的安装路径：rpm -ql nginx-1.12.2-2.el7.x86_64
-- 查看软件包的概要信息：rpm -qi nginx-1.12.2-2.el7.x86_64
-- 验证软件包内容和安装文件是否一致：rpm -V nginx-1.12.2-2.el7.x86_64
-- 更新软件包：rpm -Uvh nginx-1.12.2-2.el7.x86_64
-- 删除软件包：rpm -e nginx-1.12.2-2.el7.x86_64
+- 패키지 설치:rpm -ivh nginx-1.12.2-2.el7.x86_64.rpm
+- 패키지 모호 검색:rpm -qa | grep nginx
+- 패키지 정확히 검색:rpm -qa nginx
+- 패키지 설치 경로 조회:rpm -ql nginx-1.12.2-2.el7.x86_64
+- 패키지 개요 정보 확인:rpm -qi nginx-1.12.2-2.el7.x86_64
+- 패키지 내용과 설치 파일이 일치하는지 검증:rpm -V nginx-1.12.2-2.el7.x86_64
+- 패키지 업데이트:rpm -Uvh nginx-1.12.2-2.el7.x86_64
+- 패키지 삭제:rpm -e nginx-1.12.2-2.el7.x86_64
 
 ### yum
 
-- 安装软件包： yum install nginx
-- 检查可以更新的软件包：yum check-update
-- 更新指定的软件包：yum update nginx
-- 在资源库中查找软件包信息：yum info nginx*
-- 列出已经安装的所有软件包：yum info installed
-- 列出软件包名称：yum list redis*
-- 模糊搜索软件包：yum search redis
+- 패키지 설치: yum install nginx
+- 업데이트 가능한 패키지 확인:yum check-update
+- 지정한 패키지 업데이트:yum update nginx
+- 저장소에서 패키지 정보 검색:yum info nginx*
+- 설치된 모든 패키지 나열:yum info installed
+- 패키지 이름 나열:yum list redis*
+- 패키지 모호 검색:yum search redis
 
-## 网络安全
+## 네트워크 보안
 
 ### iptables
 
-- 开启防火墙：systemctl start iptables.service
-- 关闭防火墙：systemctl stop iptables.service
-- 查看防火墙状态：systemctl status iptables.service
-- 设置开机启动：systemctl enable iptables.service
-- 禁用开机启动：systemctl disable iptables.service
-- 查看filter表的链信息：iptables -L -n
-- 查看NAT表的链信息：iptables -t nat -L -n
-- 清除防火墙所有规则：iptables -F;iptables -X;iptables -Z;
-- 添加过滤规则（开发80端口）：iptables -I INPUT -p tcp --dport 80 -j ACCEPT
-- 查找规则所做行号：iptables -L INPUT --line-numbers -n
-- 根据行号删除过滤规则：iptables -D INPUT 1
+- 방화벽 켜기:systemctl start iptables.service
+- 방화벽 종료:systemctl stop iptables.service
+- 방화벽 상태 확인:systemctl status iptables.service
+- 부팅 시 자동 시작 설정:systemctl enable iptables.service
+- 부팅 시 자동 시작 비활성화:systemctl disable iptables.service
+- filter 테이블의 체인 정보 확인:iptables -L -n
+- NAT 테이블의 체인 정보 확인:iptables -t nat -L -n
+- 방화벽 규칙 모두 삭제:iptables -F;iptables -X;iptables -Z;
+- 필터 규칙 추가(80 포트 개방):iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+- 규칙이 있는 행 번호 찾기:iptables -L INPUT --line-numbers -n
+- 행 번호로 필터 규칙 삭제:iptables -D INPUT 1
 
 
 

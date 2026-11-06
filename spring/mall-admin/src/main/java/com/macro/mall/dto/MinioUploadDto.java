@@ -5,14 +5,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 文件上传返回结果
+ * 파일 업로드 반환 결과
  * Created by macro on 2019/12/25.
  */
 @Data
 @EqualsAndHashCode
 public class MinioUploadDto {
-    @Schema(title = "文件访问URL")
+    @Schema(title = "파일 접근URL")
     private String url;
-    @Schema(title = "文件名称")
+    @Schema(title = "파일 이름")
     private String name;
 }

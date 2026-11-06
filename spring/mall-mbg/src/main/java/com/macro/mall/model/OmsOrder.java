@@ -6,134 +6,134 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 public class OmsOrder implements Serializable {
-    @Schema(title = "订单id")
+    @Schema(title = "주문id")
     private Long id;
 
     private Long memberId;
 
     private Long couponId;
 
-    @Schema(title = "订单编号")
+    @Schema(title = "주문 번호")
     private String orderSn;
 
-    @Schema(title = "提交时间")
+    @Schema(title = "제출 시간")
     private Date createTime;
 
-    @Schema(title = "用户帐号")
+    @Schema(title = "사용자 계정")
     private String memberUsername;
 
-    @Schema(title = "订单总金额")
+    @Schema(title = "주문 총 금액")
     private BigDecimal totalAmount;
 
-    @Schema(title = "应付金额（实际支付金额）")
+    @Schema(title = "결제 예정 금액(실제 결제 금액)")
     private BigDecimal payAmount;
 
-    @Schema(title = "运费金额")
+    @Schema(title = "배송비 금액")
     private BigDecimal freightAmount;
 
-    @Schema(title = "促销优化金额（促销价、满减、阶梯价）")
+    @Schema(title = "프로모션 할인 금액(프로모션가, 금액 할인, 단계별 가격)")
     private BigDecimal promotionAmount;
 
-    @Schema(title = "积分抵扣金额")
+    @Schema(title = "포인트 차감 금액")
     private BigDecimal integrationAmount;
 
-    @Schema(title = "优惠券抵扣金额")
+    @Schema(title = "쿠폰 할인 금액")
     private BigDecimal couponAmount;
 
-    @Schema(title = "管理员后台调整订单使用的折扣金额")
+    @Schema(title = "관리자가 관리자 화면에서 주문에 적용한 할인 금액 조정")
     private BigDecimal discountAmount;
 
-    @Schema(title = "支付方式：0->未支付；1->支付宝；2->微信")
+    @Schema(title = "결제 수단:0->미결제;1->알리페이;2->위챗")
     private Integer payType;
 
-    @Schema(title = "订单来源：0->PC订单；1->app订单")
+    @Schema(title = "주문 출처:0->PC주문;1->app주문")
     private Integer sourceType;
 
-    @Schema(title = "订单状态：0->待付款；1->待发货；2->已发货；3->已完成；4->已关闭；5->无效订单")
+    @Schema(title = "주문 상태:0->결제 대기;1->배송 대기;2->발송됨;3->완료;4->닫힘;5->무효 주문")
     private Integer status;
 
-    @Schema(title = "订单类型：0->正常订单；1->秒杀订单")
+    @Schema(title = "주문 유형:0->정상 주문;1->타임 세일 주문")
     private Integer orderType;
 
-    @Schema(title = "物流公司(配送方式)")
+    @Schema(title = "택배사(배송 방식)")
     private String deliveryCompany;
 
-    @Schema(title = "物流单号")
+    @Schema(title = "운송장 번호")
     private String deliverySn;
 
-    @Schema(title = "自动确认时间（天）")
+    @Schema(title = "자동 확인 시간(일)")
     private Integer autoConfirmDay;
 
-    @Schema(title = "可以获得的积分")
+    @Schema(title = "획득 가능한 포인트")
     private Integer integration;
 
-    @Schema(title = "可以活动的成长值")
+    @Schema(title = "획득 가능한 성장 포인트")
     private Integer growth;
 
-    @Schema(title = "活动信息")
+    @Schema(title = "이벤트 정보")
     private String promotionInfo;
 
-    @Schema(title = "发票类型：0->不开发票；1->电子发票；2->纸质发票")
+    @Schema(title = "영수증 유형:0->인보이스 미발행;1->전자 영수증;2->종이 영수증")
     private Integer billType;
 
-    @Schema(title = "发票抬头")
+    @Schema(title = "영수증 발행 대상")
     private String billHeader;
 
-    @Schema(title = "发票内容")
+    @Schema(title = "영수증 내용")
     private String billContent;
 
-    @Schema(title = "收票人电话")
+    @Schema(title = "세금계산서 수령인 전화번호")
     private String billReceiverPhone;
 
-    @Schema(title = "收票人邮箱")
+    @Schema(title = "세금계산서 수령인 이메일")
     private String billReceiverEmail;
 
-    @Schema(title = "收货人姓名")
+    @Schema(title = "수령인 이름")
     private String receiverName;
 
-    @Schema(title = "收货人电话")
+    @Schema(title = "수령인 전화번호")
     private String receiverPhone;
 
-    @Schema(title = "收货人邮编")
+    @Schema(title = "수령인 우편번호")
     private String receiverPostCode;
 
-    @Schema(title = "省份/直辖市")
+    @Schema(title = "시/도, 직할시")
     private String receiverProvince;
 
-    @Schema(title = "城市")
+    @Schema(title = "도시")
     private String receiverCity;
 
-    @Schema(title = "区")
+    @Schema(title = "구")
     private String receiverRegion;
 
-    @Schema(title = "详细地址")
+    @Schema(title = "상세 주소")
     private String receiverDetailAddress;
 
-    @Schema(title = "订单备注")
+    @Schema(title = "주문 메모")
     private String note;
 
-    @Schema(title = "确认收货状态：0->未确认；1->已确认")
+    @Schema(title = "수취 확인 상태:0->미확인;1->확인됨")
     private Integer confirmStatus;
 
-    @Schema(title = "删除状态：0->未删除；1->已删除")
+    @Schema(title = "삭제 상태:0->삭제 안 됨;1->삭제됨")
     private Integer deleteStatus;
 
-    @Schema(title = "下单时使用的积分")
+    @Schema(title = "주문 시 사용한 포인트")
     private Integer useIntegration;
 
-    @Schema(title = "支付时间")
+    @Schema(title = "결제 시간")
     private Date paymentTime;
 
-    @Schema(title = "发货时间")
+    @Schema(title = "발송 시간")
     private Date deliveryTime;
 
-    @Schema(title = "确认收货时间")
+    @Schema(title = "수취 확인 시간")
     private Date receiveTime;
 
-    @Schema(title = "评价时间")
+    @Schema(title = "리뷰 작성 시간")
     private Date commentTime;
 
-    @Schema(title = "修改时间")
+    @Schema(title = "수정 시간")
     private Date modifyTime;
 
     private static final long serialVersionUID = 1L;

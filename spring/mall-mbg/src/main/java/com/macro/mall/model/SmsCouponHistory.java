@@ -13,24 +13,24 @@ public class SmsCouponHistory implements Serializable {
 
     private String couponCode;
 
-    @Schema(title = "领取人昵称")
+    @Schema(title = "수령인 닉네임")
     private String memberNickname;
 
-    @Schema(title = "获取类型：0->后台赠送；1->主动获取")
+    @Schema(title = "조회 타입:0->관리자 지급;1->직접 조회")
     private Integer getType;
 
     private Date createTime;
 
-    @Schema(title = "使用状态：0->未使用；1->已使用；2->已过期")
+    @Schema(title = "사용 상태:0->미사용;1->사용 완료;2->만료됨")
     private Integer useStatus;
 
-    @Schema(title = "使用时间")
+    @Schema(title = "사용 시간")
     private Date useTime;
 
-    @Schema(title = "订单编号")
+    @Schema(title = "주문 번호")
     private Long orderId;
 
-    @Schema(title = "订单号码")
+    @Schema(title = "주문 번호")
     private String orderSn;
 
     private static final long serialVersionUID = 1L;

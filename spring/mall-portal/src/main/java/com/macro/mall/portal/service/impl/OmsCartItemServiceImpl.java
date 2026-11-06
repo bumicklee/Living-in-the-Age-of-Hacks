@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 购物车管理Service实现类
+ * 장바구니 관리 Service 구현 클래스
  * Created by macro on 2018/8/2.
  */
 @Service
@@ -55,7 +55,7 @@ public class OmsCartItemServiceImpl implements OmsCartItemService {
     }
 
     /**
-     * 根据会员id,商品id和规格获取购物车中商品
+     * 회원 id, 상품 id, 규격으로 장바구니 상품 조회
      */
     private OmsCartItem getCartItem(OmsCartItem cartItem) {
         OmsCartItemExample example = new OmsCartItemExample();
@@ -117,7 +117,7 @@ public class OmsCartItemServiceImpl implements OmsCartItemService {
 
     @Override
     public int updateAttr(OmsCartItem cartItem) {
-        //删除原购物车信息
+        //기존 장바구니 정보 삭제
         OmsCartItem updateCart = new OmsCartItem();
         updateCart.setId(cartItem.getId());
         updateCart.setModifyDate(new Date());

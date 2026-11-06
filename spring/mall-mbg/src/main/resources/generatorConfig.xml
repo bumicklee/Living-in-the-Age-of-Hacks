@@ -6,44 +6,44 @@
 <generatorConfiguration>
     <properties resource="generator.properties"/>
     <context id="MySqlContext" targetRuntime="MyBatis3" defaultModelType="flat">
-        <!-- 配置SQL语句中的前置分隔符 -->
+        <!-- SQL 문의 앞쪽 구분자 설정 -->
         <property name="beginningDelimiter" value="`"/>
-        <!-- 配置SQL语句中的后置分隔符 -->
+        <!-- SQL 문의 뒤쪽 구분자 설정 -->
         <property name="endingDelimiter" value="`"/>
-        <!-- 配置生成Java文件的编码 -->
+        <!-- 생성할 Java 파일의 인코딩 설정 -->
         <property name="javaFileEncoding" value="UTF-8"/>
-        <!-- 为模型生成序列化方法 -->
+        <!-- 모델 직렬화 메서드 생성 -->
         <plugin type="org.mybatis.generator.plugins.SerializablePlugin"/>
-        <!-- 为生成的Java模型创建一个toString方法 -->
+        <!-- 생성된 Java 모델에 toString 메서드 생성 -->
         <plugin type="org.mybatis.generator.plugins.ToStringPlugin"/>
-        <!-- 生成mapper.xml时覆盖原文件 -->
+        <!-- mapper.xml 생성 시 기존 파일 덮어쓰기 -->
         <plugin type="org.mybatis.generator.plugins.UnmergeableXmlMappersPlugin" />
         <commentGenerator type="com.macro.mall.CommentGenerator">
-            <!-- 是否阻止生成的注释 -->
+            <!-- 생성된 주석 출력 방지 여부 -->
             <property name="suppressAllComments" value="true"/>
-            <!-- 是否阻止生成的注释包含时间戳 -->
+            <!-- 생성된 주석에 타임스탬프 포함 방지 여부 -->
             <property name="suppressDate" value="true"/>
-            <!-- 是否添加数据库表的备注信息 -->
+            <!-- 데이터베이스 테이블의 설명 정보 추가 여부 -->
             <property name="addRemarkComments" value="true"/>
         </commentGenerator>
-        <!-- 配置MBG要连接的数据库信息 -->
+        <!-- MBG가 연결할 데이터베이스 정보 설정 -->
         <jdbcConnection driverClass="${jdbc.driverClass}"
                         connectionURL="${jdbc.connectionURL}"
                         userId="${jdbc.userId}"
                         password="${jdbc.password}">
-            <!-- 解决mysql驱动升级到8.0后不生成指定数据库代码的问题 -->
+            <!-- mysql 드라이버를 8.0으로 올린 뒤 지정한 데이터베이스 코드가 생성되지 않는 문제 해결 -->
             <property name="nullCatalogMeansCurrent" value="true" />
         </jdbcConnection>
-        <!-- 用于控制实体类的生成 -->
+        <!-- 엔티티 클래스 생성 제어용 -->
         <javaModelGenerator targetPackage="com.macro.mall.model" targetProject="mall-mbg\src\main\java"/>
-        <!-- 用于控制Mapper.xml文件的生成 -->
+        <!-- Mapper.xml 파일 생성 제어용 -->
         <sqlMapGenerator targetPackage="com.macro.mall.mapper" targetProject="mall-mbg\src\main\resources"/>
-        <!-- 用于控制Mapper接口的生成 -->
+        <!-- Mapper 인터페이스 생성 제어용 -->
         <javaClientGenerator type="XMLMAPPER" targetPackage="com.macro.mall.mapper"
                              targetProject="mall-mbg\src\main\java"/>
-        <!-- 配置需要生成的表，生成全部表tableName设为% -->
+        <!-- 생성할 테이블 설정, 전체 테이블을 생성하려면 tableName을 다음으로 설정% -->
         <table tableName="%">
-            <!-- 用来指定主键生成策略 -->
+            <!-- 기본 키 생성 전략 지정용 -->
             <generatedKey column="id" sqlStatement="MySql" identity="true"/>
         </table>
     </context>

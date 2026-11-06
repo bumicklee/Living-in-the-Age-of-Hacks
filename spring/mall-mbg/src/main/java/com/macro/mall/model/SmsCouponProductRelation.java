@@ -10,10 +10,10 @@ public class SmsCouponProductRelation implements Serializable {
 
     private Long productId;
 
-    @Schema(title = "商品名称")
+    @Schema(title = "상품명")
     private String productName;
 
-    @Schema(title = "商品编码")
+    @Schema(title = "상품 코드")
     private String productSn;
 
     private static final long serialVersionUID = 1L;

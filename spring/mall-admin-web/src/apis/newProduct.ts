@@ -3,7 +3,7 @@ import type { NewProductQueryParam, SmsHomeNewProduct } from '@/types/newProduct
 import http from '@/utils/http'
 
 /**
- * 分页查询首页新品
+ * 홈 신상품 페이지 조회
  */
 export function getHomeNewProductListAPI(params: NewProductQueryParam) {
   return http<CommonPage<SmsHomeNewProduct>>({
@@ -14,7 +14,7 @@ export function getHomeNewProductListAPI(params: NewProductQueryParam) {
 }
 
 /**
- * 批量修改首页新品状态
+ * 홈 신상품 상태 일괄 수정
  */
 export function homeNewProductUpdateRecommendStatusAPI(params: {
   ids: string
@@ -28,7 +28,7 @@ export function homeNewProductUpdateRecommendStatusAPI(params: {
 }
 
 /**
- * 批量删除首页新品
+ * 홈 신상품 일괄 삭제
  */
 export function homeNewProductDeleteByIdsAPI(params: { ids: string }) {
   return http({
@@ -39,7 +39,7 @@ export function homeNewProductDeleteByIdsAPI(params: { ids: string }) {
 }
 
 /**
- * 批量添加首页新品
+ * 홈 신상품 일괄 추가
  */
 export function homeNewProductCreateAPI(data: SmsHomeNewProduct[]) {
   return http({
@@ -50,7 +50,7 @@ export function homeNewProductCreateAPI(data: SmsHomeNewProduct[]) {
 }
 
 /**
- * 根据ID修改首页新品排序
+ * ID로 홈 신상품 정렬 수정
  */
 export function homeNewProductUpdateSortByIdAPI(params: { id: number; sort: number }) {
   return http({

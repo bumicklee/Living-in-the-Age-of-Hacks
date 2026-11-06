@@ -1,25 +1,25 @@
-/** SKU库存信息 */
+/** SKU재고 정보 */
 export type PmsSkuStock = {
   /** ID */
   id?: number
-  /** 产品ID */
+  /** 제품ID */
   productId?: number
-  /** sku编码 */
+  /** sku코드 */
   skuCode?: string
-  /** 价格 */
+  /** 가격 */
   price?: number
-  /** 库存 */
+  /** 재고 */
   stock?: number
-  /** 预警库存 */
+  /** 재고 경고 */
   lowStock?: number
-  /** 展示图片 */
+  /** 표시 이미지 */
   pic?: string
-  /** 销量 */
+  /** 판매량 */
   sale?: number
-  /** 单品促销价格 */
+  /** 단품 프로모션 가격 */
   promotionPrice?: number
-  /** 锁定库存 */
+  /** 재고 잠금 */
   lockStock?: number
-  /** 商品销售属性，json格式 */
+  /** 상품 판매 속성, json 형식 */
   spData?: string
 }

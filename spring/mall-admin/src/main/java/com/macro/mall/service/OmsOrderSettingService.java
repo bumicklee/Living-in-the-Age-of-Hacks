@@ -3,17 +3,17 @@ package com.macro.mall.service;
 import com.macro.mall.model.OmsOrderSetting;
 
 /**
- * 订单设置管理Service
+ * 주문 설정 관리Service
  * Created by macro on 2018/10/16.
  */
 public interface OmsOrderSettingService {
     /**
-     * 获取指定订单设置
+     * 지정한 주문 설정 조회
      */
     OmsOrderSetting getItem(Long id);
 
     /**
-     * 修改指定订单设置
+     * 지정한 주문 설정 수정
      */
     int update(Long id, OmsOrderSetting orderSetting);
 }

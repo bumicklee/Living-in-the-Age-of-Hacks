@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 
-// 定义组件名称
+// 컴포넌트 이름 정의
 defineOptions({
   name: 'svg-icon'
 })
 
-// 定义props
+// 정의props
 const props = defineProps({
   iconClass: {
     type: String,

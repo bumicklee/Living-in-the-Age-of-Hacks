@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * SpringSecurity白名单资源路径配置
+ * SpringSecurity화이트리스트 리소스 경로 설정
  * Created by macro on 2018/11/5.
  */
 @Getter

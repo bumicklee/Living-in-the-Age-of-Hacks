@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * SpringSecurity需要的用户详情
+ * SpringSecurity필요한 사용자 상세 정보
  * Created by macro on 2018/4/26.
  */
 public class AdminUserDetails implements UserDetails {
@@ -21,7 +21,7 @@ public class AdminUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        //返回当前用户的权限
+        //현재 사용자의 권한 반환
         return Arrays.asList(new SimpleGrantedAuthority("TEST"));
     }
 

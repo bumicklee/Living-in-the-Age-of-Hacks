@@ -3,7 +3,7 @@ import type { PmsProductCategory, PmsProductCategoryExt } from '@/types/productC
 import http from '@/utils/http'
 
 /**
- * 查询所有一级分类及子分类
+ * 모든 1차 카테고리 및 하위 카테고리 조회
  */
 export function getProductCategoryListWithChildrenAPI() {
   return http<PmsProductCategoryExt[]>({
@@ -13,7 +13,7 @@ export function getProductCategoryListWithChildrenAPI() {
 }
 
 /**
- * 分页查询商品分类
+ * 상품 카테고리 페이지 조회
  */
 export function getProductCategoryListAPI(parentId: number, params: PageParam) {
   return http<CommonPage<PmsProductCategory>>({
@@ -24,7 +24,7 @@ export function getProductCategoryListAPI(parentId: number, params: PageParam) {
 }
 
 /**
- * 根据ID删除商品分类
+ * ID로 상품 카테고리 삭제
  */
 export function productCategoryDeleteByIdAPI(id: number) {
   return http({
@@ -34,7 +34,7 @@ export function productCategoryDeleteByIdAPI(id: number) {
 }
 
 /**
- * 添加商品分类
+ * 상품 카테고리 추가
  */
 export function productCategoryCreateAPI(data: PmsProductCategory) {
   return http({
@@ -45,7 +45,7 @@ export function productCategoryCreateAPI(data: PmsProductCategory) {
 }
 
 /**
- * 修改商品分类
+ * 상품 카테고리 수정
  */
 export function productCategoryUpdateByIdAPI(id: number, data: PmsProductCategory) {
   return http({
@@ -56,7 +56,7 @@ export function productCategoryUpdateByIdAPI(id: number, data: PmsProductCategor
 }
 
 /**
- * 根据ID获取商品分类
+ * ID로 상품 카테고리 조회
  */
 export function getProductCategoryByIdAPI(id: number) {
   return http<PmsProductCategory>({
@@ -66,7 +66,7 @@ export function getProductCategoryByIdAPI(id: number) {
 }
 
 /**
- * 批量修改显示状态
+ * 표시 상태 일괄 수정
  */
 export function productCategoryUpdateShowStatusAPI(params: { ids: string; showStatus: number }) {
   return http({
@@ -77,7 +77,7 @@ export function productCategoryUpdateShowStatusAPI(params: { ids: string; showSt
 }
 
 /**
- * 批量修改导航栏显示状态
+ * 내비게이션 바 표시 상태 일괄 수정
  */
 export function productCategoryUpdateNavStatusAPI(params: { ids: string; navStatus: number }) {
   return http({

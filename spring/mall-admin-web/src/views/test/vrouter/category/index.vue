@@ -7,7 +7,7 @@ defineOptions({
 
 <template>
   <div>
-    我是Category页面
+    저는 Category 페이지입니다
   </div>
 </template>
 

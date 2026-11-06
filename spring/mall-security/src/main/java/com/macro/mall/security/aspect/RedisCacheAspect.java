@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
 
 /**
- * Redis缓存切面，防止Redis宕机影响正常业务逻辑
+ * Redis캐시 애스펙트, Redis 장애가 정상 업무 로직에 영향을 주지 않도록 방지
  * Created by macro on 2020/3/17.
  */
 @Aspect
@@ -37,7 +37,7 @@ public class RedisCacheAspect {
         try {
             result = joinPoint.proceed();
         } catch (Throwable throwable) {
-            //有CacheException注解的方法需要抛出异常
+            //CacheException 애너테이션이 있는 메서드는 예외를 던져야 함
             if (method.isAnnotationPresent(CacheException.class)) {
                 throw throwable;
             } else {

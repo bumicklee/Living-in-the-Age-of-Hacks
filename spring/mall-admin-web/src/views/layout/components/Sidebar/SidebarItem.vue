@@ -2,35 +2,35 @@
 import type { RouteRecordExt } from '@/types/router'
 import { computed, type PropType } from 'vue'
 
-// 定义组件名称
+// 컴포넌트 이름 정의
 defineOptions({
   name: 'SidebarItem'
 })
 
-// 定义props
+// 정의props
 const props = defineProps({
-  // 生成菜单的路由
+  // 메뉴 라우트 생성
   routes: {
     type: Array as PropType<RouteRecordExt[]>
   },
-  // 控制只有一个子菜单的一级菜单样式
+  // 하위 메뉴가 하나뿐인 1차 메뉴 스타일 제어
   isNest: {
     type: Boolean,
     default: false
   }
 })
 
-// 过滤出需要显示的路由
+// 표시할 라우트 필터링
 const filteredRoutes = computed(() => {
   return props.routes!.filter(item => !item.hidden && item.children)
 })
 
-// 过滤出需要显示的子路由
+// 표시할 하위 라우트 필터링
 const getFilteredChildren = (children: RouteRecordExt[]) => {
   return children.filter(child => !child.hidden)
 }
 
-// 判断路由下方是否只有一个子路由
+// 라우트 아래에 하위 라우트가 하나뿐인지 판단
 const hasOneShowingChildren = (children: RouteRecordExt[]) => {
   const showingChildren = children.filter(item => {
     return !item.hidden
@@ -45,7 +45,7 @@ const hasOneShowingChildren = (children: RouteRecordExt[]) => {
 <template>
   <div class="menu-wrapper">
     <template v-for="item in filteredRoutes">
-      <!-- 只有一个子菜单的一级菜单 -->
+      <!-- 하위 메뉴가 하나뿐인 1단계 메뉴 -->
       <router-link
         v-if="item.children && hasOneShowingChildren(item.children) && !item.children[0]!.children && !item.alwaysShow"
         :to="item.path + '/' + item.children[0]!.path" :key="item.children[0]!.name">
@@ -60,18 +60,18 @@ const hasOneShowingChildren = (children: RouteRecordExt[]) => {
           </template>
         </el-menu-item>
       </router-link>
-      <!-- 有多个子菜单的一级菜单 -->
+      <!-- 하위 메뉴가 여러 개인 1차 메뉴 -->
       <el-sub-menu v-else :index="item.name as string || item.path" :key="item.name">
-        <!-- 一级菜单 -->
+        <!-- 1단계 메뉴 -->
         <template #title>
           <svg-icon v-if="item.meta && item.meta.icon" :icon-class="item.meta.icon"></svg-icon>
           <span v-if="item.meta && item.meta.title">{{ item.meta.title }}</span>
         </template>
-        <!-- 子菜单 -->
+        <!-- 하위 메뉴 -->
         <template v-for="child in getFilteredChildren(item.children!)">
           <sidebar-item :is-nest="true" class="nest-menu" v-if="child.children && child.children.length > 0"
             :routes="[child]" :key="child.path"></sidebar-item>
-          <!-- 具有外链功能的子菜单 -->
+          <!-- 외부 링크 기능이 있는 하위 메뉴 -->
           <a v-else-if="child.path.startsWith('http')" v-bind:href="child.path" target="_blank" :key="child.name">
             <el-menu-item :index="item.path + '/' + child.path">
               <svg-icon v-if="child.meta && child.meta.icon" :icon-class="child.meta.icon"></svg-icon>
@@ -80,7 +80,7 @@ const hasOneShowingChildren = (children: RouteRecordExt[]) => {
               </template>
             </el-menu-item>
           </a>
-          <!-- 普通子菜单 -->
+          <!-- 일반 하위 메뉴 -->
           <router-link v-else :to="item.path + '/' + child.path" :key="'route-' + (child.name as string)">
             <el-menu-item :index="item.path + '/' + child.path">
               <svg-icon v-if="child.meta && child.meta.icon" :icon-class="child.meta.icon"></svg-icon>

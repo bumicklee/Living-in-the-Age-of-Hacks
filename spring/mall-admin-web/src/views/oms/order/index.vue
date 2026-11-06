@@ -9,24 +9,24 @@ import { formatDateTime } from '@/utils/datetime'
 import type { OmsOrder, OrderQueryParam } from '@/types/order'
 import { useOrderStore } from '@/stores/order'
 
-// 获取路由对象
+// 라우트 객체 조회
 const router = useRouter()
 
-// 获取订单存储store
+// 주문 저장소 조회store
 const orderStore = useOrderStore()
 
-// 订单列表查询参数
+// 주문 목록 조회 파라미터
 const listQuery = ref<OrderQueryParam>({
   pageNum: 1,
   pageSize: 10
 })
-// 订单列表数据
+// 주문 목록 데이터
 const list = ref<OmsOrder[]>([])
-// 表格数据加载进度条
+// 테이블 데이터 로딩 진행 표시줄
 const listLoading = ref(true)
-// 分页组件参数
+// 페이지네이션 컴포넌트 파라미터
 const total = ref(0)
-// 获取订单列表数据
+// 주문 목록 데이터 조회
 const getList = async () => {
   listLoading.value = true
   try {
@@ -36,192 +36,192 @@ const getList = async () => {
     total.value = response.data.total
   } catch (error) {
     listLoading.value = false
-    console.error('获取订单列表失败:', error)
+    console.error('주문 목록 조회 실패:', error)
   }
 }
 
-// 组件挂载后初始化列表信息
+// 컴포넌트 마운트 후 목록 정보 초기화
 onMounted(() => {
   getList()
 })
 
-// 表格中被选中的行
+// 테이블에서 선택된 행
 const multipleSelection = ref<OmsOrder[]>([])
-// 批量操作类型
+// 일괄 작업 유형
 const operateType = ref<number>()
 
-// 关闭订单对话框相关数据
+// 주문 종료 대화상자 관련 데이터
 const closeOrderData = ref({
   dialogVisible: false,
   content: '',
   orderIds: [] as number[]
 })
 
-// 物流对话框可见性
+// 배송 대화상자 표시 여부
 const logisticsDialogVisible = ref(false)
 
-// 订单状态选项
+// 주문 상태 옵션
 const statusOptions = [
   {
-    label: '待付款',
+    label: '결제 대기',
     value: 0
   },
   {
-    label: '待发货',
+    label: '배송 대기',
     value: 1
   },
   {
-    label: '已发货',
+    label: '발송됨',
     value: 2
   },
   {
-    label: '已完成',
+    label: '완료',
     value: 3
   },
   {
-    label: '已关闭',
+    label: '닫힘',
     value: 4
   }
 ]
 
-// 订单类型选项
+// 주문 유형 옵션
 const orderTypeOptions = [
   {
-    label: '正常订单',
+    label: '정상 주문',
     value: 0
   },
   {
-    label: '秒杀订单',
+    label: '타임 세일 주문',
     value: 1
   }
 ]
 
-// 订单来源选项
+// 주문 출처 옵션
 const sourceTypeOptions = [
   {
-    label: 'PC订单',
+    label: 'PC주문',
     value: 0
   },
   {
-    label: 'APP订单',
+    label: 'APP주문',
     value: 1
   }
 ]
 
-// 批量操作选项
+// 일괄 작업 옵션
 const operateOptions = [
   {
-    label: "批量发货",
+    label: "일괄 발송",
     value: 1
   },
   {
-    label: "关闭订单",
+    label: "주문 종료",
     value: 2
   },
   {
-    label: "删除订单",
+    label: "주문 삭제",
     value: 3
   }
 ]
 
-// 格式化支付方式
+// 결제 수단 포맷
 const formatPayType = (value: number) => {
   if (value === 1) {
-    return '支付宝'
+    return '알리페이'
   } else if (value === 2) {
-    return '微信'
+    return '위챗'
   } else {
-    return '未支付'
+    return '미결제'
   }
 }
 
-// 格式化订单来源
+// 주문 출처 포맷
 const formatSourceType = (value: number) => {
   if (value === 1) {
-    return 'APP订单'
+    return 'APP주문'
   } else {
-    return 'PC订单'
+    return 'PC주문'
   }
 }
 
-// 格式化订单状态
+// 주문 상태 포맷
 const formatStatus = (value: number) => {
   if (value === 1) {
-    return '待发货'
+    return '배송 대기'
   } else if (value === 2) {
-    return '已发货'
+    return '발송됨'
   } else if (value === 3) {
-    return '已完成'
+    return '완료'
   } else if (value === 4) {
-    return '已关闭'
+    return '닫힘'
   } else if (value === 5) {
-    return '无效订单'
+    return '무효 주문'
   } else {
-    return '待付款'
+    return '결제 대기'
   }
 }
 
-// 处理重置搜索
+// 검색 초기화 처리
 const handleResetSearch = () => {
   listQuery.value = { pageNum: 1, pageSize: 10 }
 }
 
-// 处理搜索列表
+// 검색 목록 처리
 const handleSearchList = () => {
   listQuery.value.pageNum = 1
   getList()
 }
 
-// 处理表格选中状态变化
+// 테이블 선택 상태 변경 처리
 const handleSelectionChange = (val: OmsOrder[]) => {
   multipleSelection.value = val
 }
 
-// 处理查看订单
+// 주문 조회 처리
 const handleViewOrder = (index: number, row: OmsOrder) => {
   router.push({ path: '/oms/orderDetail', query: { id: row.id } })
 }
 
-// 处理关闭订单
+// 주문 닫기 처리
 const handleCloseOrder = (index: number, row: OmsOrder) => {
   closeOrderData.value.dialogVisible = true
   closeOrderData.value.orderIds = [row.id!]
 }
 
-// 处理订单发货
+// 주문 발송 처리
 const handleDeliveryOrder = (index: number, row: OmsOrder) => {
   orderStore.setDeliverOrderList([row])
   router.push({ path: '/oms/deliverOrderList' })
 }
 
-// 处理查看物流
+// 배송 조회 처리
 const handleViewLogistics = (index: number, row: OmsOrder) => {
   logisticsDialogVisible.value = true
   console.log(index, row)
 }
 
-// 处理删除订单
+// 주문 삭제 처리
 const handleDeleteOrder = async (index: number, row: OmsOrder) => {
   const ids = [row.id!]
   await deleteOrderFn(ids)
 }
 
-// 处理批量操作
+// 일괄 작업 처리
 const handleBatchOperate = async () => {
   if (!multipleSelection.value || multipleSelection.value.length < 1) {
     ElMessage({
-      message: '请选择要操作的订单',
+      message: '작업할 주문을 선택하세요',
       type: 'warning',
       duration: 1000
     })
     return
   }
   if (operateType.value === 1) {
-    // 批量发货
+    // 일괄 발송
     const listItems = multipleSelection.value.filter(item => item.status === 1)
     if (!listItems || listItems.length < 1) {
       ElMessage({
-        message: '选中订单中没有可以发货的订单',
+        message: '선택한 주문 중 발송 가능한 주문이 없습니다',
         type: 'warning',
         duration: 1000
       })
@@ -230,36 +230,36 @@ const handleBatchOperate = async () => {
     orderStore.setDeliverOrderList(listItems)
     router.push({ path: '/oms/deliverOrderList' })
   } else if (operateType.value === 2) {
-    // 关闭订单
+    // 주문 종료
     closeOrderData.value.orderIds = multipleSelection.value.filter(item => item.status === 0)
       .map(item => item.id)
     closeOrderData.value.dialogVisible = true
   } else if (operateType.value === 3) {
-    // 删除订单
+    // 주문 삭제
     const ids = multipleSelection.value.filter(item => item.status === 4)
       .map(item => item.id)
     await deleteOrderFn(ids)
   }
 }
 
-// 处理每页条数变化
+// 페이지당 건수 변경 처리
 const handleSizeChange = (val: number) => {
   listQuery.value.pageNum = 1
   listQuery.value.pageSize = val
   getList()
 }
 
-// 处理当前页变化
+// 현재 페이지 변경 처리
 const handleCurrentChange = (val: number) => {
   listQuery.value.pageNum = val
   getList()
 }
 
-// 处理确认关闭订单
+// 주문 닫기 확인 처리
 const handleCloseOrderConfirm = async () => {
   if (!closeOrderData.value.content) {
     ElMessage({
-      message: '操作备注不能为空',
+      message: '작업 메모는 비워 둘 수 없습니다',
       type: 'warning',
       duration: 1000
     })
@@ -271,22 +271,22 @@ const handleCloseOrderConfirm = async () => {
   closeOrderData.value.dialogVisible = false
   getList()
   ElMessage({
-    message: '修改成功',
+    message: '수정 성공',
     type: 'success',
     duration: 1000
   })
 }
 
-// 删除订单函数
+// 주문 삭제 함수
 const deleteOrderFn = async (ids: number[]) => {
-  await ElMessageBox.confirm('是否要进行该删除操作?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('삭제할까요??', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning'
   })
   await orderDeleteByIdsAPI({ ids: ids.join(',') })
   ElMessage({
-    message: '删除成功！',
+    message: '삭제 성공!',
     type: 'success',
     duration: 1000
   })
@@ -301,41 +301,41 @@ const deleteOrderFn = async (ids: number[]) => {
         <el-icon class="el-icon-middle">
           <Search />
         </el-icon>
-        <span>筛选搜索</span>
+        <span>필터 검색</span>
         <el-button style="float:right" type="primary" @click="handleSearchList()">
-          查询搜索
+          조회 검색
         </el-button>
         <el-button style="float:right;margin-right: 15px" @click="handleResetSearch()">
-          重置
+          초기화
         </el-button>
       </div>
       <div style="margin-top: 20px">
         <el-form :inline="true" :model="listQuery" label-width="140px">
-          <el-form-item label="输入搜索：">
-            <el-input v-model="listQuery.orderSn" class="input-width" placeholder="订单编号"></el-input>
+          <el-form-item label="검색어 입력:">
+            <el-input v-model="listQuery.orderSn" class="input-width" placeholder="주문 번호"></el-input>
           </el-form-item>
-          <el-form-item label="收货人：">
-            <el-input v-model="listQuery.receiverKeyword" class="input-width" placeholder="收货人姓名/手机号码"></el-input>
+          <el-form-item label="수령인:">
+            <el-input v-model="listQuery.receiverKeyword" class="input-width" placeholder="수령인 이름/휴대폰 번호"></el-input>
           </el-form-item>
-          <el-form-item label="提交时间：">
+          <el-form-item label="제출 시간:">
             <el-date-picker class="input-width" v-model="listQuery.createTime" value-format="yyyy-MM-dd" type="date"
-              placeholder="请选择时间">
+              placeholder="시간을 선택하세요">
             </el-date-picker>
           </el-form-item>
-          <el-form-item label="订单状态：">
-            <el-select v-model="listQuery.status" class="input-width" placeholder="全部" clearable>
+          <el-form-item label="주문 상태:">
+            <el-select v-model="listQuery.status" class="input-width" placeholder="전체" clearable>
               <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="订单分类：">
-            <el-select v-model="listQuery.orderType" class="input-width" placeholder="全部" clearable>
+          <el-form-item label="주문 분류:">
+            <el-select v-model="listQuery.orderType" class="input-width" placeholder="전체" clearable>
               <el-option v-for="item in orderTypeOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="订单来源：">
-            <el-select v-model="listQuery.sourceType" class="input-width" placeholder="全部" clearable>
+          <el-form-item label="주문 출처:">
+            <el-select v-model="listQuery.sourceType" class="input-width" placeholder="전체" clearable>
               <el-option v-for="item in sourceTypeOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
@@ -347,58 +347,58 @@ const deleteOrderFn = async (ids: number[]) => {
       <el-icon class="el-icon-middle">
         <Tickets />
       </el-icon>
-      <span>数据列表</span>
+      <span>데이터 목록</span>
     </el-card>
     <div class="table-container">
       <el-table ref="orderTable" :data="list" style="width: 100%;" @selection-change="handleSelectionChange"
         v-loading="listLoading" border>
         <el-table-column type="selection" width="60" align="center"></el-table-column>
-        <el-table-column label="编号" width="80" align="center">
+        <el-table-column label="번호" width="80" align="center">
           <template #default="scope">{{ scope.row.id }}</template>
         </el-table-column>
-        <el-table-column label="订单编号" width="180" align="center">
+        <el-table-column label="주문 번호" width="180" align="center">
           <template #default="scope">{{ scope.row.orderSn }}</template>
         </el-table-column>
-        <el-table-column label="提交时间" width="180" align="center">
+        <el-table-column label="제출 시간" width="180" align="center">
           <template #default="scope">{{ formatDateTime(scope.row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="用户账号" align="center">
+        <el-table-column label="사용자 계정" align="center">
           <template #default="scope">{{ scope.row.memberUsername }}</template>
         </el-table-column>
-        <el-table-column label="订单金额" width="120" align="center">
-          <template #default="scope">￥{{ scope.row.totalAmount }}</template>
+        <el-table-column label="주문 금액" width="120" align="center">
+          <template #default="scope">₩{{ scope.row.totalAmount }}</template>
         </el-table-column>
-        <el-table-column label="支付方式" width="120" align="center">
+        <el-table-column label="결제 수단" width="120" align="center">
           <template #default="scope">{{ formatPayType(scope.row.payType) }}</template>
         </el-table-column>
-        <el-table-column label="订单来源" width="120" align="center">
+        <el-table-column label="주문 출처" width="120" align="center">
           <template #default="scope">{{ formatSourceType(scope.row.sourceType) }}</template>
         </el-table-column>
-        <el-table-column label="订单状态" width="120" align="center">
+        <el-table-column label="주문 상태" width="120" align="center">
           <template #default="scope">{{ formatStatus(scope.row.status) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="200" align="center">
+        <el-table-column label="작업" width="200" align="center">
           <template #default="scope">
-            <el-button size="small" @click="handleViewOrder(scope.$index, scope.row)">查看订单</el-button>
+            <el-button size="small" @click="handleViewOrder(scope.$index, scope.row)">주문 보기</el-button>
             <el-button size="small" @click="handleCloseOrder(scope.$index, scope.row)"
-              v-show="scope.row.status === 0">关闭订单</el-button>
+              v-show="scope.row.status === 0">주문 종료</el-button>
             <el-button size="small" @click="handleDeliveryOrder(scope.$index, scope.row)"
-              v-show="scope.row.status === 1">订单发货</el-button>
+              v-show="scope.row.status === 1">주문 발송</el-button>
             <el-button size="small" @click="handleViewLogistics(scope.$index, scope.row)"
-              v-show="scope.row.status === 2 || scope.row.status === 3">订单跟踪</el-button>
+              v-show="scope.row.status === 2 || scope.row.status === 3">주문 추적</el-button>
             <el-button size="small" type="danger" @click="handleDeleteOrder(scope.$index, scope.row)"
-              v-show="scope.row.status === 4">删除订单</el-button>
+              v-show="scope.row.status === 4">주문 삭제</el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
     <div class="batch-operate-container">
-      <el-select v-model="operateType" placeholder="批量操作">
+      <el-select v-model="operateType" placeholder="일괄 작업">
         <el-option v-for="item in operateOptions" :key="item.value" :label="item.label" :value="item.value">
         </el-option>
       </el-select>
       <el-button style="margin-left: 20px" class="search-button" @click="handleBatchOperate()" type="primary">
-        确定
+        확인
       </el-button>
     </div>
     <div class="pagination-container">
@@ -407,14 +407,14 @@ const deleteOrderFn = async (ids: number[]) => {
         :page-size="listQuery.pageSize" :page-sizes="[5, 10, 15]" :total="total">
       </el-pagination>
     </div>
-    <el-dialog title="关闭订单" v-model="closeOrderData.dialogVisible" width="30%">
-      <span style="vertical-align: top">操作备注：</span>
-      <el-input style="width: 80%" type="textarea" :rows="5" placeholder="请输入内容" v-model="closeOrderData.content">
+    <el-dialog title="주문 종료" v-model="closeOrderData.dialogVisible" width="30%">
+      <span style="vertical-align: top">작업 메모:</span>
+      <el-input style="width: 80%" type="textarea" :rows="5" placeholder="내용을 입력하세요" v-model="closeOrderData.content">
       </el-input>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="closeOrderData.dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="handleCloseOrderConfirm">确 定</el-button>
+          <el-button @click="closeOrderData.dialogVisible = false">취 소</el-button>
+          <el-button type="primary" @click="handleCloseOrderConfirm">확 인</el-button>
         </span>
       </template>
     </el-dialog>

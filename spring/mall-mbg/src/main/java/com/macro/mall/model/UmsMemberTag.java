@@ -9,10 +9,10 @@ public class UmsMemberTag implements Serializable {
 
     private String name;
 
-    @Schema(title = "自动打标签完成订单数量")
+    @Schema(title = "자동 태그 부여 기준 완료 주문 수")
     private Integer finishOrderCount;
 
-    @Schema(title = "自动打标签完成订单金额")
+    @Schema(title = "자동 태그 부여 기준 완료 주문 금액")
     private BigDecimal finishOrderAmount;
 
     private static final long serialVersionUID = 1L;

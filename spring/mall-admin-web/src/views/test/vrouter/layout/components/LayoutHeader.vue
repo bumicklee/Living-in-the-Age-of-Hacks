@@ -11,7 +11,7 @@ defineOptions({
     <RouterLink to="/category">Go to Category</RouterLink>
   </nav>
   <div>
-    我是RouterLayoutHeader部分
+    저는 RouterLayoutHeader 영역입니다
   </div>
 </template>
 

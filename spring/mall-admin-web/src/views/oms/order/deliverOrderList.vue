@@ -7,42 +7,42 @@ import { orderUpdateDeliveryAPI } from '@/apis/order'
 import type { OmsOrder, OmsOrderDeliveryParam } from '@/types/order'
 import { useOrderStore } from '@/stores/order'
 
-// 获取路由对象
+// 라우트 객체 조회
 const router = useRouter()
-// 获取 订单store
+// 조회 주문store
 const orderStore = useOrderStore()
 
-// 默认物流公司选项
-const defaultLogisticsCompanies = ["顺丰快递", "圆通快递", "中通快递", "韵达快递"]
+// 기본 택배사 옵션
+const defaultLogisticsCompanies = ["SF 익스프레스", "위안퉁 택배", "중퉁 택배", "윈다 택배"]
 
-// 发货订单列表数据
+// 발송 주문 목록 데이터
 const list = ref<OmsOrder[]>([])
-// 物流公司选项
+// 택배사 옵션
 const companyOptions = ref<string[]>(defaultLogisticsCompanies)
 
-// 根据订单对象获取详细地址
+// 주문 객체로 상세 주소 조회
 const fortmatAddress = (order: OmsOrder) => {
   return order.receiverProvince + order.receiverCity + order.receiverRegion + order.receiverDetailAddress
 }
 
-// 组件挂载后初始化数据
+// 컴포넌트 마운트 후 데이터 초기화
 onMounted(() => {
   list.value = orderStore.deliverOrderList
-  // 清空store中的数据
+  // store의 데이터 비우기
   orderStore.setDeliverOrderList([])
 })
 
-// 取消操作
+// 작업 취소
 const cancel = () => {
   router.back()
 }
 
-// 确认发货操作
+// 발송 확인 작업
 const confirm = async () => {
   try {
-    await ElMessageBox.confirm('是否要进行发货操作?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('발송 처리할까요??', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     const deliveryParamList: OmsOrderDeliveryParam[] = list.value.map(item => ({
@@ -54,13 +54,13 @@ const confirm = async () => {
     router.back()
     ElMessage({
       type: 'success',
-      message: '发货成功!'
+      message: '발송 성공!'
     })
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage({
         type: 'info',
-        message: '已取消发货'
+        message: '발송 취소됨'
       })
     }
   }
@@ -73,42 +73,42 @@ const confirm = async () => {
       <el-icon class="el-icon-middle">
         <Tickets />
       </el-icon>
-      <span>发货列表</span>
+      <span>발송 목록</span>
     </el-card>
     <div class="table-container">
       <el-table ref="deliverOrderTable" style="width: 100%;" :data="list" border>
-        <el-table-column label="订单编号" width="180" align="center">
+        <el-table-column label="주문 번호" width="180" align="center">
           <template #default="scope">{{ scope.row.orderSn }}</template>
         </el-table-column>
-        <el-table-column label="收货人" width="150" align="center">
+        <el-table-column label="수령인" width="150" align="center">
           <template #default="scope">{{ scope.row.receiverName }}</template>
         </el-table-column>
-        <el-table-column label="手机号码" width="160" align="center">
+        <el-table-column label="휴대폰 번호" width="160" align="center">
           <template #default="scope">{{ scope.row.receiverPhone }}</template>
         </el-table-column>
-        <el-table-column label="邮政编码" width="160" align="center">
+        <el-table-column label="우편번호" width="160" align="center">
           <template #default="scope">{{ scope.row.receiverPostCode }}</template>
         </el-table-column>
-        <el-table-column label="收货地址" align="center">
+        <el-table-column label="배송지" align="center">
           <template #default="scope">{{ fortmatAddress(scope.row) }}</template>
         </el-table-column>
-        <el-table-column label="配送方式" width="200" align="center">
+        <el-table-column label="배송 방식" width="200" align="center">
           <template #default="scope">
-            <el-select placeholder="请选择物流公司" v-model="scope.row.deliveryCompany">
+            <el-select placeholder="택배사를 선택하세요" v-model="scope.row.deliveryCompany">
               <el-option v-for="item in companyOptions" :key="item" :label="item" :value="item">
               </el-option>
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column label="物流单号" width="180" align="center">
+        <el-table-column label="운송장 번호" width="180" align="center">
           <template #default="scope">
             <el-input v-model="scope.row.deliverySn"></el-input>
           </template>
         </el-table-column>
       </el-table>
       <div style="margin-top: 15px;text-align: center">
-        <el-button @click="cancel">取消</el-button>
-        <el-button @click="confirm" type="primary">确定</el-button>
+        <el-button @click="cancel">취소</el-button>
+        <el-button @click="confirm" type="primary">확인</el-button>
       </div>
     </div>
   </div>

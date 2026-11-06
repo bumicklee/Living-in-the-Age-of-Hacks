@@ -7,33 +7,33 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * 前台订单管理自定义Dao
+ * 프런트 주문 관리 커스텀Dao
  * Created by macro on 2018/9/4.
  */
 public interface PortalOrderDao {
     /**
-     * 获取订单及下单商品详情
+     * 주문 및 주문 상품 상세 조회
      */
     OmsOrderDetail getDetail(@Param("orderId") Long orderId);
 
     /**
-     * 修改 pms_sku_stock表的锁定库存及真实库存
+     * pms_sku_stock 테이블의 잠금 재고와 실제 재고 수정
      */
     int updateSkuStock(@Param("itemList") List<OmsOrderItem> orderItemList);
 
     /**
-     * 获取超时订单
-     * @param minute 超时时间（分）
+     * 만료된 주문 조회
+     * @param minute 만료 시간(분)
      */
     List<OmsOrderDetail> getTimeOutOrders(@Param("minute") Integer minute);
 
     /**
-     * 批量修改订单状态
+     * 주문 상태 일괄 수정
      */
     int updateOrderStatus(@Param("ids") List<Long> ids,@Param("status") Integer status);
 
     /**
-     * 解除取消订单的库存锁定
+     * 주문 취소 시 재고 잠금 해제
      */
     int releaseSkuStockLock(@Param("itemList") List<OmsOrderItem> orderItemList);
 

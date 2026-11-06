@@ -5,37 +5,37 @@ import com.macro.mall.model.UmsResource;
 import java.util.List;
 
 /**
- * 后台资源管理Service
+ * 관리자 리소스 관리Service
  * Created by macro on 2020/2/2.
  */
 public interface UmsResourceService {
     /**
-     * 添加资源
+     * 리소스 추가
      */
     int create(UmsResource umsResource);
 
     /**
-     * 修改资源
+     * 리소스 수정
      */
     int update(Long id, UmsResource umsResource);
 
     /**
-     * 获取资源详情
+     * 리소스 상세 조회
      */
     UmsResource getItem(Long id);
 
     /**
-     * 删除资源
+     * 리소스 삭제
      */
     int delete(Long id);
 
     /**
-     * 分页查询资源
+     * 리소스 페이지 조회
      */
     List<UmsResource> list(Long categoryId, String nameKeyword, String urlKeyword, Integer pageSize, Integer pageNum);
 
     /**
-     * 查询全部资源
+     * 전체 리소스 조회
      */
     List<UmsResource> listAll();
 }

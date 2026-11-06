@@ -6,33 +6,33 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 首页专题推荐管理Service
+ * 홈 기획전 추천 관리Service
  * Created by macro on 2018/11/7.
  */
 public interface SmsHomeRecommendSubjectService {
     /**
-     * 添加首页推荐
+     * 홈 추천 추가
      */
     @Transactional
     int create(List<SmsHomeRecommendSubject> recommendSubjectList);
 
     /**
-     * 修改推荐排序
+     * 추천 정렬 수정
      */
     int updateSort(Long id, Integer sort);
 
     /**
-     * 批量删除推荐
+     * 추천 일괄 삭제
      */
     int delete(List<Long> ids);
 
     /**
-     * 批量更新推荐状态
+     * 추천 상태 일괄 업데이트
      */
     int updateRecommendStatus(List<Long> ids, Integer recommendStatus);
 
     /**
-     * 分页查询推荐
+     * 추천 페이지 조회
      */
     List<SmsHomeRecommendSubject> list(String subjectName, Integer recommendStatus, Integer pageSize, Integer pageNum);
 }

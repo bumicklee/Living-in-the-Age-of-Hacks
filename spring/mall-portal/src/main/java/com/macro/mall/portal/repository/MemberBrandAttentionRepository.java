@@ -6,27 +6,27 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 /**
- * 会员品牌关注Repository
+ * 회원 브랜드 팔로우Repository
  * Created by macro on 2018/8/2.
  */
 public interface MemberBrandAttentionRepository extends MongoRepository<MemberBrandAttention, String> {
     /**
-     * 根据会员ID和品牌ID查找记录
+     * 회원 ID와 브랜드 ID로 기록 조회
      */
     MemberBrandAttention findByMemberIdAndBrandId(Long memberId, Long brandId);
 
     /**
-     * 根据会员ID和品牌ID删除记录
+     * 회원 ID와 브랜드 ID로 기록 삭제
      */
     int deleteByMemberIdAndBrandId(Long memberId, Long brandId);
 
     /**
-     * 根据会员ID分页查找记录
+     * 회원 ID로 기록 페이징 조회
      */
     Page<MemberBrandAttention> findByMemberId(Long memberId, Pageable pageable);
 
     /**
-     * 根据会员ID删除记录
+     * 회원 ID로 기록 삭제
      */
     void deleteAllByMemberId(Long memberId);
 }

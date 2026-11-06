@@ -26,22 +26,22 @@
             <groupId>com.macro.mall</groupId>
             <artifactId>mall-security</artifactId>
         </dependency>
-        <!--mongodb依赖配置-->
+        <!--mongodb의존성 설정-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
-        <!--redis依赖配置-->
+        <!--redis의존성 설정-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-        <!--集成消息队列-->
+        <!--메시지 큐 연동-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
-        <!--支付宝支付Java SDK-->
+        <!--알리페이 결제Java SDK-->
         <dependency>
             <groupId>com.alipay.sdk</groupId>
             <artifactId>alipay-sdk-java</artifactId>

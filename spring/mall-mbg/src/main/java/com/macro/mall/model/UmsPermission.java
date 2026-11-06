@@ -7,31 +7,31 @@ import java.util.Date;
 public class UmsPermission implements Serializable {
     private Long id;
 
-    @Schema(title = "父级权限id")
+    @Schema(title = "상위 권한id")
     private Long pid;
 
-    @Schema(title = "名称")
+    @Schema(title = "이름")
     private String name;
 
-    @Schema(title = "权限值")
+    @Schema(title = "권한 값")
     private String value;
 
-    @Schema(title = "图标")
+    @Schema(title = "아이콘")
     private String icon;
 
-    @Schema(title = "权限类型：0->目录；1->菜单；2->按钮（接口绑定权限）")
+    @Schema(title = "권한 유형:0->디렉터리;1->메뉴;2->버튼(API에 권한 바인딩)")
     private Integer type;
 
-    @Schema(title = "前端资源路径")
+    @Schema(title = "프런트엔드 리소스 경로")
     private String uri;
 
-    @Schema(title = "启用状态；0->禁用；1->启用")
+    @Schema(title = "사용 상태;0->사용 안 함;1->사용")
     private Integer status;
 
-    @Schema(title = "创建时间")
+    @Schema(title = "생성 시간")
     private Date createTime;
 
-    @Schema(title = "排序")
+    @Schema(title = "정렬")
     private Integer sort;
 
     private static final long serialVersionUID = 1L;

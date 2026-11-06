@@ -8,49 +8,49 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 商品分类管理Service
+ * 상품 카테고리 관리Service
  * Created by macro on 2018/4/26.
  */
 public interface PmsProductCategoryService {
     /**
-     * 创建商品分类
+     * 상품 카테고리 생성
      */
     @Transactional
     int create(PmsProductCategoryParam pmsProductCategoryParam);
 
     /**
-     * 修改商品分类
+     * 상품 카테고리 수정
      */
     @Transactional
     int update(Long id, PmsProductCategoryParam pmsProductCategoryParam);
 
     /**
-     * 分页获取商品分类
+     * 상품 카테고리 페이지 조회
      */
     List<PmsProductCategory> getList(Long parentId, Integer pageSize, Integer pageNum);
 
     /**
-     * 删除商品分类
+     * 상품 카테고리 삭제
      */
     int delete(Long id);
 
     /**
-     * 根据ID获取商品分类
+     * ID로 상품 카테고리 조회
      */
     PmsProductCategory getItem(Long id);
 
     /**
-     * 批量修改导航状态
+     * 내비게이션 상태 일괄 수정
      */
     int updateNavStatus(List<Long> ids, Integer navStatus);
 
     /**
-     * 批量修改显示状态
+     * 표시 상태 일괄 수정
      */
     int updateShowStatus(List<Long> ids, Integer showStatus);
 
     /**
-     * 以层级形式获取商品分类
+     * 계층 구조로 상품 카테고리 조회
      */
     List<PmsProductCategoryWithChildrenItem> listWithChildren();
 }

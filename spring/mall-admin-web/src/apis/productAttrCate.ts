@@ -6,7 +6,7 @@ import type {
 import http from '@/utils/http'
 
 /**
- * 获取所有商品属性分类及其下属性
+ * 전체 상품 속성 카테고리 및 하위 속성 조회
  */
 export function productAttributeCategoryListWithAttrAPI() {
   return http<PmsProductAttributeCategoryExt[]>({
@@ -16,7 +16,7 @@ export function productAttributeCategoryListWithAttrAPI() {
 }
 
 /**
- * 分页获取所有商品属性分类
+ * 모든 상품 속성 카테고리 페이지 조회
  */
 export function getProductAttributeCategoryListAPI(params: PageParam) {
   return http<CommonPage<PmsProductAttributeCategory>>({
@@ -27,7 +27,7 @@ export function getProductAttributeCategoryListAPI(params: PageParam) {
 }
 
 /**
- * 添加商品属性分类
+ * 상품 속성 카테고리 추가
  */
 export function productAttributeCategoryCreateAPI(name: string) {
   return http({
@@ -38,7 +38,7 @@ export function productAttributeCategoryCreateAPI(name: string) {
 }
 
 /**
- * 删除单个商品属性分类
+ * 단일 상품 속성 카테고리 삭제
  */
 export function productAttributeCategoryDeleteById(id: number) {
   return http({
@@ -48,7 +48,7 @@ export function productAttributeCategoryDeleteById(id: number) {
 }
 
 /**
- * 修改商品属性分类
+ * 상품 속성 카테고리 수정
  */
 export function productAttributeCategoryUpdateAPI(id: number, name: string) {
   return http({

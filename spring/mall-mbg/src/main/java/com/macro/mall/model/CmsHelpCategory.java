@@ -8,10 +8,10 @@ public class CmsHelpCategory implements Serializable {
 
     private String name;
 
-    @Schema(title = "分类图标")
+    @Schema(title = "카테고리 아이콘")
     private String icon;
 
-    @Schema(title = "专题数量")
+    @Schema(title = "기획전 수")
     private Integer helpCount;
 
     private Integer showStatus;

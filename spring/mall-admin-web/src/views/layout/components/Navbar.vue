@@ -6,7 +6,7 @@ import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 import { ArrowDown } from '@element-plus/icons-vue'
 
-// 定义组件名称
+// 컴포넌트 이름 정의
 defineOptions({
   name: 'Navbar'
 })
@@ -17,15 +17,15 @@ const userStore = useUserStore()
 const sidebar = computed(() => appStore.sidebar)
 const avatar = computed(() => userStore.userInfo.avatar)
 
-// 处理开关侧边栏操作
+// 사이드바 열기/닫기 처리
 const handleToggleSideBar = () => {
   appStore.toggleSideBar()
 }
 
-// 处理用户登出
+// 사용자 로그아웃 처리
 const handleLogout = async () => {
   await userStore.userLogout()
-  // 为了重新实例化vue-router对象 避免bug
+  // vue-router 객체를 다시 인스턴스화하기 위해 방지bug
   location.reload()
 }
 </script>
@@ -45,11 +45,11 @@ const handleLogout = async () => {
         <el-dropdown-menu class="user-dropdown">
           <router-link class="inlineBlock" to="/">
             <el-dropdown-item>
-              首页
+              홈
             </el-dropdown-item>
           </router-link>
           <el-dropdown-item divided>
-            <span @click="handleLogout" style="display:block;">退出</span>
+            <span @click="handleLogout" style="display:block;">나가기</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>

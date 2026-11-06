@@ -6,52 +6,52 @@ import com.macro.mall.model.UmsResource;
 import java.util.List;
 
 /**
- * 后台用户缓存管理Service
+ * 관리자 사용자 캐시 관리Service
  * Created by macro on 2020/3/13.
  */
 public interface UmsAdminCacheService {
     /**
-     * 删除后台用户缓存
+     * 관리자 사용자 캐시 삭제
      */
     void delAdmin(Long adminId);
 
     /**
-     * 删除后台用户资源列表缓存
+     * 관리자 사용자 리소스 목록 캐시 삭제
      */
     void delResourceList(Long adminId);
 
     /**
-     * 当角色相关资源信息改变时删除相关后台用户缓存
+     * 역할 관련 리소스 정보가 변경되면 관련 관리자 캐시 삭제
      */
     void delResourceListByRole(Long roleId);
 
     /**
-     * 当角色相关资源信息改变时删除相关后台用户缓存
+     * 역할 관련 리소스 정보가 변경되면 관련 관리자 캐시 삭제
      */
     void delResourceListByRoleIds(List<Long> roleIds);
 
     /**
-     * 当资源信息改变时，删除资源项目后台用户缓存
+     * 리소스 정보가 변경되면 해당 리소스의 관리자 캐시 삭제
      */
     void delResourceListByResource(Long resourceId);
 
     /**
-     * 获取缓存后台用户信息
+     * 캐시된 관리자 사용자 정보 조회
      */
     UmsAdmin getAdmin(String username);
 
     /**
-     * 设置缓存后台用户信息
+     * 관리자 사용자 정보 캐시 설정
      */
     void setAdmin(UmsAdmin admin);
 
     /**
-     * 获取缓存后台用户资源列表
+     * 캐시된 관리자 사용자 리소스 목록 조회
      */
     List<UmsResource> getResourceList(Long adminId);
 
     /**
-     * 设置缓存后台用户资源列表
+     * 관리자 사용자 리소스 목록 캐시 설정
      */
     void setResourceList(Long adminId, List<UmsResource> resourceList);
 }

@@ -2,7 +2,7 @@ import type { OmsOrderSetting } from '@/types/orderSetting'
 import http from '@/utils/http'
 
 /**
- * 获取指定订单设置
+ * 지정한 주문 설정 조회
  */
 export function getOrderSettingByIdAPI(id: number) {
   return http<OmsOrderSetting>({
@@ -12,7 +12,7 @@ export function getOrderSettingByIdAPI(id: number) {
 }
 
 /**
- * 修改指定订单设置
+ * 지정한 주문 설정 수정
  */
 export function orderSettingUpdateByIdAPI(id: number, data: OmsOrderSetting) {
   return http({

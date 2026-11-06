@@ -9,12 +9,12 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * 带有属性的商品属性分类
+ * 속성이 포함된 상품 속성 카테고리
  * Created by macro on 2018/5/24.
  */
 public class PmsProductAttributeCategoryItem extends PmsProductAttributeCategory {
     @Getter
     @Setter
-    @Schema(title =  "商品属性列表")
+    @Schema(title =  "상품 속성 목록")
     private List<PmsProductAttribute> productAttributeList;
 }

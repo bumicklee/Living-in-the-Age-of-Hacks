@@ -13,17 +13,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 首页新品管理Controller
+ * 홈 신상품 관리Controller
  * Created by macro on 2018/11/6.
  */
 @Controller
-@Tag(name = "SmsHomeNewProductController", description = "首页新品管理")
+@Tag(name = "SmsHomeNewProductController", description = "홈 신상품 관리")
 @RequestMapping("/home/newProduct")
 public class SmsHomeNewProductController {
     @Autowired
     private SmsHomeNewProductService homeNewProductService;
 
-    @Operation(summary = "添加首页新品")
+    @Operation(summary = "홈 신상품 추가")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult create(@RequestBody List<SmsHomeNewProduct> homeNewProductList) {
@@ -34,7 +34,7 @@ public class SmsHomeNewProductController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "修改首页新品排序")
+    @Operation(summary = "홈 신상품 정렬 수정")
     @RequestMapping(value = "/update/sort/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult updateSort(@PathVariable Long id, Integer sort) {
@@ -45,7 +45,7 @@ public class SmsHomeNewProductController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "批量删除首页新品")
+    @Operation(summary = "홈 신상품 일괄 삭제")
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(@RequestParam("ids") List<Long> ids) {
@@ -56,7 +56,7 @@ public class SmsHomeNewProductController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "批量修改首页新品状态")
+    @Operation(summary = "홈 신상품 상태 일괄 수정")
     @RequestMapping(value = "/update/recommendStatus", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult updateRecommendStatus(@RequestParam("ids") List<Long> ids, @RequestParam Integer recommendStatus) {
@@ -67,7 +67,7 @@ public class SmsHomeNewProductController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "分页查询首页新品")
+    @Operation(summary = "홈 신상품 페이지 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<SmsHomeNewProduct>> list(@RequestParam(value = "productName", required = false) String productName,

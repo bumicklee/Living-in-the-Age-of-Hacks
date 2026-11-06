@@ -6,12 +6,12 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * 商品属性值管理自定义Dao
+ * 상품 속성값 관리 커스텀Dao
  * Created by macro on 2018/4/26.
  */
 public interface PmsProductAttributeValueDao {
     /**
-     * 批量创建
+     * 일괄 생성
      */
     int insertList(@Param("list")List<PmsProductAttributeValue> productAttributeValueList);
 }

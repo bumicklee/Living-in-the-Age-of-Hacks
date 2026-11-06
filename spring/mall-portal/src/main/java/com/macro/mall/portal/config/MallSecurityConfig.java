@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
- * mall-security模块相关配置
+ * mall-security모듈 관련 설정
  * Created by macro on 2019/11/5.
  */
 @Configuration
@@ -18,7 +18,7 @@ public class MallSecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        //获取登录用户信息
+        //로그인 사용자 정보 조회
         return username -> memberService.loadUserByUsername(username);
     }
 }

@@ -2,7 +2,7 @@ import type { PmsSkuStock } from '@/types/skuStock'
 import http from '@/utils/http'
 
 /**
- * 根据商品ID及sku编码模糊搜索sku库存
+ * 상품 ID 및 sku 코드로 sku 재고 모호 검색
  */
 export function getSkuListByPidAPI(pid: number, params: { keyword?: string }) {
   return http<PmsSkuStock[]>({
@@ -13,7 +13,7 @@ export function getSkuListByPidAPI(pid: number, params: { keyword?: string }) {
 }
 
 /**
- * 根据商品ID批量更新sku库存信息
+ * 상품 ID로 sku 재고 정보 일괄 수정
  */
 export function skuUpdateByPidAPI(pid: number, data: PmsSkuStock[]) {
   return http({

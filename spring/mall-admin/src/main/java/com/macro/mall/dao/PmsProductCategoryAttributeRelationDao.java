@@ -6,12 +6,12 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * 商品分类和属性关系自定义Dao
+ * 상품 카테고리-속성 관계 커스텀Dao
  * Created by macro on 2018/5/23.
  */
 public interface PmsProductCategoryAttributeRelationDao {
     /**
-     * 批量创建
+     * 일괄 생성
      */
     int insertList(@Param("list") List<PmsProductCategoryAttributeRelation> productCategoryAttributeRelationList);
 }

@@ -4,32 +4,32 @@ import com.macro.mall.portal.domain.MemberBrandAttention;
 import org.springframework.data.domain.Page;
 
 /**
- * 会员品牌关注管理Service
+ * 회원 브랜드 팔로우 관리Service
  * Created by macro on 2018/8/2.
  */
 public interface MemberAttentionService {
     /**
-     * 添加关注
+     * 팔로우 추가
      */
     int add(MemberBrandAttention memberBrandAttention);
 
     /**
-     * 取消关注
+     * 관심 해제
      */
     int delete(Long brandId);
 
     /**
-     * 获取用户关注列表
+     * 사용자 관심 목록 조회
      */
     Page<MemberBrandAttention> list(Integer pageNum, Integer pageSize);
 
     /**
-     * 获取用户关注详情
+     * 사용자 관심 상세 조회
      */
     MemberBrandAttention detail(Long brandId);
 
     /**
-     * 清空关注列表
+     * 팔로우 목록 비우기
      */
     void clear();
 }

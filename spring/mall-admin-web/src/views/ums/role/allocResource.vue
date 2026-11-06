@@ -7,30 +7,30 @@ import { roleAllocResourceAPI, roleListResourceById } from '@/apis/role'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { UmsResource, UmsResourceCategory } from '@/types/resource'
 
-// 获取路由
+// 라우트 조회
 const router = useRouter()
 const route = useRoute()
 
-// 当前操作的角色ID
+// 현재 작업 중인 역할ID
 const roleId = ref<number>()
-// 所有资源列表
+// 전체 리소스 목록
 const allResource = ref<UmsResource[]>([])
-// 所有资源分类列表
+// 전체 리소스 분류 목록
 const allResourceCate = ref<UmsResourceCategory[]>([])
-// 获取所有资源分类列表
+// 전체 리소스 카테고리 목록 조회
 const getAllResourceCateList = async () => {
   const res = await resourceCategoryListAllAPI()
   allResourceCate.value = res.data
   allResourceCate.value.forEach(item => item.checked = false)
 }
-// 获取所有资源列表
+// 전체 리소스 목록 조회
 const getAllResourceList = async () => {
   const res = await fetchAllResourceList()
   allResource.value = res.data
   allResource.value.forEach(item => item.checked = false)
 }
 
-// 根据角色获取已分配资源并设置选中状态
+// 역할에 할당된 리소스를 조회하고 선택 상태 설정
 const getResourceByRole = async () => {
   const res = await roleListResourceById(roleId.value!)
   const allocResource = res.data
@@ -42,7 +42,7 @@ const getResourceByRole = async () => {
   })
 }
 
-// 页面挂载时执行
+// 페이지 마운트 시 실행
 onMounted(async () => {
   roleId.value = Number(route.query.roleId)
   await getAllResourceCateList()
@@ -50,34 +50,34 @@ onMounted(async () => {
   await getResourceByRole()
 })
 
-// 根据分类ID获取资源
+// 카테고리 ID로 리소스 조회
 const getResourceByCate = (categoryId: number) => {
   return allResource.value.filter(item => item.categoryId === categoryId)
 }
 
-// 检查资源是否被选中
+// 리소스 선택 여부 확인
 const getResourceChecked = (resourceId: number, allocResource: UmsResource[]) => {
   const index = allocResource.findIndex(item => item.id === resourceId)
   return index > -1
 }
 
-// 检查分类是否半选状态
+// 카테고리 부분 선택 상태 여부 확인
 const isIndeterminate = (categoryId: number) => {
   const cateResources = getResourceByCate(categoryId)
   return !(cateResources.every(item => item.checked === true) || cateResources.every(item => item.checked === false))
 }
 
-// 检查分类是否全选
+// 카테고리 전체 선택 여부 확인
 const isAllChecked = (categoryId: number) => {
   const cateResources = getResourceByCate(categoryId)
   return cateResources.every(item => item.checked === true)
 }
 
-// 保存资源分配
+// 리소스 할당 저장
 const handleSave = async () => {
-  await ElMessageBox.confirm('是否分配资源？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('리소스를 할당할까요?', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning'
   })
   const checkedResourceIds = new Set<number>()
@@ -90,14 +90,14 @@ const handleSave = async () => {
   }
   await roleAllocResourceAPI({ roleId: roleId.value!, resourceIds: Array.from(checkedResourceIds).join(',') })
   ElMessage({
-    message: '分配成功',
+    message: '할당 성공',
     type: 'success',
     duration: 1000
   })
   router.back()
 }
 
-// 清空选中项
+// 선택 항목 비우기
 const handleClear = () => {
   allResourceCate.value.forEach(item => {
     item.checked = false
@@ -107,13 +107,13 @@ const handleClear = () => {
   })
 }
 
-// 处理全选改变事件
+// 전체 선택 변경 이벤트 처리
 const handleCheckAllChange = (cate: UmsResourceCategory) => {
   const cateResources = getResourceByCate(cate.id!)
   cateResources.forEach(item => item.checked = cate.checked)
 }
 
-// 处理单个资源选中事件
+// 리소스 단건 선택 이벤트 처리
 const handleCheckChange = (resource: UmsResource) => {
   allResourceCate.value.forEach(item => {
     if (item.id === resource.categoryId) {
@@ -141,8 +141,8 @@ const handleCheckChange = (resource: UmsResource) => {
       </el-row>
     </div>
     <div style="margin-top: 20px" align="center">
-      <el-button type="primary" @click="handleSave()">保存</el-button>
-      <el-button @click="handleClear()">清空</el-button>
+      <el-button type="primary" @click="handleSave()">저장</el-button>
+      <el-button @click="handleClear()">비우기</el-button>
     </div>
   </el-card>
 </template>

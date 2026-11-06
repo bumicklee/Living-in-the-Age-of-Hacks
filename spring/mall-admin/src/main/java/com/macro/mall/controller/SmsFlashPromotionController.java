@@ -13,17 +13,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 限时购活动管理Controller
+ * 타임 세일 행사 관리Controller
  * Created by macro on 2018/11/16.
  */
 @Controller
-@Tag(name = "SmsFlashPromotionController", description = "限时购活动管理")
+@Tag(name = "SmsFlashPromotionController", description = "타임 세일 행사 관리")
 @RequestMapping("/flash")
 public class SmsFlashPromotionController {
     @Autowired
     private SmsFlashPromotionService flashPromotionService;
 
-    @Operation(summary = "添加活动")
+    @Operation(summary = "이벤트 추가")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult create(@RequestBody SmsFlashPromotion flashPromotion) {
@@ -34,7 +34,7 @@ public class SmsFlashPromotionController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "编辑活动")
+    @Operation(summary = "이벤트 편집")
     @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult update(@PathVariable Long id, @RequestBody SmsFlashPromotion flashPromotion) {
@@ -45,7 +45,7 @@ public class SmsFlashPromotionController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "删除活动")
+    @Operation(summary = "이벤트 삭제")
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(@PathVariable Long id) {
@@ -56,7 +56,7 @@ public class SmsFlashPromotionController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "修改上下线状态")
+    @Operation(summary = "판매/판매 중지 상태 수정")
     @RequestMapping(value = "/update/status/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult update(@PathVariable Long id, Integer status) {
@@ -67,7 +67,7 @@ public class SmsFlashPromotionController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "获取活动详情")
+    @Operation(summary = "행사 상세 조회")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<SmsFlashPromotion> getItem(@PathVariable Long id) {
@@ -75,7 +75,7 @@ public class SmsFlashPromotionController {
         return CommonResult.success(flashPromotion);
     }
 
-    @Operation(summary = "根据活动名称分页查询")
+    @Operation(summary = "이벤트 이름으로 페이징 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<SmsFlashPromotion>> getItem(@RequestParam(value = "keyword", required = false) String keyword,

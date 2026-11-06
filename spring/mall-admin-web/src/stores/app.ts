@@ -2,26 +2,26 @@ import { reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useAppStore = defineStore('app', () => {
-  // 侧边栏状态
+  // 사이드바 상태
   const sidebar = reactive({
     opened: true,
     withoutAnimation: false,
   })
-  // 设备状态
+  // 기기 상태
   const device = ref('desktop')
 
-  // 切换侧边栏
+  // 사이드바 전환
   function toggleSideBar() {
     sidebar.opened = !sidebar.opened
   }
 
-  // 关闭侧边栏
+  // 사이드바 닫기
   function closeSideBar(withoutAnimation: boolean) {
     sidebar.opened = false
     sidebar.withoutAnimation = withoutAnimation
   }
 
-  // 切换设备：desktop or mobile
+  // 장치 전환:desktop or mobile
   function toggleDevice(deviceType: string) {
     device.value = deviceType
   }

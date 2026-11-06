@@ -1,17 +1,17 @@
-/** 角色信息 */
+/** 역할 정보 */
 export type UmsRole = {
   /** ID */
   id?: number
-  /** 名称 */
+  /** 이름 */
   name: string
-  /** 描述 */
+  /** 설명 */
   description?: string
-  /** 后台用户数量 */
+  /** 관리자 사용자 수 */
   adminCount?: number
-  /** 创建时间 */
+  /** 생성 시간 */
   createTime?: string
-  /** 启用状态：0->禁用；1->启用 */
+  /** 사용 상태:0->사용 안 함;1->사용 */
   status: number
-  /** 排序 */
+  /** 정렬 */
   sort?: number
 }

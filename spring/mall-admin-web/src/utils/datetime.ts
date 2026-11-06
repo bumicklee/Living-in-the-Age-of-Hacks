@@ -1,6 +1,6 @@
 import { dayjs } from 'element-plus'
 
-// 日期时间格式化函数
+// 날짜/시간 포맷 함수
 export const formatDateTime = (time: string) => {
   if (!time) {
     return 'N/A'
@@ -8,7 +8,7 @@ export const formatDateTime = (time: string) => {
   return dayjs(time).format('YYYY-MM-DD HH:mm:ss')
 }
 
-// 日期格式化函数
+// 날짜 포맷 함수
 export const formatDate = (time: string) => {
   if (!time) {
     return 'N/A'
@@ -16,7 +16,7 @@ export const formatDate = (time: string) => {
   return dayjs(time).format('YYYY-MM-DD')
 }
 
-// 时间格式化函数
+// 시간 포맷 함수
 export const formatTime = (time: string) => {
   if (!time) {
     return 'N/A'
@@ -24,7 +24,7 @@ export const formatTime = (time: string) => {
   return dayjs(time).format('HH:mm:ss')
 }
 
-// 将以`-`分割的日期字符串转化为Date对象
+// 다음으로 시작하는`-`구분된 날짜 문자열을 Date 객체로 변환
 export function str2Date(dateStr: string, separator?: string) {
   if (!separator) {
     separator = '-'
@@ -33,7 +33,7 @@ export function str2Date(dateStr: string, separator?: string) {
   if (!dateArr[0] || !dateArr[1] || !dateArr[2]) return undefined
   const year = parseInt(dateArr[0])
   let month
-  //处理月份为04这样的情况
+  //월이 04처럼 앞에 0이 붙는 경우 처리
   if (dateArr[1].indexOf('0') == 0) {
     month = parseInt(dateArr[1].substring(1))
   } else {

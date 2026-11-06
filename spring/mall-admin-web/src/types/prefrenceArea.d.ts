@@ -1,15 +1,15 @@
-/** 优选区域信息 */
+/** 엄선 영역 정보 */
 export type CmsPrefrenceArea = {
   /** ID */
   id?: number
-  /** 名称 */
+  /** 이름 */
   name: string
-  /** 副标题 */
+  /** 부제목 */
   subTitle: string
-  /** 排序 */
+  /** 정렬 */
   sort: number
-  /** 显示状态：0->不显示；1->显示 */
+  /** 표시 상태:0->표시 안 함;1->표시 */
   showStatus: number
-  /** 展示图片 */
+  /** 표시 이미지 */
   pic?: string
 }

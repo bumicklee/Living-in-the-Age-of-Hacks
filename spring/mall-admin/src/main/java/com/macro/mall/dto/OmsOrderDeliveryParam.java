@@ -5,16 +5,16 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 订单发货参数
+ * 주문 발송 파라미터
  * Created by macro on 2018/10/12.
  */
 @Getter
 @Setter
 public class OmsOrderDeliveryParam {
-    @Schema(title = "订单id")
+    @Schema(title = "주문id")
     private Long orderId;
-    @Schema(title = "物流公司")
+    @Schema(title = "택배사")
     private String deliveryCompany;
-    @Schema(title = "物流单号")
+    @Schema(title = "운송장 번호")
     private String deliverySn;
 }

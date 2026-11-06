@@ -16,17 +16,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.List;
 
 /**
- * 优惠券领取记录管理Controller
+ * 쿠폰 수령 기록 관리Controller
  * Created by macro on 2018/11/6.
  */
 @Controller
-@Tag(name = "SmsCouponHistoryController", description = "优惠券领取记录管理")
+@Tag(name = "SmsCouponHistoryController", description = "쿠폰 수령 기록 관리")
 @RequestMapping("/couponHistory")
 public class SmsCouponHistoryController {
     @Autowired
     private SmsCouponHistoryService historyService;
 
-    @Operation(summary = "根据优惠券id，使用状态，订单编号分页获取领取记录")
+    @Operation(summary = "쿠폰 id, 사용 상태, 주문 번호로 발급 내역 페이징 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<SmsCouponHistory>> list(@RequestParam(value = "couponId", required = false) Long couponId,

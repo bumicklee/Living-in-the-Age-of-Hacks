@@ -12,17 +12,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 后台资源分类管理Controller
+ * 관리자 리소스 카테고리 관리Controller
  * Created by macro on 2020/2/5.
  */
 @Controller
-@Tag(name = "UmsResourceCategoryController", description = "后台资源分类管理")
+@Tag(name = "UmsResourceCategoryController", description = "관리자 리소스 카테고리 관리")
 @RequestMapping("/resourceCategory")
 public class UmsResourceCategoryController {
     @Autowired
     private UmsResourceCategoryService resourceCategoryService;
 
-    @Operation(summary = "查询所有后台资源分类")
+    @Operation(summary = "모든 관리자 리소스 분류 조회")
     @RequestMapping(value = "/listAll", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<List<UmsResourceCategory>> listAll() {
@@ -30,7 +30,7 @@ public class UmsResourceCategoryController {
         return CommonResult.success(resourceList);
     }
 
-    @Operation(summary = "添加后台资源分类")
+    @Operation(summary = "관리자 리소스 카테고리 추가")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult create(@RequestBody UmsResourceCategory umsResourceCategory) {
@@ -42,7 +42,7 @@ public class UmsResourceCategoryController {
         }
     }
 
-    @Operation(summary = "修改后台资源分类")
+    @Operation(summary = "관리자 리소스 카테고리 수정")
     @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult update(@PathVariable Long id,
@@ -55,7 +55,7 @@ public class UmsResourceCategoryController {
         }
     }
 
-    @Operation(summary = "根据ID删除后台资源分类")
+    @Operation(summary = "ID로 관리자 리소스 분류 삭제")
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(@PathVariable Long id) {

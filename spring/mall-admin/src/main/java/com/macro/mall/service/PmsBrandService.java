@@ -7,53 +7,53 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 商品品牌管理Service
+ * 상품 브랜드 관리Service
  * Created by macro on 2018/4/26.
  */
 public interface PmsBrandService {
     /**
-     * 获取所有品牌
+     * 전체 브랜드 조회
      */
     List<PmsBrand> listAllBrand();
 
     /**
-     * 创建品牌
+     * 브랜드 생성
      */
     int createBrand(PmsBrandParam pmsBrandParam);
 
     /**
-     * 修改品牌
+     * 브랜드 수정
      */
     @Transactional
     int updateBrand(Long id, PmsBrandParam pmsBrandParam);
 
     /**
-     * 删除品牌
+     * 브랜드 삭제
      */
     int deleteBrand(Long id);
 
     /**
-     * 批量删除品牌
+     * 브랜드 일괄 삭제
      */
     int deleteBrand(List<Long> ids);
 
     /**
-     * 分页查询品牌
+     * 브랜드 페이지 조회
      */
     List<PmsBrand> listBrand(String keyword, Integer showStatus, int pageNum, int pageSize);
 
     /**
-     * 获取品牌详情
+     * 브랜드 상세 조회
      */
     PmsBrand getBrand(Long id);
 
     /**
-     * 修改显示状态
+     * 표시 상태 수정
      */
     int updateShowStatus(List<Long> ids, Integer showStatus);
 
     /**
-     * 修改厂家制造商状态
+     * 제조사 상태 수정
      */
     int updateFactoryStatus(List<Long> ids, Integer factoryStatus);
 }

@@ -8,7 +8,7 @@ import type {
 import http from '@/utils/http'
 
 /**
- * 分页查询退货申请
+ * 반품 신청 페이지 조회
  */
 export function getReturnApplyListAPI(params: ReturnApplyQueryParam) {
   return http<CommonPage<OmsOrderReturnApply>>({
@@ -19,7 +19,7 @@ export function getReturnApplyListAPI(params: ReturnApplyQueryParam) {
 }
 
 /**
- * 批量删除退货申请
+ * 반품 신청 일괄 삭제
  */
 export function returnApplyDeleteByIdsAPI(params: { ids: string }) {
   return http({
@@ -30,7 +30,7 @@ export function returnApplyDeleteByIdsAPI(params: { ids: string }) {
 }
 
 /**
- * 修改退货申请状态
+ * 반품 신청 상태 수정
  */
 export function returnApplyUpdateStatusAPI(id: number, data: OmsUpdateStatusParam) {
   return http({
@@ -41,7 +41,7 @@ export function returnApplyUpdateStatusAPI(id: number, data: OmsUpdateStatusPara
 }
 
 /**
- * 获取退货申请详情
+ * 반품 신청 상세 조회
  */
 export function getReturnApplyByIdAPI(id: number) {
   return http<OmsOrderReturnApplyResult>({

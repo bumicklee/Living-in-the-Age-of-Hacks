@@ -6,31 +6,31 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * 品牌传递参数
+ * 브랜드 전달 파라미터
  * Created by macro on 2019/4/8.
  */
 @Schema(title = "PmsBrandDto")
 public class PmsBrandDto {
-    @Schema(title = "品牌名称",requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "名称不能为空")
+    @Schema(title = "브랜드명",requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "이름은 비워둘 수 없습니다")
     private String name;
-    @Schema(title = "品牌首字母",requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "首字母不能为空")
+    @Schema(title = "브랜드 첫 글자",requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "초성은 비워 둘 수 없습니다")
     private String firstLetter;
-    @Schema(title = "排序字段")
-    @Min(value = 0, message = "排序最小为0")
+    @Schema(title = "정렬 필드")
+    @Min(value = 0, message = "정렬 최솟값은0")
     private Integer sort;
-    @Schema(title = "是否为厂家制造商")
-    @FlagValidator(value = {"0","1"}, message = "厂家状态不正确")
+    @Schema(title = "제조사 여부")
+    @FlagValidator(value = {"0","1"}, message = "제조사 상태가 올바르지 않습니다")
     private Integer factoryStatus;
-    @Schema(title = "是否进行显示")
-    @FlagValidator(value = {"0","1"}, message = "显示状态不正确")
+    @Schema(title = "표시할까요?")
+    @FlagValidator(value = {"0","1"}, message = "표시 상태가 올바르지 않습니다")
     private Integer showStatus;
-    @Schema(title = "品牌logo")
+    @Schema(title = "브랜드logo")
     private String logo;
-    @Schema(title = "品牌大图")
+    @Schema(title = "브랜드 대형 이미지")
     private String bigPic;
-    @Schema(title = "品牌故事")
+    @Schema(title = "브랜드 스토리")
     private String brandStory;
 
     public String getName() {

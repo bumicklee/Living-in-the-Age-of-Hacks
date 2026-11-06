@@ -7,51 +7,51 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 订单管理Service
+ * 주문 관리Service
  * Created by macro on 2018/10/11.
  */
 public interface OmsOrderService {
     /**
-     * 分页查询订单
+     * 주문 페이지 조회
      */
     List<OmsOrder> list(OmsOrderQueryParam queryParam, Integer pageSize, Integer pageNum);
 
     /**
-     * 批量发货
+     * 일괄 발송
      */
     @Transactional
     int delivery(List<OmsOrderDeliveryParam> deliveryParamList);
 
     /**
-     * 批量关闭订单
+     * 주문 일괄 닫기
      */
     @Transactional
     int close(List<Long> ids, String note);
 
     /**
-     * 批量删除订单
+     * 주문 일괄 삭제
      */
     int delete(List<Long> ids);
 
     /**
-     * 获取指定订单详情
+     * 지정한 주문 상세 조회
      */
     OmsOrderDetail detail(Long id);
 
     /**
-     * 修改订单收货人信息
+     * 주문 수령인 정보 수정
      */
     @Transactional
     int updateReceiverInfo(OmsReceiverInfoParam receiverInfoParam);
 
     /**
-     * 修改订单费用信息
+     * 주문 비용 정보 수정
      */
     @Transactional
     int updateMoneyInfo(OmsMoneyInfoParam moneyInfoParam);
 
     /**
-     * 修改订单备注
+     * 주문 비고 수정
      */
     @Transactional
     int updateNote(Long id, String note, Integer status);

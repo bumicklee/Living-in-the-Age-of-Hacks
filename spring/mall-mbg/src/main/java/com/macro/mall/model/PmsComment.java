@@ -13,27 +13,27 @@ public class PmsComment implements Serializable {
 
     private String productName;
 
-    @Schema(title = "评价星数：0->5")
+    @Schema(title = "리뷰 별점:0->5")
     private Integer star;
 
-    @Schema(title = "评价的ip")
+    @Schema(title = "리뷰의ip")
     private String memberIp;
 
     private Date createTime;
 
     private Integer showStatus;
 
-    @Schema(title = "购买时的商品属性")
+    @Schema(title = "구매 시점의 상품 속성")
     private String productAttribute;
 
     private Integer collectCouont;
 
     private Integer readCount;
 
-    @Schema(title = "上传图片地址，以逗号隔开")
+    @Schema(title = "업로드 이미지 주소, 쉼표로 구분")
     private String pics;
 
-    @Schema(title = "评论用户头像")
+    @Schema(title = "댓글 사용자 프로필 이미지")
     private String memberIcon;
 
     private Integer replayCount;

@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 /**
- * 搜索商品的关联信息，包括品牌名称，分类名称及属性
+ * 검색 상품의 연관 정보(브랜드명, 카테고리명, 속성 포함)
  * Created by macro on 2018/6/27.
  */
 @Data

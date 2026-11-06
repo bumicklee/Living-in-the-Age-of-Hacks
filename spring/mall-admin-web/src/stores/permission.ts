@@ -4,12 +4,12 @@ import { asyncRouterMap, constantRouterMap } from '@/router/index'
 import type { UmsMenu } from '@/types/menu'
 import type { RouteRecordExt } from '@/types/router'
 
-//判断是否有权限访问该菜单
+//해당 메뉴에 접근할 권한이 있는지 판단
 function hasPermission(menus: UmsMenu[], route: RouteRecordExt) {
   if (route.name) {
     const currMenu = getMenu(route.name as string, menus)
     if (currMenu != null) {
-      //设置菜单的标题、图标和可见性
+      //메뉴의 제목, 아이콘 및 표시 여부 설정
       if (currMenu.title != null && currMenu.title !== '') {
         route.meta!.title = currMenu.title
       }
@@ -37,12 +37,12 @@ function hasPermission(menus: UmsMenu[], route: RouteRecordExt) {
   }
 }
 
-// 根据路由名称获取菜单
+// 라우트 이름으로 메뉴 조회
 function getMenu(name: string, menus: UmsMenu[]) {
   return menus.find(menu => name === menu.name) || null
 }
 
-// 对菜单进行排序
+// 메뉴 정렬
 function sortRouters(accessedRouters: RouteRecordExt[]) {
   accessedRouters.forEach(router => {
     if (router.children && router.children.length > 0) {
@@ -52,7 +52,7 @@ function sortRouters(accessedRouters: RouteRecordExt[]) {
   accessedRouters.sort((a, b) => compare(a, b))
 }
 
-// 降序比较函数
+// 내림차순 비교 함수
 function compare(a: RouteRecordExt, b: RouteRecordExt) {
   if (a.sort && b.sort) {
     return b.sort - a.sort
@@ -62,18 +62,18 @@ function compare(a: RouteRecordExt, b: RouteRecordExt) {
 }
 
 export const usePermissionStore = defineStore('permission', () => {
-  // 所有路由，静态路由+动态路由
+  // 전체 라우트, 정적 라우트 + 동적 라우트
   const routers = shallowRef(constantRouterMap)
-  // 有权限访问的动态路由
+  // 접근 권한이 있는 동적 라우트
   const addRouters = shallowRef<RouteRecordExt[]>([])
-  // 是否为测试模式
+  // 테스트 모드 여부
   const testMode = false
 
-  // 生成可访问的路由表
+  // 접근 가능한 라우트 테이블 생성
   const generateRoutes = (data: { menus: UmsMenu[]; username: string }) => {
     const { menus, username } = data
     const accessedRouters = asyncRouterMap.filter(v => {
-      // 测试模式下admin帐号直接返回所有菜单
+      // 테스트 모드에서는 admin 계정이 모든 메뉴를 바로 반환
       if (testMode && username === 'admin') return true
       if (hasPermission(menus, v)) {
         if (v.children && v.children.length > 0) {
@@ -90,7 +90,7 @@ export const usePermissionStore = defineStore('permission', () => {
       }
       return false
     })
-    //对菜单进行排序
+    //메뉴 정렬
     sortRouters(accessedRouters)
     addRouters.value = accessedRouters
     routers.value = constantRouterMap.concat(accessedRouters)
@@ -103,5 +103,5 @@ export const usePermissionStore = defineStore('permission', () => {
   }
 })
 
-// 默认导出保持兼容性
+// 기본 내보내기로 호환성 유지
 export default usePermissionStore

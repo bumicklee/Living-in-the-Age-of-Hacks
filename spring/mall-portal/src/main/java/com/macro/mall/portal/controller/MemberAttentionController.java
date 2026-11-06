@@ -12,16 +12,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 会员关注品牌管理Controller
+ * 회원 팔로우 브랜드 관리Controller
  * Created by macro on 2018/8/2.
  */
 @Controller
-@Tag(name = "MemberAttentionController",description = "会员关注品牌管理")
+@Tag(name = "MemberAttentionController",description = "회원 팔로우 브랜드 관리")
 @RequestMapping("/member/attention")
 public class MemberAttentionController {
     @Autowired
     private MemberAttentionService memberAttentionService;
-    @Operation(summary = "添加品牌关注")
+    @Operation(summary = "브랜드 팔로우 추가")
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult add(@RequestBody MemberBrandAttention memberBrandAttention) {
@@ -33,7 +33,7 @@ public class MemberAttentionController {
         }
     }
 
-    @Operation(summary = "取消品牌关注")
+    @Operation(summary = "브랜드 관심 해제")
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(Long brandId) {
@@ -45,7 +45,7 @@ public class MemberAttentionController {
         }
     }
 
-    @Operation(summary = "分页查询当前用户品牌关注列表")
+    @Operation(summary = "현재 사용자의 브랜드 팔로우 목록 페이지 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<MemberBrandAttention>> list(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
@@ -54,7 +54,7 @@ public class MemberAttentionController {
         return CommonResult.success(CommonPage.restPage(page));
     }
 
-    @Operation(summary = "根据品牌ID获取品牌关注详情")
+    @Operation(summary = "브랜드 ID로 브랜드 팔로우 상세 조회")
     @RequestMapping(value = "/detail", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<MemberBrandAttention> detail(@RequestParam Long brandId) {
@@ -62,7 +62,7 @@ public class MemberAttentionController {
         return CommonResult.success(memberBrandAttention);
     }
 
-    @Operation(summary = "清空当前用户品牌关注列表")
+    @Operation(summary = "현재 사용자의 브랜드 팔로우 목록 비우기")
     @RequestMapping(value = "/clear", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult clear() {

@@ -1,35 +1,35 @@
-/** 优惠券类型数组 */
+/** 쿠폰 유형 배열 */
 export const couponTypes = [
   {
-    label: '全场赠券',
+    label: '전 상품 증정 쿠폰',
     value: 0,
   },
   {
-    label: '会员赠券',
+    label: '회원 쿠폰 증정',
     value: 1,
   },
   {
-    label: '购物赠券',
+    label: '구매 시 쿠폰 지급',
     value: 2,
   },
   {
-    label: '注册赠券',
+    label: '가입 축하 쿠폰',
     value: 3,
   },
 ]
 
-/** 优惠券使用平台 */
+/** 쿠폰 사용 플랫폼 */
 export const couponPlatforms = [
   {
-    label: '全平台',
+    label: '전 플랫폼',
     value: 0,
   },
   {
-    label: '移动平台',
+    label: '모바일 플랫폼',
     value: 1,
   },
   {
-    label: 'PC平台',
+    label: 'PC플랫폼',
     value: 2,
   },
 ]

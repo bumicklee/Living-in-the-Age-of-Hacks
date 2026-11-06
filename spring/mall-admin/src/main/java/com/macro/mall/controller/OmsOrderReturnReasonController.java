@@ -13,17 +13,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 退货原因管理Controller
+ * 반품 사유 관리Controller
  * Created by macro on 2018/10/17.
  */
 @Controller
-@Tag(name = "OmsOrderReturnReasonController", description = "退货原因管理")
+@Tag(name = "OmsOrderReturnReasonController", description = "반품 사유 관리")
 @RequestMapping("/returnReason")
 public class OmsOrderReturnReasonController {
     @Autowired
     private OmsOrderReturnReasonService orderReturnReasonService;
 
-    @Operation(summary = "添加退货原因")
+    @Operation(summary = "반품 사유 추가")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult create(@RequestBody OmsOrderReturnReason returnReason) {
@@ -34,7 +34,7 @@ public class OmsOrderReturnReasonController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "修改退货原因")
+    @Operation(summary = "반품 사유 수정")
     @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult update(@PathVariable Long id, @RequestBody OmsOrderReturnReason returnReason) {
@@ -45,7 +45,7 @@ public class OmsOrderReturnReasonController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "批量删除退货原因")
+    @Operation(summary = "반품 사유 일괄 삭제")
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(@RequestParam("ids") List<Long> ids) {
@@ -56,7 +56,7 @@ public class OmsOrderReturnReasonController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "分页查询退货原因")
+    @Operation(summary = "반품 사유 페이지 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<OmsOrderReturnReason>> list(@RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
@@ -65,7 +65,7 @@ public class OmsOrderReturnReasonController {
         return CommonResult.success(CommonPage.restPage(reasonList));
     }
 
-    @Operation(summary = "获取单个退货原因详情信息")
+    @Operation(summary = "단일 반품 사유 상세 정보 조회")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<OmsOrderReturnReason> getItem(@PathVariable Long id) {
@@ -73,7 +73,7 @@ public class OmsOrderReturnReasonController {
         return CommonResult.success(reason);
     }
 
-    @Operation(summary = "修改退货原因启用状态")
+    @Operation(summary = "반품 사유 사용 상태 수정")
     @RequestMapping(value = "/update/status", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult updateStatus(@RequestParam(value = "status") Integer status,

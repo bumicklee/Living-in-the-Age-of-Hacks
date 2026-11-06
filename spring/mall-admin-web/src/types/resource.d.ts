@@ -1,43 +1,43 @@
 import type { PageParam } from './common'
 
-/** 资源信息 */
+/** 리소스 정보 */
 export type UmsResource = {
   /** ID */
   id?: number
-  /** 创建时间 */
+  /** 생성 시간 */
   createTime?: string
-  /** 资源名称 */
+  /** 리소스 이름 */
   name: string
-  /** 资源URL */
+  /** 리소스URL */
   url: string
-  /** 描述 */
+  /** 설명 */
   description?: string
-  /** 资源分类ID */
+  /** 리소스 카테고리ID */
   categoryId: number
-  /** 是否被选中，前端使用 */
+  /** 선택 여부, 프런트엔드에서 사용 */
   checked?: boolean
 }
 
-/** 资源分类信息 */
+/** 리소스 카테고리 정보 */
 export type UmsResourceCategory = {
   /** ID */
   id?: number
-  /** 创建时间 */
+  /** 생성 시간 */
   createTime?: string
-  /** 分类名称 */
+  /** 카테고리 이름 */
   name: string
-  /** 排序 */
+  /** 정렬 */
   sort: number
-  /** 是否被选中，前端使用 */
+  /** 선택 여부, 프런트엔드에서 사용 */
   checked?: boolean
 }
 
-/** 资源列表查询参数 */
+/** 리소스 목록 조회 파라미터 */
 export type ResourceQueryParam = PageParam & {
-  /** 资源名称关键字 */
+  /** 리소스 이름 키워드 */
   nameKeyword?: string
-  /** 资源路径关键字 */
+  /** 리소스 경로 키워드 */
   urlKeyword?: string
-  /** 资源分类ID */
+  /** 리소스 카테고리ID */
   categoryId?: number
 }

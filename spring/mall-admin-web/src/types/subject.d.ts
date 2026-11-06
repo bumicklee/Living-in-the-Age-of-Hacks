@@ -1,35 +1,35 @@
-/** 专题实体 */
+/** 기획전 엔티티 */
 export type CmsSubject = {
   /** ID */
   id?: number
-  /** 分类ID */
+  /** 카테고리ID */
   categoryId?: number
-  /** 标题 */
+  /** 제목 */
   title?: string
-  /** 专题主图 */
+  /** 기획전 대표 이미지 */
   pic?: string
-  /** 关联产品数量 */
+  /** 연관 제품 수 */
   productCount?: number
-  /** 推荐状态 */
+  /** 추천 상태 */
   recommendStatus?: number
-  /** 创建时间 */
+  /** 생성 시간 */
   createTime?: string
-  /** 收藏数 */
+  /** 즐겨찾기 수 */
   collectCount?: number
-  /** 阅读数 */
+  /** 조회 수 */
   readCount?: number
-  /** 评论数 */
+  /** 댓글 수 */
   commentCount?: number
-  /** 画册图片用逗号分割 */
+  /** 앨범 이미지는 쉼표로 구분 */
   albumPics?: string
-  /** 描述 */
+  /** 설명 */
   description?: string
-  /** 显示状态：0->不显示；1->显示 */
+  /** 표시 상태:0->표시 안 함;1->표시 */
   showStatus?: number
-  /** 转发数 */
+  /** 공유 수 */
   forwardCount?: number
-  /** 专题分类名称 */
+  /** 기획전 카테고리 이름 */
   categoryName?: string
-  /** 内容 */
+  /** 내용 */
   content?: string
 }

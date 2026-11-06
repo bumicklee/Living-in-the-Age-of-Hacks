@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * SpringSecurity需要的用户信息封装类
+ * SpringSecurity필요한 사용자 정보 래퍼 클래스
  * Created by macro on 2018/8/3.
  */
 public class MemberDetails implements UserDetails {
@@ -21,7 +21,7 @@ public class MemberDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        //返回当前用户的权限
+        //현재 사용자의 권한 반환
         return Arrays.asList(new SimpleGrantedAuthority("TEST"));
     }
 

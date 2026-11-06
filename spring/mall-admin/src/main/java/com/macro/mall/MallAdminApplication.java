@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * 应用启动入口
+ * 애플리케이션 시작 진입점
  * Created by macro on 2018/4/26.
  */
 @SpringBootApplication

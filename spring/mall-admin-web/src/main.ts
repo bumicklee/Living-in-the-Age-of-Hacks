@@ -2,21 +2,21 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import { createPinia } from 'pinia'
 import router from './router'
-import '@/styles/index.scss' // 引入全局css样式
-import 'normalize.css/normalize.css' // 重置css统一浏览器默认样式
+import '@/styles/index.scss' // 전역 css 스타일 가져오기
+import 'normalize.css/normalize.css' // css 초기화로 브라우저 기본 스타일 통일
 import { setupSvgIcon } from './icons'
-import 'virtual:svg-icons-register' // 引入SVG图标注册器（关键步骤）
-import '@/router/guard' // 引入vue-router的前置和后置守卫函数
+import 'virtual:svg-icons-register' // SVG 아이콘 등록기 가져오기(핵심 단계)
+import '@/router/guard' // vue-router의 전역 가드(before/after) 함수 가져오기
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
 const app = createApp(App)
 const pinia = createPinia()
-// pinia启用持久化插件
+// pinia영속화 플러그인 활성화
 pinia.use(piniaPluginPersistedstate)
-// 以插件形式注册pinia
+// 플러그인 형태로 등록pinia
 app.use(pinia)
-// 以插件形式注册vue-router
+// 플러그인 형태로 등록vue-router
 app.use(router)
-// 以插件形式注册SvgIcon组件
+// 플러그인 형태로 SvgIcon 컴포넌트 등록
 setupSvgIcon(app)
 app.mount('#app')

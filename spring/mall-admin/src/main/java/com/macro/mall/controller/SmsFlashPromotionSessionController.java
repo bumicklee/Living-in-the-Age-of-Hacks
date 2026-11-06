@@ -13,17 +13,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 限时购场次管理Controller
+ * 타임 세일 회차 관리Controller
  * Created by macro on 2018/11/16.
  */
 @Controller
-@Tag(name = "SmsFlashPromotionSessionController", description = "限时购场次管理")
+@Tag(name = "SmsFlashPromotionSessionController", description = "타임 세일 회차 관리")
 @RequestMapping("/flashSession")
 public class SmsFlashPromotionSessionController {
     @Autowired
     private SmsFlashPromotionSessionService flashPromotionSessionService;
 
-    @Operation(summary = "添加场次")
+    @Operation(summary = "회차 추가")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult create(@RequestBody SmsFlashPromotionSession promotionSession) {
@@ -34,7 +34,7 @@ public class SmsFlashPromotionSessionController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "修改场次")
+    @Operation(summary = "회차 수정")
     @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult update(@PathVariable Long id, @RequestBody SmsFlashPromotionSession promotionSession) {
@@ -45,7 +45,7 @@ public class SmsFlashPromotionSessionController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "修改启用状态")
+    @Operation(summary = "사용 상태 수정")
     @RequestMapping(value = "/update/status/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult updateStatus(@PathVariable Long id, Integer status) {
@@ -56,7 +56,7 @@ public class SmsFlashPromotionSessionController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "删除场次")
+    @Operation(summary = "회차 삭제")
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(@PathVariable Long id) {
@@ -67,7 +67,7 @@ public class SmsFlashPromotionSessionController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "获取场次详情")
+    @Operation(summary = "회차 상세 조회")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<SmsFlashPromotionSession> getItem(@PathVariable Long id) {
@@ -75,7 +75,7 @@ public class SmsFlashPromotionSessionController {
         return CommonResult.success(promotionSession);
     }
 
-    @Operation(summary = "获取全部场次")
+    @Operation(summary = "전체 회차 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<List<SmsFlashPromotionSession>> list() {
@@ -83,7 +83,7 @@ public class SmsFlashPromotionSessionController {
         return CommonResult.success(promotionSessionList);
     }
 
-    @Operation(summary = "获取全部可选场次及其数量")
+    @Operation(summary = "선택 가능한 전체 회차와 수량 조회")
     @RequestMapping(value = "/selectList", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<List<SmsFlashPromotionSessionDetail>> selectList(Long flashPromotionId) {

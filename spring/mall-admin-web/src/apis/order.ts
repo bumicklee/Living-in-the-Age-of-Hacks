@@ -10,7 +10,7 @@ import type {
 import http from '@/utils/http'
 
 /**
- * 分页查询订单列表
+ * 주문 목록 페이지 조회
  */
 export function getOrderListAPI(params: OrderQueryParam) {
   return http<CommonPage<OmsOrder>>({
@@ -21,7 +21,7 @@ export function getOrderListAPI(params: OrderQueryParam) {
 }
 
 /**
- * 批量关闭订单
+ * 주문 일괄 닫기
  */
 export function orderUpdateCloseAPI(params: { ids: string; note: string }) {
   return http({
@@ -32,7 +32,7 @@ export function orderUpdateCloseAPI(params: { ids: string; note: string }) {
 }
 
 /**
- * 批量删除订单
+ * 주문 일괄 삭제
  */
 export function orderDeleteByIdsAPI(params: { ids: string }) {
   return http({
@@ -43,7 +43,7 @@ export function orderDeleteByIdsAPI(params: { ids: string }) {
 }
 
 /**
- * 批量发货
+ * 일괄 발송
  */
 export function orderUpdateDeliveryAPI(data: OmsOrderDeliveryParam[]) {
   return http({
@@ -54,7 +54,7 @@ export function orderUpdateDeliveryAPI(data: OmsOrderDeliveryParam[]) {
 }
 
 /**
- * 获取订单详情：订单信息、商品信息、操作记录
+ * 주문 상세 조회: 주문 정보, 상품 정보, 작업 기록
  */
 export function getOrderDetailByIdAPI(id: number) {
   return http<OmsOrderDetail>({
@@ -64,7 +64,7 @@ export function getOrderDetailByIdAPI(id: number) {
 }
 
 /**
- * 修改收货人信息
+ * 수령인 정보 수정
  */
 export function orderUpdateReceiverInfoAPI(data: OmsReceiverInfoParam) {
   return http({
@@ -75,7 +75,7 @@ export function orderUpdateReceiverInfoAPI(data: OmsReceiverInfoParam) {
 }
 
 /**
- * 修改订单费用信息
+ * 주문 비용 정보 수정
  */
 export function orderUpdateMoneyInfoAPI(data: OmsMoneyInfoParam) {
   return http({
@@ -86,7 +86,7 @@ export function orderUpdateMoneyInfoAPI(data: OmsMoneyInfoParam) {
 }
 
 /**
- * 备注订单
+ * 주문 메모
  */
 export function orderUpdateNoteAPI(params: { id: number; note: string; status: number }) {
   return http({

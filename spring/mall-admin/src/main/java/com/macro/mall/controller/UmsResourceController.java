@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 后台资源管理Controller
+ * 관리자 리소스 관리Controller
  * Created by macro on 2020/2/4.
  */
 @Controller
-@Tag(name = "UmsResourceController", description = "后台资源管理")
+@Tag(name = "UmsResourceController", description = "관리자 리소스 관리")
 @RequestMapping("/resource")
 public class UmsResourceController {
 
@@ -27,7 +27,7 @@ public class UmsResourceController {
     @Autowired
     private DynamicSecurityMetadataSource dynamicSecurityMetadataSource;
 
-    @Operation(summary = "添加后台资源")
+    @Operation(summary = "관리자 리소스 추가")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult create(@RequestBody UmsResource umsResource) {
@@ -40,7 +40,7 @@ public class UmsResourceController {
         }
     }
 
-    @Operation(summary = "修改后台资源")
+    @Operation(summary = "관리자 리소스 수정")
     @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult update(@PathVariable Long id,
@@ -54,7 +54,7 @@ public class UmsResourceController {
         }
     }
 
-    @Operation(summary = "根据ID获取资源详情")
+    @Operation(summary = "ID로 리소스 상세 조회")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<UmsResource> getItem(@PathVariable Long id) {
@@ -62,7 +62,7 @@ public class UmsResourceController {
         return CommonResult.success(umsResource);
     }
 
-    @Operation(summary = "根据ID删除后台资源")
+    @Operation(summary = "ID로 관리자 리소스 삭제")
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(@PathVariable Long id) {
@@ -75,7 +75,7 @@ public class UmsResourceController {
         }
     }
 
-    @Operation(summary = "分页模糊查询后台资源")
+    @Operation(summary = "관리자 리소스 페이지 단위 모호 검색")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<UmsResource>> list(@RequestParam(required = false) Long categoryId,
@@ -87,7 +87,7 @@ public class UmsResourceController {
         return CommonResult.success(CommonPage.restPage(resourceList));
     }
 
-    @Operation(summary = "查询所有后台资源")
+    @Operation(summary = "모든 관리자 리소스 조회")
     @RequestMapping(value = "/listAll", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<List<UmsResource>> listAll() {

@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * SpringSecurity需要的用户信息封装类
+ * SpringSecurity필요한 사용자 정보 래퍼 클래스
  * Created by macro on 2018/4/26.
  */
 public class AdminUserDetails implements UserDetails {
-    //后台用户
+    //관리자 사용자
     private final UmsAdmin umsAdmin;
-    //拥有资源列表
+    //보유 리소스 목록
     private final List<UmsResource> resourceList;
 
     public AdminUserDetails(UmsAdmin umsAdmin,List<UmsResource> resourceList) {
@@ -27,7 +27,7 @@ public class AdminUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        //返回当前用户所拥有的资源
+        //현재 사용자가 보유한 리소스 반환
         return resourceList.stream()
                 .map(resource ->new SimpleGrantedAuthority(resource.getId()+":"+resource.getName()))
                 .collect(Collectors.toList());

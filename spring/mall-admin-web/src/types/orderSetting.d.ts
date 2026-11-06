@@ -1,15 +1,15 @@
-/** 订单设置信息 */
+/** 주문 설정 정보 */
 export type OmsOrderSetting = {
   /** ID */
   id: number
-  /** 秒杀订单超时关闭时间(分) */
+  /** 타임 세일 주문 만료 닫힘 시간(분) */
   flashOrderOvertime?: number
-  /** 正常订单超时时间(分) */
+  /** 정상 주문 만료 시간(분) */
   normalOrderOvertime?: number
-  /** 发货后自动确认收货时间（天） */
+  /** 발송 후 자동 수령 확인 시간(일) */
   confirmOvertime?: number
-  /** 自动完成交易时间，不能申请售后（天） */
+  /** 자동 거래 완료 시간, 이후 A/S 신청 불가(일) */
   finishOvertime?: number
-  /** 订单完成后自动好评时间（天） */
+  /** 주문 완료 후 자동 리뷰 작성 시간(일) */
   commentOvertime?: number
 }

@@ -7,20 +7,20 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 /**
- * 生成订单时传入的参数
+ * 주문 생성 시 전달되는 파라미터
  * Created by macro on 2018/8/30.
  */
 @Data
 @EqualsAndHashCode
 public class OrderParam {
-    @Schema(title = "收货地址ID")
+    @Schema(title = "배송지ID")
     private Long memberReceiveAddressId;
-    @Schema(title = "优惠券ID")
+    @Schema(title = "쿠폰ID")
     private Long couponId;
-    @Schema(title = "使用的积分数")
+    @Schema(title = "사용한 포인트 수")
     private Integer useIntegration;
-    @Schema(title = "支付方式")
+    @Schema(title = "결제 수단")
     private Integer payType;
-    @Schema(title = "被选中的购物车商品ID")
+    @Schema(title = "선택된 장바구니 상품ID")
     private List<Long> cartIds;
 }

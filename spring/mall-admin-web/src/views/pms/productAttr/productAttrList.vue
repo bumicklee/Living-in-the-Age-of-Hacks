@@ -6,25 +6,25 @@ import { getProductAttributeListAPI, productAttributeDeleteByIds } from '@/apis/
 import { Tickets } from '@element-plus/icons-vue'
 import type { PmsProductAttribute } from '@/types/productAttr'
 
-// 获取路由对象
+// 라우트 객체 조회
 const router = useRouter()
 
-// 属性分类ID
+// 속성 카테고리ID
 const cid = Number(router.currentRoute.value.query.cid)
-// 属性类型
+// 속성 유형
 const type = Number(router.currentRoute.value.query.type)
-// 列表查询数据
+// 목록 조회 데이터
 const listQuery = ref({
   pageNum: 1,
   pageSize: 5,
   type: type
 })
 const list = ref<PmsProductAttribute[]>([])
-// 列表数据
+// 목록 데이터
 const total = ref(0)
-// 加载状态
+// 로딩 상태
 const listLoading = ref(true)
-// 获取列表数据
+// 목록 데이터 조회
 const getList = async () => {
   listLoading.value = true
   try {
@@ -38,102 +38,102 @@ const getList = async () => {
   }
 }
 
-// 组件挂载后执行
+// 컴포넌트 마운트 후 실행
 onMounted(() => {
   getList()
 })
 
-// 当前批量操作类型
+// 현재 일괄 작업 유형
 const operateType = ref<string>()
-// 批量操作选中条目
+// 일괄 작업 선택 항목
 const multipleSelection = ref<PmsProductAttribute[]>([])
-// 批量操作类型集合
+// 일괄 작업 유형 모음
 const operates = ref([
   {
-    label: "删除",
+    label: "삭제",
     value: "deleteProductAttr"
   }
 ])
 
-// 添加产品属性
+// 상품 속성 추가
 const addProductAttr = () => {
   router.push({ path: '/pms/addProductAttr', query: { cid: router.currentRoute.value.query.cid, type: router.currentRoute.value.query.type } })
 }
 
-// 处理表格选中状态变化
+// 테이블 선택 상태 변경 처리
 const handleSelectionChange = (val: PmsProductAttribute[]) => {
   multipleSelection.value = val
 }
 
-// 处理批量操作
+// 일괄 작업 처리
 const handleBatchOperate = async () => {
   if (multipleSelection.value.length < 1) {
-    ElMessage.warning('请选择一条记录')
+    ElMessage.warning('레코드를 하나 선택하세요')
     return
   }
   if (operateType.value !== 'deleteProductAttr') {
-    ElMessage.warning('请选择批量操作类型')
+    ElMessage.warning('일괄 작업 유형을 선택하세요')
     return
   }
   await handleDeleteProductAttr(multipleSelection.value.map(item => item.id!))
 }
 
-// 处理每页条数变化
+// 페이지당 건수 변경 처리
 const handleSizeChange = (val: number) => {
   listQuery.value.pageNum = 1
   listQuery.value.pageSize = val
   getList()
 }
 
-// 处理当前页变化
+// 현재 페이지 변경 처리
 const handleCurrentChange = (val: number) => {
   listQuery.value.pageNum = val
   getList()
 }
 
-// 处理更新操作
+// 갱신 작업 처리
 const handleUpdate = (index: number, row: PmsProductAttribute) => {
   router.push({ path: '/pms/updateProductAttr', query: { id: row.id } })
 }
 
-// 处理删除产品属性
+// 상품 속성 삭제 처리
 const handleDeleteProductAttr = async (ids: number[]) => {
   try {
-    await ElMessageBox.confirm('是否要删除该属性', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('이 속성을 삭제할까요?', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     await productAttributeDeleteByIds({ ids: ids.join(",") })
-    ElMessage.success('删除成功')
+    ElMessage.success('삭제 성공')
     getList()
   } catch (error) {
     console.error(error)
   }
 }
 
-// 处理删除操作
+// 삭제 작업 처리
 const handleDelete = async (index: number, row: PmsProductAttribute) => {
   await handleDeleteProductAttr([row.id!])
 }
 
-// 属性值的录入方式
+// 속성값 입력 방식
 const inputTypeFilter = (value: number) => {
   if (value === 1) {
-    return '从列表中选取'
+    return '목록에서 선택'
   } else {
-    return '手工录入'
+    return '직접 입력'
   }
 }
 
-// 属性是否可选
+// 속성 선택 가능 여부
 const selectTypeFilter = (value: number) => {
   if (value === 1) {
-    return '单选'
+    return '단일 선택'
   } else if (value === 2) {
-    return '多选'
+    return '다중 선택'
   } else {
-    return '唯一'
+    return '고유'
   }
 }
 </script>
@@ -144,53 +144,53 @@ const selectTypeFilter = (value: number) => {
       <el-icon class="el-icon-middle">
         <Tickets />
       </el-icon>
-      <span>数据列表</span>
+      <span>데이터 목록</span>
       <el-button class="btn-add" @click="addProductAttr()">
-        添加
+        추가
       </el-button>
     </el-card>
     <div class="table-container">
       <el-table ref="productAttrTable" :data="list" style="width: 100%" @selection-change="handleSelectionChange"
         v-loading="listLoading" border>
         <el-table-column type="selection" width="60" align="center"></el-table-column>
-        <el-table-column label="编号" width="100" align="center">
+        <el-table-column label="번호" width="100" align="center">
           <template #default="scope">{{ scope.row.id }}</template>
         </el-table-column>
-        <el-table-column label="属性名称" width="140" align="center">
+        <el-table-column label="속성명" width="140" align="center">
           <template #default="scope">{{ scope.row.name }}</template>
         </el-table-column>
-        <el-table-column label="商品类型" width="140" align="center">
+        <el-table-column label="상품 유형" width="140" align="center">
           <template>{{ $route.query.cname }}</template>
         </el-table-column>
-        <el-table-column label="属性是否可选" width="120" align="center">
+        <el-table-column label="속성 선택 가능 여부" width="120" align="center">
           <template #default="scope">{{ selectTypeFilter(scope.row.selectType) }}</template>
         </el-table-column>
-        <el-table-column label="属性值的录入方式" width="150" align="center">
+        <el-table-column label="속성값 입력 방식" width="150" align="center">
           <template #default="scope">{{ inputTypeFilter(scope.row.inputType) }}</template>
         </el-table-column>
-        <el-table-column label="可选值列表" align="center">
+        <el-table-column label="선택값 목록" align="center">
           <template #default="scope">{{ scope.row.inputList }}</template>
         </el-table-column>
-        <el-table-column label="排序" width="100" align="center">
+        <el-table-column label="정렬" width="100" align="center">
           <template #default="scope">{{ scope.row.sort }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="200" align="center">
+        <el-table-column label="작업" width="200" align="center">
           <template #default="scope">
-            <el-button size="small" @click="handleUpdate(scope.$index, scope.row)">编辑
+            <el-button size="small" @click="handleUpdate(scope.$index, scope.row)">편집
             </el-button>
-            <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">删除
+            <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">삭제
             </el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
     <div class="batch-operate-container">
-      <el-select v-model="operateType" placeholder="批量操作">
+      <el-select v-model="operateType" placeholder="일괄 작업">
         <el-option v-for="item in operates" :key="item.value" :label="item.label" :value="item.value">
         </el-option>
       </el-select>
       <el-button style="margin-left: 20px" class="search-button" @click="handleBatchOperate()" type="primary">
-        确定
+        확인
       </el-button>
     </div>
     <div class="pagination-container">

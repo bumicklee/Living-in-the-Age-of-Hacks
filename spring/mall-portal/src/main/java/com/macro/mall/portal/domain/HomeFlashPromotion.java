@@ -8,20 +8,20 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 首页秒杀场次信息封装
+ * 홈 타임 세일 회차 정보 래퍼
  * Created by macro on 2019/1/28.
  */
 @Getter
 @Setter
 public class HomeFlashPromotion {
-    @Schema(title = "本场开始时间")
+    @Schema(title = "이번 회차 시작 시간")
     private Date startTime;
-    @Schema(title = "本场结束时间")
+    @Schema(title = "이번 회차 종료 시간")
     private Date endTime;
-    @Schema(title = "下场开始时间")
+    @Schema(title = "다음 회차 시작 시간")
     private Date nextStartTime;
-    @Schema(title = "下场结束时间")
+    @Schema(title = "다음 회차 종료 시간")
     private Date nextEndTime;
-    @Schema(title = "属于该秒杀活动的商品")
+    @Schema(title = "이 타임 세일 행사에 속한 상품")
     private List<FlashPromotionProduct> productList;
 }

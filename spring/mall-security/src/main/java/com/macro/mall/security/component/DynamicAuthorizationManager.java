@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * 动态鉴权管理器，用于判断是否有资源的访问权限
+ * 동적 인가 관리자, 리소스 접근 권한 여부 판단에 사용
  * Created by macro on 2023/11/3.
  */
 public class DynamicAuthorizationManager implements AuthorizationManager<RequestAuthorizationContext> {
@@ -40,24 +40,24 @@ public class DynamicAuthorizationManager implements AuthorizationManager<Request
         HttpServletRequest request = requestAuthorizationContext.getRequest();
         String path = request.getRequestURI();
         PathMatcher pathMatcher = new AntPathMatcher();
-        //白名单路径直接放行
+        //화이트리스트 경로는 바로 통과
         List<String> ignoreUrls = ignoreUrlsConfig.getUrls();
         for (String ignoreUrl : ignoreUrls) {
             if (pathMatcher.match(ignoreUrl, path)) {
                 return new AuthorizationDecision(true);
             }
         }
-        //对应跨域的预检请求直接放行
+        //CORS 사전 요청(preflight)은 바로 통과
         if(request.getMethod().equals(HttpMethod.OPTIONS.name())){
             return new AuthorizationDecision(true);
         }
-        //权限校验逻辑
+        //권한 검증 로직
         List<ConfigAttribute> configAttributeList = securityDataSource.getConfigAttributesWithPath(path);
         List<String> needAuthorities = configAttributeList.stream()
                 .map(ConfigAttribute::getAttribute)
                 .collect(Collectors.toList());
         Authentication currentAuth = authentication.get();
-        //判定是否已经实现登录认证
+        //로그인 인증이 이미 구현되었는지 판단
         if(currentAuth.isAuthenticated()){
             Collection<? extends GrantedAuthority> grantedAuthorities = currentAuth.getAuthorities();
             List<? extends GrantedAuthority> hasAuth = grantedAuthorities.stream()

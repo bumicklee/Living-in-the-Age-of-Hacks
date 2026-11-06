@@ -12,17 +12,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 会员商品收藏管理Controller
+ * 회원 상품 찜 관리Controller
  * Created by macro on 2018/8/2.
  */
 @Controller
-@Tag(name = "MemberCollectionController",description = "会员收藏管理")
+@Tag(name = "MemberCollectionController",description = "회원 찜 관리")
 @RequestMapping("/member/productCollection")
 public class MemberProductCollectionController {
     @Autowired
     private MemberCollectionService memberCollectionService;
 
-    @Operation(summary = "添加商品收藏")
+    @Operation(summary = "상품 찜 추가")
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult add(@RequestBody MemberProductCollection productCollection) {
@@ -34,7 +34,7 @@ public class MemberProductCollectionController {
         }
     }
 
-    @Operation(summary = "删除商品收藏")
+    @Operation(summary = "상품 찜 삭제")
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(Long productId) {
@@ -46,7 +46,7 @@ public class MemberProductCollectionController {
         }
     }
 
-    @Operation(summary = "显示当前用户商品收藏列表")
+    @Operation(summary = "현재 사용자의 상품 즐겨찾기 목록 표시")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<MemberProductCollection>> list(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
@@ -55,7 +55,7 @@ public class MemberProductCollectionController {
         return CommonResult.success(CommonPage.restPage(page));
     }
 
-    @Operation(summary = "显示商品收藏详情")
+    @Operation(summary = "상품 즐겨찾기 상세 표시")
     @RequestMapping(value = "/detail", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<MemberProductCollection> detail(@RequestParam Long productId) {
@@ -63,7 +63,7 @@ public class MemberProductCollectionController {
         return CommonResult.success(memberProductCollection);
     }
 
-    @Operation(summary = "清空当前用户商品收藏列表")
+    @Operation(summary = "현재 사용자의 상품 찜 목록 비우기")
     @RequestMapping(value = "/clear", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult clear() {

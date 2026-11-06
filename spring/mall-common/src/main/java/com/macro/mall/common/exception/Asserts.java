@@ -3,7 +3,7 @@ package com.macro.mall.common.exception;
 import com.macro.mall.common.api.IErrorCode;
 
 /**
- * 断言处理类，用于抛出各种API异常
+ * 다양한 API 예외를 던지는 데 쓰는 단언(Assert) 처리 클래스
  * Created by macro on 2020/2/27.
  */
 public class Asserts {

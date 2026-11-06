@@ -5,20 +5,20 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * OSS上传文件的回调结果
+ * OSS업로드 파일 콜백 결과
  * Created by macro on 2018/5/17.
  */
 @Data
 @EqualsAndHashCode
 public class OssCallbackResult {
-    @Schema(title = "文件名称")
+    @Schema(title = "파일 이름")
     private String filename;
-    @Schema(title = "文件大小")
+    @Schema(title = "파일 크기")
     private String size;
-    @Schema(title = "文件的mimeType")
+    @Schema(title = "파일의mimeType")
     private String mimeType;
-    @Schema(title = "图片文件的宽")
+    @Schema(title = "이미지 파일 너비")
     private String width;
-    @Schema(title = "图片文件的高")
+    @Schema(title = "이미지 파일 높이")
     private String height;
 }

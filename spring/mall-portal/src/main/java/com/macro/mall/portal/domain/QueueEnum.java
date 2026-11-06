@@ -3,30 +3,30 @@ package com.macro.mall.portal.domain;
 import lombok.Getter;
 
 /**
- * 消息队列枚举类
+ * 메시지 큐 열거형 클래스
  * Created by macro on 2018/9/14.
  */
 @Getter
 public enum QueueEnum {
     /**
-     * 消息通知队列
+     * 메시지 알림 큐
      */
     QUEUE_ORDER_CANCEL("mall.order.direct", "mall.order.cancel", "mall.order.cancel"),
     /**
-     * 消息通知ttl队列
+     * 메시지 알림 ttl 큐
      */
     QUEUE_TTL_ORDER_CANCEL("mall.order.direct.ttl", "mall.order.cancel.ttl", "mall.order.cancel.ttl");
 
     /**
-     * 交换名称
+     * 익스체인지 이름
      */
     private final String exchange;
     /**
-     * 队列名称
+     * 큐 이름
      */
     private final String name;
     /**
-     * 路由键
+     * 라우팅 키
      */
     private final String routeKey;
 

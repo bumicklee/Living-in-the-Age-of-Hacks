@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * 商品专题管理Service实现类
+ * 상품 기획전 관리 Service 구현 클래스
  * Created by macro on 2018/6/1.
  */
 @Service

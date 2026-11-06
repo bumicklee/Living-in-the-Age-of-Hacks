@@ -18,7 +18,7 @@ import java.util.*;
 
 /**
  * Created by macro on 2018/8/27.
- * 促销管理Service实现类
+ * 프로모션 관리 Service 구현 클래스
  */
 @Service
 public class OmsPromotionServiceImpl implements OmsPromotionService {
@@ -27,11 +27,11 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
 
     @Override
     public List<CartPromotionItem> calcCartPromotion(List<OmsCartItem> cartItemList) {
-        //1.先根据productId对CartItem进行分组，以spu为单位进行计算优惠
+        //1.먼저 productId로 CartItem을 그룹화하고, spu 단위로 할인 계산
         Map<Long, List<OmsCartItem>> productCartMap = groupCartItemBySpu(cartItemList);
-        //2.查询所有商品的优惠相关信息
+        //2.모든 상품의 할인 관련 정보 조회
         List<PromotionProduct> promotionProductList = getPromotionProductList(cartItemList);
-        //3.根据商品促销类型计算商品促销优惠价格
+        //3.상품 프로모션 유형에 따라 프로모션 할인 가격 계산
         List<CartPromotionItem> cartPromotionItemList = new ArrayList<>();
         for (Map.Entry<Long, List<OmsCartItem>> entry : productCartMap.entrySet()) {
             Long productId = entry.getKey();
@@ -39,15 +39,15 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
             List<OmsCartItem> itemList = entry.getValue();
             Integer promotionType = promotionProduct.getPromotionType();
             if (promotionType == 1) {
-                //单品促销
+                //단품 프로모션
                 for (OmsCartItem item : itemList) {
                     CartPromotionItem cartPromotionItem = new CartPromotionItem();
                     BeanUtils.copyProperties(item,cartPromotionItem);
-                    cartPromotionItem.setPromotionMessage("单品促销");
-                    //商品原价-促销价
+                    cartPromotionItem.setPromotionMessage("단품 프로모션");
+                    //상품 정가-프로모션 가격
                     PmsSkuStock skuStock = getOriginalPrice(promotionProduct, item.getProductSkuId());
                     BigDecimal originalPrice = skuStock.getPrice();
-                    //单品促销使用原价
+                    //단품 프로모션 시 정가 사용
                     cartPromotionItem.setPrice(originalPrice);
                     cartPromotionItem.setReduceAmount(originalPrice.subtract(skuStock.getPromotionPrice()));
                     cartPromotionItem.setRealStock(skuStock.getStock()-skuStock.getLockStock());
@@ -56,7 +56,7 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
                     cartPromotionItemList.add(cartPromotionItem);
                 }
             } else if (promotionType == 3) {
-                //打折优惠
+                //할인 혜택
                 int count = getCartItemCount(itemList);
                 PmsProductLadder ladder = getProductLadder(count, promotionProduct.getProductLadderList());
                 if(ladder!=null){
@@ -65,7 +65,7 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
                         BeanUtils.copyProperties(item,cartPromotionItem);
                         String message = getLadderPromotionMessage(ladder);
                         cartPromotionItem.setPromotionMessage(message);
-                        //商品原价-折扣*商品原价
+                        //상품 정가-할인율*상품 정가
                         PmsSkuStock skuStock = getOriginalPrice(promotionProduct,item.getProductSkuId());
                         BigDecimal originalPrice = skuStock.getPrice();
                         BigDecimal reduceAmount = originalPrice.subtract(ladder.getDiscount().multiply(originalPrice));
@@ -79,7 +79,7 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
                     handleNoReduce(cartPromotionItemList,itemList,promotionProduct);
                 }
             } else if (promotionType == 4) {
-                //满减
+                //금액 할인
                 BigDecimal totalAmount= getCartItemAmount(itemList,promotionProductList);
                 PmsProductFullReduction fullReduction = getProductFullReduction(totalAmount,promotionProduct.getProductFullReductionList());
                 if(fullReduction!=null){
@@ -88,7 +88,7 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
                         BeanUtils.copyProperties(item,cartPromotionItem);
                         String message = getFullReductionPromotionMessage(fullReduction);
                         cartPromotionItem.setPromotionMessage(message);
-                        //(商品原价/总价)*满减金额
+                        //(상품 정가/총액)*금액 할인액
                         PmsSkuStock skuStock= getOriginalPrice(promotionProduct, item.getProductSkuId());
                         BigDecimal originalPrice = skuStock.getPrice();
                         BigDecimal reduceAmount = originalPrice.divide(totalAmount,RoundingMode.HALF_EVEN).multiply(fullReduction.getReducePrice());
@@ -102,7 +102,7 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
                     handleNoReduce(cartPromotionItemList,itemList,promotionProduct);
                 }
             } else {
-                //无优惠
+                //할인 없음
                 handleNoReduce(cartPromotionItemList, itemList,promotionProduct);
             }
         }
@@ -110,7 +110,7 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
     }
 
     /**
-     * 查询所有商品的优惠相关信息
+     * 모든 상품의 할인 관련 정보 조회
      */
     private List<PromotionProduct> getPromotionProductList(List<OmsCartItem> cartItemList) {
         List<Long> productIdList = new ArrayList<>();
@@ -121,7 +121,7 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
     }
 
     /**
-     * 以spu为单位对购物车中商品进行分组
+     * SPU 단위로 장바구니 상품 그룹화
      */
     private Map<Long, List<OmsCartItem>> groupCartItemBySpu(List<OmsCartItem> cartItemList) {
         Map<Long, List<OmsCartItem>> productCartMap = new TreeMap<>();
@@ -139,28 +139,26 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
     }
 
     /**
-     * 获取满减促销消息
+     * 금액 할인 프로모션 메시지 조회
      */
     private String getFullReductionPromotionMessage(PmsProductFullReduction fullReduction) {
         StringBuilder sb = new StringBuilder();
-        sb.append("满减优惠：");
-        sb.append("满");
+        sb.append("금액 할인: ");
         sb.append(fullReduction.getFullPrice());
-        sb.append("元，");
-        sb.append("减");
+        sb.append("원 이상 구매 시 ");
         sb.append(fullReduction.getReducePrice());
-        sb.append("元");
+        sb.append("원 할인");
         return sb.toString();
     }
 
     /**
-     * 对没满足优惠条件的商品进行处理
+     * 할인 조건을 충족하지 못한 상품 처리
      */
     private void handleNoReduce(List<CartPromotionItem> cartPromotionItemList, List<OmsCartItem> itemList,PromotionProduct promotionProduct) {
         for (OmsCartItem item : itemList) {
             CartPromotionItem cartPromotionItem = new CartPromotionItem();
             BeanUtils.copyProperties(item,cartPromotionItem);
-            cartPromotionItem.setPromotionMessage("无优惠");
+            cartPromotionItem.setPromotionMessage("할인 없음");
             cartPromotionItem.setReduceAmount(new BigDecimal(0));
             PmsSkuStock skuStock = getOriginalPrice(promotionProduct,item.getProductSkuId());
             if(skuStock!=null){
@@ -173,7 +171,7 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
     }
 
     private PmsProductFullReduction getProductFullReduction(BigDecimal totalAmount,List<PmsProductFullReduction> fullReductionList) {
-        //按条件从高到低排序
+        //조건 높은 순 정렬
         fullReductionList.sort(new Comparator<PmsProductFullReduction>() {
             @Override
             public int compare(PmsProductFullReduction o1, PmsProductFullReduction o2) {
@@ -189,25 +187,23 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
     }
 
     /**
-     * 获取打折优惠的促销信息
+     * 할인 프로모션 정보 조회
      */
     private String getLadderPromotionMessage(PmsProductLadder ladder) {
         StringBuilder sb = new StringBuilder();
-        sb.append("打折优惠：");
-        sb.append("满");
+        sb.append("수량 할인: ");
         sb.append(ladder.getCount());
-        sb.append("件，");
-        sb.append("打");
+        sb.append("개 이상 구매 시 정가의 ");
         sb.append(ladder.getDiscount().multiply(new BigDecimal(10)));
-        sb.append("折");
+        sb.append("할 가격");
         return sb.toString();
     }
 
     /**
-     * 根据购买商品数量获取满足条件的打折优惠策略
+     * 구매 상품 수량에 맞는 할인 정책 조회
      */
     private PmsProductLadder getProductLadder(int count, List<PmsProductLadder> productLadderList) {
-        //按数量从大到小排序
+        //수량 많은 순 정렬
         productLadderList.sort(new Comparator<PmsProductLadder>() {
             @Override
             public int compare(PmsProductLadder o1, PmsProductLadder o2) {
@@ -223,7 +219,7 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
     }
 
     /**
-     * 获取购物车中指定商品的数量
+     * 장바구니 내 지정 상품의 수량 조회
      */
     private int getCartItemCount(List<OmsCartItem> itemList) {
         int count = 0;
@@ -234,12 +230,12 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
     }
 
     /**
-     * 获取购物车中指定商品的总价
+     * 장바구니 내 지정 상품의 총 금액 조회
      */
     private BigDecimal getCartItemAmount(List<OmsCartItem> itemList, List<PromotionProduct> promotionProductList) {
         BigDecimal amount = new BigDecimal(0);
         for (OmsCartItem item : itemList) {
-            //计算出商品原价
+            //상품 정가 계산
             PromotionProduct promotionProduct = getPromotionProductById(item.getProductId(), promotionProductList);
             PmsSkuStock skuStock = getOriginalPrice(promotionProduct,item.getProductSkuId());
             amount = amount.add(skuStock.getPrice().multiply(new BigDecimal(item.getQuantity())));
@@ -248,7 +244,7 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
     }
 
     /**
-     * 获取商品的原价
+     * 상품 정가 조회
      */
     private PmsSkuStock getOriginalPrice(PromotionProduct promotionProduct, Long productSkuId) {
         for (PmsSkuStock skuStock : promotionProduct.getSkuStockList()) {
@@ -260,7 +256,7 @@ public class OmsPromotionServiceImpl implements OmsPromotionService {
     }
 
     /**
-     * 根据商品id获取商品的促销信息
+     * 상품 id로 상품 프로모션 정보 조회
      */
     private PromotionProduct getPromotionProductById(Long productId, List<PromotionProduct> promotionProductList) {
         for (PromotionProduct promotionProduct : promotionProductList) {

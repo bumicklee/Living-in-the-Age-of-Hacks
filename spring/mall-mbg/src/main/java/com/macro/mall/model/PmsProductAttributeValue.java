@@ -10,7 +10,7 @@ public class PmsProductAttributeValue implements Serializable {
 
     private Long productAttributeId;
 
-    @Schema(title = "手动添加规格或参数的值，参数单值，规格有多个时以逗号隔开")
+    @Schema(title = "규격 또는 파라미터 값을 직접 추가, 파라미터는 단일 값, 규격이 여러 개면 쉼표로 구분")
     private String value;
 
     private static final long serialVersionUID = 1L;

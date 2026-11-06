@@ -12,7 +12,7 @@ import jakarta.annotation.PostConstruct;
 import java.util.*;
 
 /**
- * 动态权限数据源，用于获取动态权限规则
+ * 동적 권한 데이터 소스, 동적 권한 규칙 조회에 사용
  * Created by macro on 2020/2/7.
  */
 public class DynamicSecurityMetadataSource implements FilterInvocationSecurityMetadataSource {
@@ -33,26 +33,26 @@ public class DynamicSecurityMetadataSource implements FilterInvocationSecurityMe
 
     @Override
     public Collection<ConfigAttribute> getAttributes(Object o) throws IllegalArgumentException {
-        //获取当前访问的路径
+        //현재 접근 경로 조회
         String url = ((FilterInvocation) o).getRequestUrl();
         String path = URLUtil.getPath(url);
         return getConfigAttributesWithPath(path);
     }
 
-    //根据当前访问的路径获取对应权限
+    //현재 접근 경로에 해당하는 권한 조회
     public List<ConfigAttribute> getConfigAttributesWithPath(String path) {
         if (configAttributeMap == null) this.loadDataSource();
         List<ConfigAttribute>  configAttributes = new ArrayList<>();
         PathMatcher pathMatcher = new AntPathMatcher();
         Iterator<String> iterator = configAttributeMap.keySet().iterator();
-        //获取访问该路径所需资源
+        //해당 경로 접근에 필요한 리소스 조회
         while (iterator.hasNext()) {
             String pattern = iterator.next();
             if (pathMatcher.match(pattern, path)) {
                 configAttributes.add(configAttributeMap.get(pattern));
             }
         }
-        // 未设置操作请求权限，返回空集合
+        // 작업 요청 권한이 설정되지 않아 빈 컬렉션 반환
         return configAttributes;
     }
 

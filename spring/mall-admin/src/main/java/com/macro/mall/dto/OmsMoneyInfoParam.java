@@ -7,18 +7,18 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 /**
- * 修改订单费用信息参数
+ * 주문 비용 정보 수정 파라미터
  * Created by macro on 2018/10/29.
  */
 @Getter
 @Setter
 public class OmsMoneyInfoParam {
-    @Schema(title = "订单ID")
+    @Schema(title = "주문ID")
     private Long orderId;
-    @Schema(title = "运费金额")
+    @Schema(title = "배송비 금액")
     private BigDecimal freightAmount;
-    @Schema(title = "管理员后台调整订单所使用的折扣金额")
+    @Schema(title = "관리자가 관리자 화면에서 주문에 적용한 할인 금액 조정")
     private BigDecimal discountAmount;
-    @Schema(title = "订单状态：0->待付款；1->待发货；2->已发货；3->已完成；4->已关闭；5->无效订单")
+    @Schema(title = "주문 상태:0->결제 대기;1->배송 대기;2->발송됨;3->완료;4->닫힘;5->무효 주문")
     private Integer status;
 }

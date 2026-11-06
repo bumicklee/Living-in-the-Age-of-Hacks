@@ -1,25 +1,25 @@
-/** 品牌信息 */
+/** 브랜드 정보 */
 export type PmsBrand = {
   /** ID */
   id?: number
-  /** 品牌名称 */
+  /** 브랜드명 */
   name: string
-  /** 首字母 */
+  /** 초성 */
   firstLetter: string
-  /** 排序 */
+  /** 정렬 */
   sort: number
-  /** 是否为品牌制造商：0->不是；1->是 */
+  /** 브랜드 제조사 여부:0->아니요;1->예 */
   factoryStatus: number
-  /** 显示状态 */
+  /** 표시 상태 */
   showStatus: number
-  /** 产品数量 */
+  /** 제품 수 */
   productCount?: number
-  /** 产品评论数量 */
+  /** 제품 리뷰 수 */
   productCommentCount?: number
-  /** 品牌logo */
+  /** 브랜드logo */
   logo: string
-  /** 专区大图 */
+  /** 전용관 대형 이미지 */
   bigPic: string
-  /** 品牌故事 */
+  /** 브랜드 스토리 */
   brandStory: string
 }

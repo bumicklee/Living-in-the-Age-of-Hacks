@@ -8,52 +8,52 @@ import java.util.Date;
 public class SmsCoupon implements Serializable {
     private Long id;
 
-    @Schema(title = "优惠券类型；0->全场赠券；1->会员赠券；2->购物赠券；3->注册赠券")
+    @Schema(title = "쿠폰 유형;0->전 상품 증정 쿠폰;1->회원 쿠폰 증정;2->구매 시 쿠폰 지급;3->가입 축하 쿠폰")
     private Integer type;
 
     private String name;
 
-    @Schema(title = "使用平台：0->全部；1->移动；2->PC")
+    @Schema(title = "사용 플랫폼:0->전체;1->이동;2->PC")
     private Integer platform;
 
-    @Schema(title = "数量")
+    @Schema(title = "수량")
     private Integer count;
 
-    @Schema(title = "金额")
+    @Schema(title = "금액")
     private BigDecimal amount;
 
-    @Schema(title = "每人限领张数")
+    @Schema(title = "1인당 발급 제한 매수")
     private Integer perLimit;
 
-    @Schema(title = "使用门槛；0表示无门槛")
+    @Schema(title = "사용 조건; 0은 조건 없음을 의미")
     private BigDecimal minPoint;
 
     private Date startTime;
 
     private Date endTime;
 
-    @Schema(title = "使用类型：0->全场通用；1->指定分类；2->指定商品")
+    @Schema(title = "사용 유형:0->전 상품 공용;1->지정 카테고리;2->지정 상품")
     private Integer useType;
 
-    @Schema(title = "备注")
+    @Schema(title = "메모")
     private String note;
 
-    @Schema(title = "发行数量")
+    @Schema(title = "발행 수량")
     private Integer publishCount;
 
-    @Schema(title = "已使用数量")
+    @Schema(title = "사용 수량")
     private Integer useCount;
 
-    @Schema(title = "领取数量")
+    @Schema(title = "수령 수량")
     private Integer receiveCount;
 
-    @Schema(title = "可以领取的日期")
+    @Schema(title = "수령 가능 날짜")
     private Date enableTime;
 
-    @Schema(title = "优惠码")
+    @Schema(title = "쿠폰 코드")
     private String code;
 
-    @Schema(title = "可领取的会员类型：0->无限时")
+    @Schema(title = "수령 가능한 회원 유형:0->기간 제한 없음")
     private Integer memberLevel;
 
     private static final long serialVersionUID = 1L;

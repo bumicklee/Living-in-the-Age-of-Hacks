@@ -4,9 +4,9 @@ defineOptions({
   name: 'TestPinia'
 })
 
-// 1. 导入use方法
+// 1. use 메서드 import
 import { useCounterStore } from '@/stores/counter'
-// 2. 执行方法得到store store里有数据和方法
+// 2. 메서드를 실행해 store를 얻음, store에는 데이터와 메서드가 있음
 const counterStore = useCounterStore()
 </script>
 

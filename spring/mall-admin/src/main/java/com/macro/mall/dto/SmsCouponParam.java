@@ -10,16 +10,16 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * 优惠券信息封装，包括绑定商品和分类
+ * 쿠폰 정보 래퍼, 바인딩된 상품과 카테고리 포함
  * Created by macro on 2018/8/28.
  */
 public class SmsCouponParam extends SmsCoupon {
     @Getter
     @Setter
-    @Schema(title = "优惠券绑定的商品")
+    @Schema(title = "쿠폰에 바인딩된 상품")
     private List<SmsCouponProductRelation> productRelationList;
     @Getter
     @Setter
-    @Schema(title = "优惠券绑定的商品分类")
+    @Schema(title = "쿠폰에 바인딩된 상품 카테고리")
     private List<SmsCouponProductCategoryRelation> productCategoryRelationList;
 }

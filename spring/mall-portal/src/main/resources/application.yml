@@ -2,7 +2,7 @@ spring:
   application:
     name: mall-portal
   profiles:
-    active: dev #默认为开发环境
+    active: dev #기본값은 개발 환경
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -13,14 +13,14 @@ mybatis:
     - classpath*:com/**/mapper/*.xml
 
 jwt:
-  tokenHeader: Authorization #JWT存储的请求头
-  secret: mall-portal-secret #JWT加解密使用的密钥
-  expiration: 604800 #JWT的超期限时间(60*60*24*7)
-  tokenHead: 'Bearer '  #JWT负载中拿到开头
+  tokenHeader: Authorization #JWT저장된 요청 헤더
+  secret: mall-portal-secret #JWT암복호화에 사용하는 키
+  expiration: 604800 #JWT만료 시간(60*60*24*7)
+  tokenHead: 'Bearer '  #JWT페이로드에서 시작 부분 가져오기
 
 secure:
   ignored:
-    urls: #安全路径白名单
+    urls: #보안 경로 화이트리스트
       - /swagger-ui/
       - /v3/api-docs/*
       - /*/*.html
@@ -38,22 +38,22 @@ secure:
 
 springdoc:
   swagger-ui:
-    # 修改Swagger UI路径
+    # Swagger UI 경로 변경
     path: /swagger-ui.html
-    # 开启Swagger UI界面
+    # Swagger UI 화면 활성화
     enabled: true
-    # 用于配置tag和operation的展开方式，这里配置为都不展开
+    # tag와 operation의 펼침 방식 설정용, 여기서는 모두 펼치지 않도록 설정
     doc-expansion: 'none'
   api-docs:
-    # 修改api-docs路径
+    # api-docs 경로 변경
     path: /v3/api-docs
-    # 开启api-docs
+    # 켜기api-docs
     enabled: true
   group-configs:
     - group: 'mall-portal'
       packages-to-scan: com.macro.mall.portal.controller
 
-# 自定义redis key
+# 사용자 정의redis key
 redis:
   database: mall
   key:
@@ -61,14 +61,14 @@ redis:
     orderId: 'oms:orderId'
     member: 'ums:member'
   expire:
-    authCode: 90 # 验证码超期时间
-    common: 86400 # 24小时
+    authCode: 90 # 인증 코드 만료 시간
+    common: 86400 # 24시간
 
 mongo:
   insert:
-    sqlEnable: true # 用于控制是否通过数据库数据来插入mongo
+    sqlEnable: true # 데이터베이스 데이터로 삽입할지 제어용mongo
 
-# 消息队列定义
+# 메시지 큐 정의
 rabbitmq:
   queue:
     name:

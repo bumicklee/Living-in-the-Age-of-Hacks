@@ -1,63 +1,63 @@
 import type { UmsMenu } from './menu'
 
-/** 登录请求参数 */
+/** 로그인 요청 파라미터 */
 export type LoginParam = {
-  /** 用户名 */
+  /** 사용자 이름 */
   username: string
-  /** 密码 */
+  /** 비밀번호 */
   password: string
 }
 
-/** 登录返回结果 */
+/** 로그인 반환 결과 */
 export type LoginResult = {
-  /** token的前缀 */
+  /** token접두사 */
   tokenHead: string
-  /** 登录的token */
+  /** 로그인의token */
   token: string
 }
 
-/** 用户信息结果封装 */
+/** 사용자 정보 결과 래핑 */
 export type UserInfoResult = {
-  /** 用户名 */
+  /** 사용자 이름 */
   username: string
-  /** 头像 */
+  /** 프로필 이미지 */
   icon: string
-  /** 菜单 */
+  /** 메뉴 */
   menus: UmsMenu[]
-  /** 角色 */
+  /** 역할 */
   roles: []
 }
 
-/** 用户信息（store中存储的） */
+/** 사용자 정보(store에 저장된 것) */
 export type UserInfo = Pick<UserInfoResult, 'username' | 'menus' | 'roles'> & {
-  /** 密码 */
+  /** 비밀번호 */
   password: string
-  /** 登录token */
+  /** 로그인token */
   token: string
-  /** 头像 */
+  /** 프로필 이미지 */
   avatar
 }
 
-/** 管理员信息 */
+/** 관리자 정보 */
 export type UmsAdmin = {
   /** ID */
   id?: number
-  /** 用户名 */
+  /** 사용자 이름 */
   username: string
-  /** 密码 */
+  /** 비밀번호 */
   password: string
-  /** 头像 */
+  /** 프로필 이미지 */
   icon?: string
-  /** 邮箱 */
+  /** 이메일 */
   email?: string
-  /** 昵称 */
+  /** 닉네임 */
   nickName?: string
-  /** 备注信息 */
+  /** 메모 정보 */
   note?: string
-  /** 创建时间 */
+  /** 생성 시간 */
   createTime?: string
-  /** 最后登录时间 */
+  /** 마지막 로그인 시간 */
   loginTime?: string
-  /** 帐号启用状态：0->禁用；1->启用 */
+  /** 계정 사용 상태:0->사용 안 함;1->사용 */
   status: number
 }

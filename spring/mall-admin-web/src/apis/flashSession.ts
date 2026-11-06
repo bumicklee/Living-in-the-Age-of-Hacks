@@ -2,7 +2,7 @@ import type { SmsFlashPromotionSession } from '@/types/flash'
 import http from '@/utils/http'
 
 /**
- * 获取全部可选场次及其数量
+ * 선택 가능한 전체 회차와 수량 조회
  */
 export function getFlashSessionSelectListAPI(params: { flashPromotionId: number }) {
   return http<SmsFlashPromotionSession[]>({
@@ -13,7 +13,7 @@ export function getFlashSessionSelectListAPI(params: { flashPromotionId: number 
 }
 
 /**
- * 获取全部场次
+ * 전체 회차 조회
  */
 export function getFlashSessionListAPI() {
   return http<SmsFlashPromotionSession[]>({
@@ -23,7 +23,7 @@ export function getFlashSessionListAPI() {
 }
 
 /**
- * 根据ID修改场次启用状态
+ * ID로 회차 사용 상태 수정
  */
 export function flashSessionUpdateStatusByIdAPI(id: number, params: { status: number }) {
   return http({
@@ -34,7 +34,7 @@ export function flashSessionUpdateStatusByIdAPI(id: number, params: { status: nu
 }
 
 /**
- * 根据ID删除场次
+ * ID로 회차 삭제
  * @param id
  * @returns
  */
@@ -46,7 +46,7 @@ export function flashSessionDeleteByIdAPI(id: number) {
 }
 
 /**
- * 添加场次
+ * 회차 추가
  */
 export function flashSessionCreateAPI(data: SmsFlashPromotionSession) {
   return http({
@@ -57,7 +57,7 @@ export function flashSessionCreateAPI(data: SmsFlashPromotionSession) {
 }
 
 /**
- * 修改场次
+ * 회차 수정
  */
 export function flashSessionUpdateByIdAPI(id: number, data: SmsFlashPromotionSession) {
   return http({

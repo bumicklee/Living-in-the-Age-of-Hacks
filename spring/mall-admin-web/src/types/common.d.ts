@@ -1,61 +1,61 @@
-/** 通用返回结果封装类 */
+/** 공통 반환 결과 래퍼 클래스 */
 export type CommonResult<T> = {
-  /** 状态码 */
+  /** 상태 코드 */
   code: number
-  /** 提示信息 */
+  /** 안내 메시지 */
   message: string
-  /** 封装数据 */
+  /** 데이터 래핑 */
   data: T
 }
 
-/** 通用分页结果封装类 */
+/** 공통 페이징 결과 래퍼 클래스 */
 export type CommonPage<T> = {
-  /** 当前页码 */
+  /** 현재 페이지 번호 */
   pageNum: number
-  /** 每页数量 */
+  /** 페이지당 개수 */
   pageSize: number
-  /** 总页数 */
+  /** 총 페이지 수 */
   totalPage: number
-  /** 总条数 */
+  /** 총 건수 */
   total: number
-  /** 分页数据 */
+  /** 페이지 데이터 */
   list: T[]
 }
 
-/** 通用分页请求参数 */
+/** 공통 페이징 요청 파라미터 */
 export type PageParam = {
-  /** 当前页码，从1开始 */
+  /** 현재 페이지 번호, 1부터 시작 */
   pageNum: number
-  /** 每页数量，默认10 */
+  /** 페이지당 개수, 기본값10 */
   pageSize: number
-  /** 查询关键字 */
+  /** 조회 키워드 */
   keyword?: string
 }
 
-/** el-cascader级联选择器数据结构 */
+/** el-cascader캐스케이더 데이터 구조 */
 export type ElCascaderDataVo = {
-  /** 显示标签 */
+  /** 태그 표시 */
   label: string
-  /** 对应ID */
+  /** 대응ID */
   value: number
-  /** 下级数据 */
+  /** 하위 데이터 */
   children?: ElCascaderDataVo[]
 }
 
-/** el-select选择器数据结构 */
+/** el-select선택기 데이터 구조 */
 export type ElSelectDataVo = {
-  /** 显示标签 */
+  /** 태그 표시 */
   label: string
-  /** 对应值 */
+  /** 대응 값 */
   value: string | number
 }
 
-/** el-transfer穿梭框数据结构 */
+/** el-transfer트랜스퍼 데이터 구조 */
 export type ElTransferDataVo = {
-  /** 绑定key */
+  /** 바인딩key */
   key?: number
-  /** 显示标签 */
+  /** 태그 표시 */
   label?: string
-  /** 是否可用 */
+  /** 사용 가능 여부 */
   disabled?: boolean
 }

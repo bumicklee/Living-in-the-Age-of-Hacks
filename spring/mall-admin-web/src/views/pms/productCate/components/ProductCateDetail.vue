@@ -9,20 +9,20 @@ import SingleUpload from '@/components/Upload/singleUpload.vue'
 import type { PmsProductCategory } from '@/types/productCate'
 import type { ElCascaderDataVo } from '@/types/common'
 
-// 获取路由对象
+// 라우트 객체 조회
 const router = useRouter()
 const route = useRoute()
 
-// 定义属性
+// 속성 정의
 const props = defineProps({
-  // 是否为编辑模式
+  // 편집 모드 여부
   isEdit: {
     type: Boolean,
     default: false
   }
 })
 
-// 默认商品分类
+// 기본 상품 카테고리
 const defaultProductCate: PmsProductCategory = {
   description: '',
   icon: '',
@@ -34,26 +34,26 @@ const defaultProductCate: PmsProductCategory = {
   showStatus: 0,
   sort: 0
 }
-// 定义分类id（编辑使用）
+// 카테고리 id 정의(편집 시 사용)
 const cateId = computed(() => Number(route.query.id))
-// 当前操作的商品分类
+// 현재 작업 중인 상품 카테고리
 const productCate = ref<PmsProductCategory>(Object.assign({}, defaultProductCate))
-// 可选上级分类
+// 선택 가능한 상위 카테고리
 const selectProductCateList = ref<PmsProductCategory[]>([])
-// 商品属性ID及属性分类ID集合（筛选属性）
+// 상품 속성 ID 및 속성 카테고리 ID 집합(필터 속성)
 const filterProductAttrList = ref<{ key: number, value: number[] }[]>([{ key: 0, value: [] }])
-// 筛选属性级联选择器中的数据
+// 필터 속성 캐스케이더의 데이터
 const filterAttrs = ref<ElCascaderDataVo[]>([])
-// 获取可选上级分类列表
+// 선택 가능한 상위 카테고리 목록 조회
 const getSelectProductCateList = async () => {
   const res = await getProductCategoryListAPI(0, { pageSize: 100, pageNum: 1 })
   selectProductCateList.value = res.data.list
   const noTopProductCate = Object.assign({}, defaultProductCate)
   noTopProductCate.id = 0
-  noTopProductCate.name = '无上级分类'
+  noTopProductCate.name = '상위 카테고리 없음'
   selectProductCateList.value.unshift(noTopProductCate)
 }
-// 获取商品属性分类列表
+// 상품 속성 카테고리 목록 조회
 const getProductAttrCateList = async () => {
   const res = await productAttributeCategoryListWithAttrAPI()
   const list = res.data
@@ -64,7 +64,7 @@ const getProductAttrCateList = async () => {
   }))
 }
 
-// 组件挂载后执行
+// 컴포넌트 마운트 후 실행
 onMounted(async () => {
   if (props.isEdit) {
     const res = await getProductCategoryByIdAPI(cateId.value)
@@ -81,37 +81,37 @@ onMounted(async () => {
   getProductAttrCateList()
 })
 
-// 商品分类表单引用
+// 상품 카테고리 폼 참조
 const productCateFrom = ref<FormInstance>()
-// 商品分类表单校验规则
+// 상품 카테고리 폼 검증 규칙
 const rules = reactive<FormRules<PmsProductCategory>>({
   name: [
-    { required: true, message: '请输入分类名称', trigger: 'blur' },
-    { min: 2, max: 140, message: '长度在 2 到 140 个字符', trigger: 'blur' }
+    { required: true, message: '카테고리 이름을 입력하세요', trigger: 'blur' },
+    { min: 2, max: 140, message: '길이는 2~140자', trigger: 'blur' }
   ]
 })
 
-// 获取选中的筛选商品属性ID
+// 선택된 필터 상품 속성 조회ID
 const getProductAttributeIdList = () => {
   return filterProductAttrList.value.filter(item => item.value && item.value.length === 2)
     .map(item => item.value[1]!)
 }
 
-// 提交表单
+// 폼 제출
 const onSubmit = async () => {
   if (!productCateFrom.value) return
   const valid = await productCateFrom.value.validate().catch(() => false)
   if (valid) {
-    await ElMessageBox.confirm('是否提交数据', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('데이터 제출 여부', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     if (props.isEdit) {
       productCate.value.productAttributeIdList = getProductAttributeIdList()
       await productCategoryUpdateByIdAPI(cateId.value, productCate.value)
       ElMessage({
-        message: '修改成功',
+        message: '수정 성공',
         type: 'success',
         duration: 1000
       })
@@ -122,21 +122,21 @@ const onSubmit = async () => {
       productCateFrom.value.resetFields()
       resetForm()
       ElMessage({
-        message: '提交成功',
+        message: '제출 성공',
         type: 'success',
         duration: 1000
       })
     }
   } else {
     ElMessage({
-      message: '验证失败',
+      message: '검증 실패',
       type: 'error',
       duration: 1000
     })
   }
 }
 
-// 重置表单
+// 폼 초기화
 const resetForm = () => {
   if (productCateFrom.value) {
     productCateFrom.value.resetFields()
@@ -146,11 +146,11 @@ const resetForm = () => {
   }
 }
 
-// 删除筛选属性
+// 필터 속성 삭제
 const removeFilterAttr = (filterProductAttr: { key: number, value: number[] }) => {
   if (filterProductAttrList.value.length === 1) {
     ElMessage({
-      message: '至少要留一个',
+      message: '최소 하나는 남겨야 함',
       type: 'warning',
       duration: 1000
     })
@@ -162,11 +162,11 @@ const removeFilterAttr = (filterProductAttr: { key: number, value: number[] }) =
   }
 }
 
-// 添加筛选属性
+// 필터 속성 추가
 const handleAddFilterAttr = () => {
   if (filterProductAttrList.value.length === 3) {
     ElMessage({
-      message: '最多添加三个',
+      message: '최대 세 개까지 추가',
       type: 'warning',
       duration: 1000
     })
@@ -178,10 +178,10 @@ const handleAddFilterAttr = () => {
   })
 }
 
-// 过滤器
+// 필터
 const filterLabelFilter = (index: number) => {
   if (index === 0) {
-    return '筛选属性：'
+    return '필터 속성:'
   } else {
     return ''
   }
@@ -191,54 +191,54 @@ const filterLabelFilter = (index: number) => {
 <template>
   <el-card class="form-container" shadow="never">
     <el-form ref="productCateFrom" :model="productCate" :rules="rules" label-width="150px">
-      <el-form-item label="分类名称：" prop="name">
+      <el-form-item label="카테고리 이름:" prop="name">
         <el-input v-model="productCate.name"></el-input>
       </el-form-item>
-      <el-form-item label="上级分类：">
-        <el-select v-model="productCate.parentId" placeholder="请选择分类">
+      <el-form-item label="상위 카테고리:">
+        <el-select v-model="productCate.parentId" placeholder="카테고리를 선택하세요">
           <el-option v-for="item in selectProductCateList" :key="item.id" :label="item.name" :value="item.id!">
           </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="数量单位：">
+      <el-form-item label="수량 단위:">
         <el-input v-model="productCate.productUnit"></el-input>
       </el-form-item>
-      <el-form-item label="排序：">
+      <el-form-item label="정렬:">
         <el-input v-model="productCate.sort"></el-input>
       </el-form-item>
-      <el-form-item label="是否显示：">
+      <el-form-item label="표시 여부:">
         <el-radio-group v-model="productCate.showStatus">
-          <el-radio :label="1">是</el-radio>
-          <el-radio :label="0">否</el-radio>
+          <el-radio :label="1">예</el-radio>
+          <el-radio :label="0">아니요</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="是否显示在导航栏：">
+      <el-form-item label="내비게이션 바에 표시 여부:">
         <el-radio-group v-model="productCate.navStatus">
-          <el-radio :label="1">是</el-radio>
-          <el-radio :label="0">否</el-radio>
+          <el-radio :label="1">예</el-radio>
+          <el-radio :label="0">아니요</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="分类图标：">
+      <el-form-item label="카테고리 아이콘:">
         <single-upload v-model="productCate.icon"></single-upload>
       </el-form-item>
       <el-form-item v-for="(filterProductAttr, index) in filterProductAttrList" :label="filterLabelFilter(index)"
         :key="filterProductAttr.key">
         <el-cascader clearable v-model="filterProductAttr.value" :options="filterAttrs">
         </el-cascader>
-        <el-button style="margin-left: 20px" @click.prevent="removeFilterAttr(filterProductAttr)">删除</el-button>
+        <el-button style="margin-left: 20px" @click.prevent="removeFilterAttr(filterProductAttr)">삭제</el-button>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="handleAddFilterAttr()">新增</el-button>
+        <el-button type="primary" @click="handleAddFilterAttr()">추가</el-button>
       </el-form-item>
-      <el-form-item label="关键词：">
+      <el-form-item label="키워드:">
         <el-input v-model="productCate.keywords"></el-input>
       </el-form-item>
-      <el-form-item label="分类描述：">
+      <el-form-item label="카테고리 설명:">
         <el-input type="textarea" :autosize="true" v-model="productCate.description"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="onSubmit()">提交</el-button>
-        <el-button v-if="!props.isEdit" @click="resetForm()">重置</el-button>
+        <el-button type="primary" @click="onSubmit()">제출</el-button>
+        <el-button v-if="!props.isEdit" @click="resetForm()">초기화</el-button>
       </el-form-item>
     </el-form>
   </el-card>

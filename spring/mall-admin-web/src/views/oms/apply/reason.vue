@@ -7,20 +7,20 @@ import { formatDateTime } from '@/utils/datetime'
 import type { PageParam } from '@/types/common'
 import type { OmsOrderReturnReason } from '@/types/returnReason'
 
-// 列表查询参数
+// 목록 조회 파라미터
 const listQuery = ref<PageParam>({
   pageNum: 1,
   pageSize: 10
 })
-// 列表数据
+// 목록 데이터
 const list = ref<OmsOrderReturnReason[]>([])
-// 列表总条数
+// 목록 전체 건수
 const total = ref(0)
-// 表格中被选中的行
+// 테이블에서 선택된 행
 const multipleSelection = ref<OmsOrderReturnReason[]>([])
-// 表格数据加载进度条
+// 테이블 데이터 로딩 진행 표시줄
 const listLoading = ref(true)
-// 获取列表数据
+// 목록 데이터 조회
 const getList = async () => {
   listLoading.value = true
   const res = await getReturnReasonListAPI(listQuery.value)
@@ -29,30 +29,30 @@ const getList = async () => {
   total.value = res.data.total
 }
 
-// 组件挂载后加载数据
+// 컴포넌트 마운트 후 데이터 로드
 onMounted(() => {
   getList()
 })
 
-// reason对象默认值
+// reason객체 기본값
 const defaultReturnReason: OmsOrderReturnReason = {
   name: '',
   sort: 0,
   status: 1,
 }
-// 编辑框是否可见
+// 편집창 표시 여부
 const dialogVisible = ref(false)
-// 当前操作的reason对象
+// 현재 작업 중인 reason 객체
 const returnReason = ref(Object.assign({}, defaultReturnReason))
-// 当前操作的reasonId,为null时表示新增
+// 현재 작업 중인 reasonId, null이면 신규 추가
 const operateReasonId = ref<number>()
 
-// 批量操作类型
+// 일괄 작업 유형
 const operateType = ref()
-// 所有批量操作
+// 전체 일괄 작업
 const operateOptions = ref([
   {
-    label: "删除",
+    label: "삭제",
     value: 1
   }
 ])
@@ -65,23 +65,23 @@ const handleAdd = () => {
 
 const handleConfirm = async () => {
   if (!operateReasonId.value) {
-    // 添加操作
+    // 추가 작업
     await returnReasonCreateAPI(returnReason.value)
     dialogVisible.value = false
     operateReasonId.value = undefined
     ElMessage({
-      message: '添加成功！',
+      message: '추가 성공!',
       type: 'success',
       duration: 1000
     })
     getList()
   } else {
-    // 编辑操作
+    // 편집 작업
     await returnReasonUpdateAPI(operateReasonId.value, returnReason.value)
     dialogVisible.value = false
     operateReasonId.value = undefined
     ElMessage({
-      message: '修改成功！',
+      message: '수정 성공!',
       type: 'success',
       duration: 1000
     })
@@ -111,7 +111,7 @@ const handleStatusChange = async (index: number, row: OmsOrderReturnReason) => {
   ids.push(row.id)
   await returnReasonUpdateStatusAPI({ ids: ids.join(','), status: row.status })
   ElMessage({
-    message: '状态修改成功',
+    message: '상태 수정 성공',
     type: 'success'
   })
 }
@@ -119,7 +119,7 @@ const handleStatusChange = async (index: number, row: OmsOrderReturnReason) => {
 const handleBatchOperate = () => {
   if (!multipleSelection.value || multipleSelection.value.length < 1) {
     ElMessage({
-      message: '请选择要操作的条目',
+      message: '작업할 항목을 선택하세요',
       type: 'warning',
       duration: 1000
     })
@@ -142,14 +142,14 @@ const handleCurrentChange = (val: number) => {
 }
 
 const deleteReasonMethod = async (ids: number[]) => {
-  await ElMessageBox.confirm('是否要进行该删除操作?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('삭제할까요??', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning'
   })
   await returnReasonDeleteByIdsAPI({ ids: ids.join(',') })
   ElMessage({
-    message: '删除成功！',
+    message: '삭제 성공!',
     type: 'success',
     duration: 1000
   })
@@ -164,47 +164,47 @@ const deleteReasonMethod = async (ids: number[]) => {
       <el-icon class="el-icon-middle">
         <Tickets />
       </el-icon>
-      <span>数据列表</span>
-      <el-button @click="handleAdd" class="btn-add">添加</el-button>
+      <span>데이터 목록</span>
+      <el-button @click="handleAdd" class="btn-add">추가</el-button>
     </el-card>
     <div class="table-container">
       <el-table ref="returnReasonTable" :data="list" style="width: 100%;" @selection-change="handleSelectionChange"
         v-loading="listLoading" border>
         <el-table-column type="selection" width="60" align="center"></el-table-column>
-        <el-table-column label="编号" width="80" align="center">
+        <el-table-column label="번호" width="80" align="center">
           <template v-slot="scope">{{ scope.row.id }}</template>
         </el-table-column>
-        <el-table-column label="原因类型" align="center">
+        <el-table-column label="사유 유형" align="center">
           <template v-slot="scope">{{ scope.row.name }}</template>
         </el-table-column>
-        <el-table-column label="排序" width="100" align="center">
+        <el-table-column label="정렬" width="100" align="center">
           <template v-slot="scope">{{ scope.row.sort }}</template>
         </el-table-column>
-        <el-table-column label="是否可用" align="center">
+        <el-table-column label="사용 가능 여부" align="center">
           <template v-slot="scope">
             <el-switch v-model="scope.row.status" @change="handleStatusChange(scope.$index, scope.row)"
               :active-value="1" :inactive-value="0">
             </el-switch>
           </template>
         </el-table-column>
-        <el-table-column label="添加时间" width="180" align="center">
+        <el-table-column label="추가 시간" width="180" align="center">
           <template v-slot="scope">{{ formatDateTime(scope.row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="160" align="center">
+        <el-table-column label="작업" width="160" align="center">
           <template v-slot="scope">
-            <el-button size="small" @click="handleUpdate(scope.$index, scope.row)">编辑</el-button>
-            <el-button size="small" @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+            <el-button size="small" @click="handleUpdate(scope.$index, scope.row)">편집</el-button>
+            <el-button size="small" @click="handleDelete(scope.$index, scope.row)">삭제</el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
     <div class="batch-operate-container">
-      <el-select v-model="operateType" placeholder="批量操作">
+      <el-select v-model="operateType" placeholder="일괄 작업">
         <el-option v-for="item in operateOptions" :key="item.value" :label="item.label" :value="item.value">
         </el-option>
       </el-select>
       <el-button style="margin-left: 20px" class="search-button" @click="handleBatchOperate" type="primary">
-        确定
+        확인
       </el-button>
     </div>
     <div class="pagination-container">
@@ -213,22 +213,22 @@ const deleteReasonMethod = async (ids: number[]) => {
         :page-size="listQuery.pageSize" :page-sizes="[5, 10, 15]" :total="total">
       </el-pagination>
     </div>
-    <el-dialog title="添加退货原因" v-model="dialogVisible" width="30%">
+    <el-dialog title="반품 사유 추가" v-model="dialogVisible" width="30%">
       <el-form :model="returnReason" ref="reasonForm" label-width="150px">
-        <el-form-item label="原因类型：">
+        <el-form-item label="사유 유형:">
           <el-input v-model="returnReason.name" class="input-width"></el-input>
         </el-form-item>
-        <el-form-item label="排序：">
+        <el-form-item label="정렬:">
           <el-input v-model="returnReason.sort" class="input-width"></el-input>
         </el-form-item>
-        <el-form-item label="是否启用：">
+        <el-form-item label="사용 여부:">
           <el-switch v-model="returnReason.status" :active-value="1" :inactive-value="0"></el-switch>
         </el-form-item>
       </el-form>
       <template v-slot:footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="handleConfirm">确 定</el-button>
+          <el-button @click="dialogVisible = false">취 소</el-button>
+          <el-button type="primary" @click="handleConfirm">확 인</el-button>
         </span>
       </template>
     </el-dialog>

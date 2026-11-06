@@ -1,39 +1,39 @@
 import type { PageParam } from './common'
 
-/** 首页广告实体 */
+/** 홈 광고 엔티티 */
 export type SmsHomeAdvertise = {
   /** ID */
   id?: number
-  /** 广告名称 */
+  /** 광고명 */
   name?: string
-  /** 轮播位置：0->PC首页轮播；1->app首页轮播 */
+  /** 배너 위치:0->PC홈 배너;1->app홈 배너 */
   type?: number
-  /** 图片 */
+  /** 이미지 */
   pic?: string
-  /** 开始时间 */
+  /** 시작 시간 */
   startTime?: string
-  /** 结束时间 */
+  /** 종료 시간 */
   endTime?: string
-  /** 上下线状态：0->下线；1->上线 */
+  /** 판매 상태:0->오프라인;1->온라인 */
   status?: number
-  /** 点击数 */
+  /** 클릭 수 */
   clickCount?: number
-  /** 下单数 */
+  /** 주문 수 */
   orderCount?: number
-  /** 链接地址 */
+  /** 링크 주소 */
   url?: string
-  /** 备注 */
+  /** 메모 */
   note?: string
-  /** 排序 */
+  /** 정렬 */
   sort?: number
 }
 
-/** 首页广告列表查询参数 */
+/** 홈 광고 목록 조회 파라미터 */
 export type HomeAdvertiseQueryParam = PageParam & {
-  /** 广告名称 */
+  /** 광고명 */
   name?: string
-  /** 轮播位置：0->PC首页轮播；1->app首页轮播 */
+  /** 배너 위치:0->PC홈 배너;1->app홈 배너 */
   type?: number
-  /** 结束时间 */
+  /** 종료 시간 */
   endTime?: string
 }

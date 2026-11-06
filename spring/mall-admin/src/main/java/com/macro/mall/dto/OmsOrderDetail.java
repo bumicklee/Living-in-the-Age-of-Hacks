@@ -10,16 +10,16 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * 订单详情信息
+ * 주문 상세 정보
  * Created by macro on 2018/10/11.
  */
 public class OmsOrderDetail extends OmsOrder {
     @Getter
     @Setter
-    @Schema(title = "订单商品列表")
+    @Schema(title = "주문 상품 목록")
     private List<OmsOrderItem> orderItemList;
     @Getter
     @Setter
-    @Schema(title = "订单操作记录列表")
+    @Schema(title = "주문 작업 기록 목록")
     private List<OmsOrderOperateHistory> historyList;
 }

@@ -8,40 +8,40 @@ import com.macro.mall.portal.domain.HomeContentResult;
 import java.util.List;
 
 /**
- * 首页内容管理Service
+ * 홈 콘텐츠 관리Service
  * Created by macro on 2019/1/28.
  */
 public interface HomeService {
 
     /**
-     * 获取首页内容
+     * 홈 콘텐츠 조회
      */
     HomeContentResult content();
 
     /**
-     * 首页商品推荐
+     * 홈 상품 추천
      */
     List<PmsProduct> recommendProductList(Integer pageSize, Integer pageNum);
 
     /**
-     * 获取商品分类
-     * @param parentId 0:获取一级分类；其他：获取指定二级分类
+     * 상품 카테고리 조회
+     * @param parentId 0:1차 카테고리 조회; 그 외: 지정한 2차 카테고리 조회
      */
     List<PmsProductCategory> getProductCateList(Long parentId);
 
     /**
-     * 根据专题分类分页获取专题
-     * @param cateId 专题分类id
+     * 기획전 카테고리로 기획전 페이징 조회
+     * @param cateId 기획전 카테고리id
      */
     List<CmsSubject> getSubjectList(Long cateId, Integer pageSize, Integer pageNum);
 
     /**
-     * 分页获取人气推荐商品
+     * 인기 추천 상품 페이지 조회
      */
     List<PmsProduct> hotProductList(Integer pageNum, Integer pageSize);
 
     /**
-     * 分页获取新品推荐商品
+     * 신상품 추천 상품 페이지 조회
      */
     List<PmsProduct> newProductList(Integer pageNum, Integer pageSize);
 }

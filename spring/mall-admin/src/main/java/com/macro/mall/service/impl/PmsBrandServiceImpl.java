@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * 商品品牌管理Service实现类
+ * 상품 브랜드 관리 Service 구현 클래스
  * Created by macro on 2018/4/26.
  */
 @Service
@@ -36,7 +36,7 @@ public class PmsBrandServiceImpl implements PmsBrandService {
     public int createBrand(PmsBrandParam pmsBrandParam) {
         PmsBrand pmsBrand = new PmsBrand();
         BeanUtils.copyProperties(pmsBrandParam, pmsBrand);
-        //如果创建时首字母为空，取名称的第一个为首字母
+        //생성 시 첫 글자가 비어 있으면 이름의 첫 글자를 첫 글자로 사용
         if (StrUtil.isEmpty(pmsBrand.getFirstLetter())) {
             pmsBrand.setFirstLetter(pmsBrand.getName().substring(0, 1));
         }
@@ -48,11 +48,11 @@ public class PmsBrandServiceImpl implements PmsBrandService {
         PmsBrand pmsBrand = new PmsBrand();
         BeanUtils.copyProperties(pmsBrandParam, pmsBrand);
         pmsBrand.setId(id);
-        //如果创建时首字母为空，取名称的第一个为首字母
+        //생성 시 첫 글자가 비어 있으면 이름의 첫 글자를 첫 글자로 사용
         if (StrUtil.isEmpty(pmsBrand.getFirstLetter())) {
             pmsBrand.setFirstLetter(pmsBrand.getName().substring(0, 1));
         }
-        //更新品牌时要更新商品中的品牌名称
+        //브랜드를 업데이트할 때 상품의 브랜드명도 함께 업데이트해야 함
         PmsProduct product = new PmsProduct();
         product.setBrandName(pmsBrand.getName());
         PmsProductExample example = new PmsProductExample();

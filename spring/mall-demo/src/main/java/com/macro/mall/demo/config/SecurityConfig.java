@@ -21,7 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import java.util.List;
 
 /**
- * SpringSecurity相关配置
+ * SpringSecurity관련 설정
  * Created by macro on 2018/4/26.
  */
 @Configuration
@@ -43,7 +43,7 @@ public class SecurityConfig{
 
     @Bean
     public UserDetailsService userDetailsService() {
-        //获取登录用户信息
+        //로그인 사용자 정보 조회
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -53,7 +53,7 @@ public class SecurityConfig{
                 if (umsAdminList != null && umsAdminList.size() > 0) {
                     return new AdminUserDetails(umsAdminList.get(0));
                 }
-                throw new UsernameNotFoundException("用户名或密码错误");
+                throw new UsernameNotFoundException("사용자 이름 또는 비밀번호 오류");
             }
         };
     }

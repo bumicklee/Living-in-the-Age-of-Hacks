@@ -3,7 +3,7 @@ import type { CmsSubject } from '@/types/subject'
 import http from '@/utils/http'
 
 /**
- * 获取全部商品专题
+ * 전체 상품 기획전 조회
  */
 export function getSubjectListAllAPI() {
   return http<CmsSubject[]>({
@@ -13,7 +13,7 @@ export function getSubjectListAllAPI() {
 }
 
 /**
- * 根据专题名称分页获取商品专题
+ * 기획전 이름으로 상품 기획전 페이징 조회
  */
 export function getSubjectListAPI(params: PageParam) {
   return http<CommonPage<CmsSubject>>({

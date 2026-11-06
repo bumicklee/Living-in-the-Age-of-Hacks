@@ -18,7 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 
 /**
- * SpringSecurity相关配置，仅用于配置SecurityFilterChain
+ * SpringSecurity관련 설정, 설정 전용SecurityFilterChain
  * Created by macro on 2019/11/5.
  */
 @Configuration
@@ -39,26 +39,26 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(registry -> {
-            //不需要保护的资源路径允许访问
+            //보호가 필요 없는 리소스 경로는 접근 허용
             for (String url : ignoreUrlsConfig.getUrls()) {
                 registry.requestMatchers(url).permitAll();
             }
-            //允许跨域请求的OPTIONS请求
+            //교차 출처 요청의 OPTIONS 요청 허용
             registry.requestMatchers(HttpMethod.OPTIONS).permitAll();
-            //任何请求需要身份认证
+            //모든 요청에 인증 필요
         })
-        //任何请求需要身份认证
+        //모든 요청에 인증 필요
         .authorizeHttpRequests(registry-> registry.anyRequest()
-            //有动态权限配置时添加动态权限管理器
+            //동적 권한 설정이 있으면 동적 권한 관리자 추가
             .access(dynamicAuthorizationManager==null? AuthenticatedAuthorizationManager.authenticated():dynamicAuthorizationManager)
         )
-        //关闭跨站请求防护
+        //CSRF 방어 해제
         .csrf(AbstractHttpConfigurer::disable)
-        //修改Session生成策略为无状态会话
+        //Session 생성 전략을 무상태 세션으로 변경
         .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        //自定义权限拒绝处理类
+        //사용자 정의 권한 거부 처리 클래스
         .exceptionHandling(configurer -> configurer.accessDeniedHandler(restfulAccessDeniedHandler).authenticationEntryPoint(restAuthenticationEntryPoint))
-        //自定义权限拦截器JWT过滤器
+        //사용자 정의 권한 인터셉터 JWT 필터
         .addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }

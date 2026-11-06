@@ -14,44 +14,44 @@ public class OmsCartItem implements Serializable {
 
     private Long memberId;
 
-    @Schema(title = "购买数量")
+    @Schema(title = "구매 수량")
     private Integer quantity;
 
-    @Schema(title = "添加到购物车的价格")
+    @Schema(title = "장바구니에 담은 가격")
     private BigDecimal price;
 
-    @Schema(title = "商品主图")
+    @Schema(title = "상품 대표 이미지")
     private String productPic;
 
-    @Schema(title = "商品名称")
+    @Schema(title = "상품명")
     private String productName;
 
-    @Schema(title = "商品副标题（卖点）")
+    @Schema(title = "상품 부제목(셀링 포인트)")
     private String productSubTitle;
 
-    @Schema(title = "商品sku条码")
+    @Schema(title = "상품 sku 바코드")
     private String productSkuCode;
 
-    @Schema(title = "会员昵称")
+    @Schema(title = "회원 닉네임")
     private String memberNickname;
 
-    @Schema(title = "创建时间")
+    @Schema(title = "생성 시간")
     private Date createDate;
 
-    @Schema(title = "修改时间")
+    @Schema(title = "수정 시간")
     private Date modifyDate;
 
-    @Schema(title = "是否删除")
+    @Schema(title = "삭제 여부")
     private Integer deleteStatus;
 
-    @Schema(title = "商品分类")
+    @Schema(title = "상품 카테고리")
     private Long productCategoryId;
 
     private String productBrand;
 
     private String productSn;
 
-    @Schema(title = "商品销售属性:[{'key':'颜色','value':'颜色'},{'key':'容量','value':'4G'}]")
+    @Schema(title = "상품 판매 속성:[{'key':'색상','value':'색상'},{'key':'용량','value':'4G'}]")
     private String productAttr;
 
     private static final long serialVersionUID = 1L;

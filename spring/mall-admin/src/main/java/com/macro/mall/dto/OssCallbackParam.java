@@ -5,16 +5,16 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * OSS上传成功后的回调参数
+ * OSS업로드 성공 후 콜백 파라미터
  * Created by macro on 2018/5/17.
  */
 @Data
 @EqualsAndHashCode
 public class OssCallbackParam {
-    @Schema(title = "请求的回调地址")
+    @Schema(title = "요청 콜백 주소")
     private String callbackUrl;
-    @Schema(title = "回调是传入request中的参数")
+    @Schema(title = "콜백 시 request에 전달되는 파라미터")
     private String callbackBody;
-    @Schema(title = "回调时传入参数的格式，比如表单提交形式")
+    @Schema(title = "콜백 시 전달되는 파라미터 형식, 예: 폼 제출 형태")
     private String callbackBodyType;
 }

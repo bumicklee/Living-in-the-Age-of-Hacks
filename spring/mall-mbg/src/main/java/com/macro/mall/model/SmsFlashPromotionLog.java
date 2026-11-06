@@ -15,7 +15,7 @@ public class SmsFlashPromotionLog implements Serializable {
 
     private String productName;
 
-    @Schema(title = "会员订阅时间")
+    @Schema(title = "회원 구독 시간")
     private Date subscribeTime;
 
     private Date sendTime;

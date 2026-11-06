@@ -3,7 +3,7 @@ import type { HomeSubjectQueryParam, SmsHomeRecommendSubject } from '@/types/hom
 import http from '@/utils/http'
 
 /**
- * 分页查询专题推荐
+ * 기획전 추천 페이지 조회
  */
 export function getHomeRecommendSubjectListAPI(params: HomeSubjectQueryParam) {
   return http<CommonPage<SmsHomeRecommendSubject>>({
@@ -14,12 +14,12 @@ export function getHomeRecommendSubjectListAPI(params: HomeSubjectQueryParam) {
 }
 
 /**
- * 批量修改专题推荐状态
+ * 기획전 추천 상태 일괄 수정
  */
 export function homeRecommendSubjectUpdateRecommendStatusAPI(params: {
-  /** 推荐ID */
+  /** 추천ID */
   ids: string
-  /** 推荐状态 */
+  /** 추천 상태 */
   recommendStatus: number
 }) {
   return http({
@@ -30,7 +30,7 @@ export function homeRecommendSubjectUpdateRecommendStatusAPI(params: {
 }
 
 /**
- * 批量删除专题推荐
+ * 기획전 추천 일괄 삭제
  */
 export function homeRecommendSubjectDeleteByIdsAPI(params: { ids: string }) {
   return http({
@@ -41,7 +41,7 @@ export function homeRecommendSubjectDeleteByIdsAPI(params: { ids: string }) {
 }
 
 /**
- * 批量添加首页专题推荐
+ * 홈 기획전 추천 일괄 추가
  */
 export function homeRecommendSubjectCreateAPI(data: SmsHomeRecommendSubject[]) {
   return http({
@@ -52,7 +52,7 @@ export function homeRecommendSubjectCreateAPI(data: SmsHomeRecommendSubject[]) {
 }
 
 /**
- * 修改专题推荐排序
+ * 기획전 추천 정렬 수정
  */
 export function homeRecommendSubjectUpdateSortAPI(params: { id: number; sort: number }) {
   return http({

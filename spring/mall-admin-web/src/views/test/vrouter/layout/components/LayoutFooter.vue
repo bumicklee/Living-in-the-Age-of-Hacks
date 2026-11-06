@@ -7,7 +7,7 @@ defineOptions({
 
 <template>
   <div>
-    我是RouterLayoutFooter部分
+    저는 RouterLayoutFooter 영역입니다
   </div>
 </template>
 

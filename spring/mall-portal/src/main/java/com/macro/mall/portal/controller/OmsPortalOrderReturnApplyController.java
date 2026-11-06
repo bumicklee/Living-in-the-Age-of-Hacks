@@ -13,17 +13,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * 退货申请管理Controller
+ * 반품 신청 관리Controller
  * Created by macro on 2018/10/17.
  */
 @Controller
-@Tag(name = "OmsPortalOrderReturnApplyController",description = "退货申请管理")
+@Tag(name = "OmsPortalOrderReturnApplyController",description = "반품 신청 관리")
 @RequestMapping("/returnApply")
 public class OmsPortalOrderReturnApplyController {
     @Autowired
     private OmsPortalOrderReturnApplyService returnApplyService;
 
-    @Operation(summary = "申请退货")
+    @Operation(summary = "반품 신청")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult create(@RequestBody OmsOrderReturnApplyParam returnApply) {

@@ -7,12 +7,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 限时购商品信息封装
+ * 타임 세일 상품 정보 래퍼
  * Created by macro on 2018/11/16.
  */
 public class SmsFlashPromotionProduct extends SmsFlashPromotionProductRelation{
     @Getter
     @Setter
-    @Schema(title = "关联商品")
+    @Schema(title = "연관 상품")
     private PmsProduct product;
 }

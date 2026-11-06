@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * 商品属性管理Service实现类
+ * 상품 속성 관리 Service 구현 클래스
  * Created by macro on 2018/4/26.
  */
 @Service
@@ -43,7 +43,7 @@ public class PmsProductAttributeServiceImpl implements PmsProductAttributeServic
         PmsProductAttribute pmsProductAttribute = new PmsProductAttribute();
         BeanUtils.copyProperties(pmsProductAttributeParam, pmsProductAttribute);
         int count = productAttributeMapper.insertSelective(pmsProductAttribute);
-        //新增商品属性以后需要更新商品属性分类数量
+        //상품 속성을 추가한 뒤에는 상품 속성 분류 수량을 업데이트해야 함
         PmsProductAttributeCategory pmsProductAttributeCategory = productAttributeCategoryMapper.selectByPrimaryKey(pmsProductAttribute.getProductAttributeCategoryId());
         if(pmsProductAttribute.getType()==0){
             pmsProductAttributeCategory.setAttributeCount(pmsProductAttributeCategory.getAttributeCount()+1);
@@ -69,14 +69,14 @@ public class PmsProductAttributeServiceImpl implements PmsProductAttributeServic
 
     @Override
     public int delete(List<Long> ids) {
-        //获取分类
+        //카테고리 조회
         PmsProductAttribute pmsProductAttribute = productAttributeMapper.selectByPrimaryKey(ids.get(0));
         Integer type = pmsProductAttribute.getType();
         PmsProductAttributeCategory pmsProductAttributeCategory = productAttributeCategoryMapper.selectByPrimaryKey(pmsProductAttribute.getProductAttributeCategoryId());
         PmsProductAttributeExample example = new PmsProductAttributeExample();
         example.createCriteria().andIdIn(ids);
         int count = productAttributeMapper.deleteByExample(example);
-        //删除完成后修改数量
+        //삭제 완료 후 수량 수정
         if(type==0){
             if(pmsProductAttributeCategory.getAttributeCount()>=count){
                 pmsProductAttributeCategory.setAttributeCount(pmsProductAttributeCategory.getAttributeCount()-count);

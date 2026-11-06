@@ -6,16 +6,16 @@ import TestAxios from '@/views/test/axios/index.vue'
 
 <template>
   <div class="vertical-layout">
-    <h1>组件测试页面</h1>
-    <!-- pinia组件测试 -->
+    <h1>컴포넌트 테스트 페이지</h1>
+    <!-- pinia컴포넌트 테스트 -->
     <div>
       <TestPinia></TestPinia>
     </div>
-    <!-- element-plus组件测试 -->
+    <!-- element-plus컴포넌트 테스트 -->
     <div>
       <TestElement></TestElement>
     </div>
-    <!-- axiso调用接测试 -->
+    <!-- axiso인터페이스 테스트 호출 -->
     <div>
       <TestAxios></TestAxios>
     </div>

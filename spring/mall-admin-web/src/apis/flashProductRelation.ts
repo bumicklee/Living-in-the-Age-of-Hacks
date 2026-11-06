@@ -3,7 +3,7 @@ import type { FlashProductQueryParam, SmsFlashPromotionProductRelation } from '@
 import http from '@/utils/http'
 
 /**
- * 分页查询不同场次关联及商品信息
+ * 회차별 연관 및 상품 정보 페이지 조회
  */
 export function getFlashProductRelationListAPI(params: FlashProductQueryParam) {
   return http<CommonPage<SmsFlashPromotionProductRelation>>({
@@ -13,7 +13,7 @@ export function getFlashProductRelationListAPI(params: FlashProductQueryParam) {
   })
 }
 /**
- * 批量选择商品添加关联
+ * 상품을 일괄 선택해 연관 상품 추가
  */
 export function flashProductRelationCreateAPI(data: SmsFlashPromotionProductRelation[]) {
   return http({
@@ -23,7 +23,7 @@ export function flashProductRelationCreateAPI(data: SmsFlashPromotionProductRela
   })
 }
 /**
- * 根据ID修改关联信息
+ * ID로 연관 정보 수정
  */
 export function flashProductRelationDeleteByIdAPI(id: number) {
   return http({
@@ -32,7 +32,7 @@ export function flashProductRelationDeleteByIdAPI(id: number) {
   })
 }
 /**
- * 根据ID修改关联信息
+ * ID로 연관 정보 수정
  */
 export function flashProductRelationUpdateByIdAPI(
   id: number,

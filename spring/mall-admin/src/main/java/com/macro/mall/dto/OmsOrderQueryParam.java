@@ -5,22 +5,22 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 订单查询参数
+ * 주문 조회 파라미터
  * Created by macro on 2018/10/11.
  */
 @Getter
 @Setter
 public class OmsOrderQueryParam {
-    @Schema(title =  "订单编号")
+    @Schema(title =  "주문 번호")
     private String orderSn;
-    @Schema(title =  "收货人姓名/号码")
+    @Schema(title =  "수령인 이름/번호")
     private String receiverKeyword;
-    @Schema(title =  "订单状态：0->待付款；1->待发货；2->已发货；3->已完成；4->已关闭；5->无效订单")
+    @Schema(title =  "주문 상태:0->결제 대기;1->배송 대기;2->발송됨;3->완료;4->닫힘;5->무효 주문")
     private Integer status;
-    @Schema(title =  "订单类型：0->正常订单；1->秒杀订单")
+    @Schema(title =  "주문 유형:0->정상 주문;1->타임 세일 주문")
     private Integer orderType;
-    @Schema(title =  "订单来源：0->PC订单；1->app订单")
+    @Schema(title =  "주문 출처:0->PC주문;1->app주문")
     private Integer sourceType;
-    @Schema(title =  "订单提交时间")
+    @Schema(title =  "주문 제출 시간")
     private String createTime;
 }

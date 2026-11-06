@@ -1,113 +1,113 @@
 import type { PageParam } from './common'
 
-/** 优惠券信息 */
+/** 쿠폰 정보 */
 export type SmsCoupon = {
   /** ID */
   id?: number
-  /** 优惠券类型；0->全场赠券；1->会员赠券；2->购物赠券；3->注册赠券 */
+  /** 쿠폰 유형;0->전 상품 증정 쿠폰;1->회원 쿠폰 증정;2->구매 시 쿠폰 지급;3->가입 축하 쿠폰 */
   type: number
-  /** 优惠券名称 */
+  /** 쿠폰 이름 */
   name: string
-  /** 使用平台：0->全部；1->移动；2->PC */
+  /** 사용 플랫폼:0->전체;1->이동;2->PC */
   platform: number
-  /** 数量 */
+  /** 수량 */
   count?: number
-  /** 金额 */
+  /** 금액 */
   amount: number
-  /** 每人限领张数 */
+  /** 1인당 발급 제한 매수 */
   perLimit: number
-  /** 使用门槛；0表示无门槛 */
+  /** 사용 조건; 0은 조건 없음을 의미 */
   minPoint?: number
-  /** 开始时间 */
+  /** 시작 시간 */
   startTime?: string
-  /** 结束时间 */
+  /** 종료 시간 */
   endTime?: string
-  /** 使用类型：0->全场通用；1->指定分类；2->指定商品 */
+  /** 사용 유형:0->전 상품 공용;1->지정 카테고리;2->지정 상품 */
   useType: number
-  /** 备注 */
+  /** 메모 */
   note?: string
-  /** 发行数量 */
+  /** 발행 수량 */
   publishCount?: number
-  /** 已使用数量 */
+  /** 사용 수량 */
   useCount?: number
-  /** 领取数量 */
+  /** 수령 수량 */
   receiveCount?: number
-  /** 可以领取的日期 */
+  /** 수령 가능 날짜 */
   enableTime?: string
-  /** 优惠码 */
+  /** 쿠폰 코드 */
   code?: string
-  /** 可领取的会员类型：0->无限时 */
+  /** 수령 가능한 회원 유형:0->기간 제한 없음 */
   memberLevel?: number
 }
 
-/** 优惠券扩展 */
+/** 쿠폰 확장 */
 export type SmsCouponExt = SmsCoupon & {
-  /** 优惠券绑定的商品 */
+  /** 쿠폰에 바인딩된 상품 */
   productRelationList?: CouponSelectProductOptionVo[]
-  /** 优惠券绑定的商品分类 */
+  /** 쿠폰에 바인딩된 상품 카테고리 */
   productCategoryRelationList?: CouponProductCateRelationVo[]
 }
 
-/** 优惠券和商品分类关系 */
+/** 쿠폰과 상품 카테고리 관계 */
 export type CouponProductCateRelationVo = {
-  /** 商品分类ID */
+  /** 상품 카테고리ID */
   productCategoryId?: number
-  /** 商品分类名称 */
+  /** 상품 카테고리명 */
   productCategoryName?: string
-  /** 父级分类名称 */
+  /** 상위 카테고리 이름 */
   parentCategoryName?: string
 }
 
-/** 优惠券指定商品选择对象 */
+/** 쿠폰 지정 상품 선택 객체 */
 export type CouponSelectProductOptionVo = {
-  /** 商品ID */
+  /** 상품ID */
   productId?: number
-  /** 商品名称 */
+  /** 상품명 */
   productName: string
-  /** 商品SN码 */
+  /** 상품 SN 코드 */
   productSn: string
 }
 
-/** 优惠券列表查询参数 */
+/** 쿠폰 목록 조회 파라미터 */
 export type CouponQueryParam = PageParam & {
-  /** 查询名称 */
+  /** 조회 이름 */
   name?: string
-  /** 优惠券类型 */
+  /** 쿠폰 유형 */
   type?: number
 }
 
-/** 优惠券历史记录 */
+/** 쿠폰 내역 */
 export type SmsCouponHistory = {
   /** ID */
   id?: number
-  /** 优惠券ID */
+  /** 쿠폰ID */
   couponId?: number
-  /** 会员ID */
+  /** 회원ID */
   memberId?: number
-  /** 优惠码 */
+  /** 쿠폰 코드 */
   couponCode?: string
-  /** 领取人昵称 */
+  /** 수령인 닉네임 */
   memberNickname?: string
-  /** 获取类型：0->后台赠送；1->主动获取 */
+  /** 조회 타입:0->관리자 지급;1->직접 조회 */
   getType?: number
-  /** 创建时间 */
+  /** 생성 시간 */
   createTime?: string
-  /** 使用状态：0->未使用；1->已使用；2->已过期 */
+  /** 사용 상태:0->미사용;1->사용 완료;2->만료됨 */
   useStatus?: number
-  /** 使用时间 */
+  /** 사용 시간 */
   useTime?: string
-  /** 订单ID */
+  /** 주문ID */
   orderId?: number
-  /** 订单号码 */
+  /** 주문 번호 */
   orderSn?: string
 }
 
-/** 优惠券历史列表查询参数 */
+/** 쿠폰 내역 목록 조회 파라미터 */
 export type CouponHistoryQueryParam = PageParam & {
-  /** 使用状态：0->未使用；1->已使用；2->已过期 */
+  /** 사용 상태:0->미사용;1->사용 완료;2->만료됨 */
   useStatus?: number
-  /** 订单号码 */
+  /** 주문 번호 */
   orderSn?: string
-  /** 优惠券ID */
+  /** 쿠폰ID */
   couponId?: number
 }

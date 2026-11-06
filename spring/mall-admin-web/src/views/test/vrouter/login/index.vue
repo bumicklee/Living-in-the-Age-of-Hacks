@@ -7,7 +7,7 @@ defineOptions({
 
 <template>
   <div>
-    我是Login页面
+    저는 Login 페이지입니다
   </div>
 </template>
 

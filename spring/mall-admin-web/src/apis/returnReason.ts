@@ -3,7 +3,7 @@ import type { OmsOrderReturnReason } from '@/types/returnReason'
 import http from '@/utils/http'
 
 /**
- * 分页查询退货原因
+ * 반품 사유 페이지 조회
  */
 export function getReturnReasonListAPI(params: PageParam) {
   return http<CommonPage<OmsOrderReturnReason>>({
@@ -14,7 +14,7 @@ export function getReturnReasonListAPI(params: PageParam) {
 }
 
 /**
- * 批量删除退货原因
+ * 반품 사유 일괄 삭제
  */
 export function returnReasonDeleteByIdsAPI(params: { ids: string }) {
   return http({
@@ -25,7 +25,7 @@ export function returnReasonDeleteByIdsAPI(params: { ids: string }) {
 }
 
 /**
- * 修改退货原因启用状态
+ * 반품 사유 사용 상태 수정
  */
 export function returnReasonUpdateStatusAPI(params: { ids: string; status: number }) {
   return http({
@@ -36,7 +36,7 @@ export function returnReasonUpdateStatusAPI(params: { ids: string; status: numbe
 }
 
 /**
- * 添加退货原因
+ * 반품 사유 추가
  */
 export function returnReasonCreateAPI(data: OmsOrderReturnReason) {
   return http({
@@ -47,7 +47,7 @@ export function returnReasonCreateAPI(data: OmsOrderReturnReason) {
 }
 
 /**
- * 获取单个退货原因详情信息
+ * 단일 반품 사유 상세 정보 조회
  */
 export function getReturnReasonByIdAPI(id: number) {
   return http<OmsOrderReturnReason>({
@@ -57,7 +57,7 @@ export function getReturnReasonByIdAPI(id: number) {
 }
 
 /**
- * 修改退货原因
+ * 반품 사유 수정
  */
 export function returnReasonUpdateAPI(id: number, data: OmsOrderReturnReason) {
   return http({

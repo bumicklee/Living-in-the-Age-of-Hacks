@@ -17,7 +17,7 @@ public class PmsCommentReplay implements Serializable {
 
     private Date createTime;
 
-    @Schema(title = "评论人员类型；0->会员；1->管理员")
+    @Schema(title = "댓글 작성자 유형;0->회원;1->관리자")
     private Integer type;
 
     private static final long serialVersionUID = 1L;

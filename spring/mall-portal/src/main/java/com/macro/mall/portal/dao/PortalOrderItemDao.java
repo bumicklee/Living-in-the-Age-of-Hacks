@@ -6,12 +6,12 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * 订单商品信息管理自定义Dao
+ * 주문 상품 정보 관리 커스텀Dao
  * Created by macro on 2018/9/3.
  */
 public interface PortalOrderItemDao {
     /**
-     * 批量插入
+     * 일괄 삽입
      */
     int insertList(@Param("list") List<OmsOrderItem> list);
 }

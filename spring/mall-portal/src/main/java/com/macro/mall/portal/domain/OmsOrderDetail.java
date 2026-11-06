@@ -9,12 +9,12 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * 包含商品信息的订单详情
+ * 상품 정보를 포함한 주문 상세
  * Created by macro on 2018/9/4.
  */
 @Getter
 @Setter
 public class OmsOrderDetail extends OmsOrder {
-    @Schema(title = "订单商品列表")
+    @Schema(title = "주문 상품 목록")
     private List<OmsOrderItem> orderItemList;
 }

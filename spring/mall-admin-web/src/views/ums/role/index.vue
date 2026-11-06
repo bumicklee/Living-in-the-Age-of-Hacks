@@ -7,22 +7,22 @@ import { getRoleListAPI, roleCreateAPI, roleUpdateByIdAPI, roleUpdateStatusAPI, 
 import type { UmsRole } from '@/types/role'
 import type { PageParam } from '@/types/common'
 
-// 获取路由对象
+// 라우트 객체 조회
 const router = useRouter()
 
-// 列表查询参数
+// 목록 조회 파라미터
 const listQuery = ref<PageParam>({
   pageNum: 1,
   pageSize: 10,
   keyword: ''
 })
-// 角色列表数据
+// 역할 목록 데이터
 const list = ref<UmsRole[]>([])
-// 表格加载状态
+// 테이블 로딩 상태
 const listLoading = ref(false)
-// 分页总数
+// 전체 페이지 수
 const total = ref(0)
-// 获取角色列表
+// 역할 목록 조회
 const getList = async () => {
   listLoading.value = true
   try {
@@ -32,52 +32,52 @@ const getList = async () => {
     total.value = response.data.total
   } catch (error) {
     listLoading.value = false
-    console.error('获取角色列表失败:', error)
+    console.error('역할 목록 조회 실패:', error)
   }
 }
 
-// 组件挂载后初始化数据
+// 컴포넌트 마운트 후 데이터 초기화
 onMounted(() => {
   getList()
 })
 
-// 当前操作的角色对象
+// 현재 작업 중인 역할 객체
 const role = ref<UmsRole>({
   name: '',
   adminCount: 0,
   status: 1
 })
-// 编辑对话框是否可见
+// 편집 대화상자 표시 여부
 const dialogVisible = ref(false)
-// 是否编辑状态
+// 편집 상태 여부
 const isEdit = ref(false)
 
-// 重置搜索条件
+// 검색 조건 초기화
 const handleResetSearch = () => {
   listQuery.value.pageNum = 1
   listQuery.value.keyword = ''
 }
 
-// 处理搜索
+// 검색 처리
 const handleSearchList = () => {
   listQuery.value.pageNum = 1
   getList()
 }
 
-// 每页大小变化
+// 페이지 크기 변경
 const handleSizeChange = (val: number) => {
   listQuery.value.pageNum = 1
   listQuery.value.pageSize = val
   getList()
 }
 
-// 当前页变化
+// 현재 페이지 변경
 const handleCurrentChange = (val: number) => {
   listQuery.value.pageNum = val
   getList()
 }
 
-// 处理添加角色
+// 역할 추가 처리
 const handleAdd = () => {
   dialogVisible.value = true
   isEdit.value = false
@@ -88,88 +88,88 @@ const handleAdd = () => {
   }
 }
 
-// 处理状态变化
+// 상태 변경 처리
 const handleStatusChange = async (index: number, row: UmsRole) => {
   try {
-    await ElMessageBox.confirm('是否要修改该状态?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('이 상태를 수정할까요??', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     await roleUpdateStatusAPI(row.id!, { status: row.status })
-    ElMessage.success('修改成功!')
+    ElMessage.success('수정 성공!')
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('更新状态失败:', error)
-      // 如果取消或失败，重新获取列表以恢复状态
+      console.error('상태 업데이트 실패:', error)
+      // 취소되거나 실패하면 목록을 다시 조회해 상태를 복원
       getList()
     }
   }
 }
 
-// 处理删除
+// 삭제 처리
 const handleDelete = async (index: number, row: UmsRole) => {
   try {
-    await ElMessageBox.confirm('是否要删除该角色?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('이 역할을 삭제할까요??', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     const ids = []
     ids.push(row.id)
     await roleDeleteByIdsAPI({ ids: ids.toString() })
-    ElMessage.success('删除成功!')
+    ElMessage.success('삭제 성공!')
     getList()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除失败:', error)
+      console.error('삭제 실패:', error)
     }
   }
 }
 
-// 处理更新
+// 갱신 처리
 const handleUpdate = (index: number, row: UmsRole) => {
   dialogVisible.value = true
   isEdit.value = true
-  // 深拷贝row对象，避免直接修改原始数据
+  // row 객체를 깊은 복사하여 원본 데이터 직접 수정 방지
   role.value = { ...row }
 }
 
-// 处理对话框确认
+// 대화 상자 확인 처리
 const handleDialogConfirm = async () => {
   try {
-    await ElMessageBox.confirm('是否要确认?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('확인할까요??', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     if (isEdit.value) {
       await roleUpdateByIdAPI(role.value.id!, role.value)
-      ElMessage.success('修改成功！')
+      ElMessage.success('수정 성공!')
     } else {
       await roleCreateAPI(role.value)
-      ElMessage.success('添加成功！')
+      ElMessage.success('추가 성공!')
     }
     dialogVisible.value = false
     getList()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('操作失败:', error)
+      console.error('작업 실패:', error)
     }
   }
 }
 
-// 处理选择菜单
+// 메뉴 선택 처리
 const handleSelectMenu = (index: number, row: UmsRole) => {
   router.push({ path: '/ums/allocMenu', query: { roleId: row.id } })
 }
 
-// 处理选择资源
+// 리소스 선택 처리
 const handleSelectResource = (index: number, row: UmsRole) => {
   router.push({ path: '/ums/allocResource', query: { roleId: row.id } })
 }
 
-// 日期格式化函数
+// 날짜 포맷 함수
 const formatDateTime = (time: string) => {
   if (!time) {
     return 'N/A'
@@ -185,18 +185,18 @@ const formatDateTime = (time: string) => {
         <el-icon class="el-icon-middle">
           <Search />
         </el-icon>
-        <span>筛选搜索</span>
+        <span>필터 검색</span>
         <el-button style="float: right" @click="handleSearchList()" type="primary" size="default">
-          查询搜索
+          조회 검색
         </el-button>
         <el-button style="float: right; margin-right: 15px" @click="handleResetSearch()" size="default">
-          重置
+          초기화
         </el-button>
       </div>
       <div style="margin-top: 15px">
         <el-form :inline="true" :model="listQuery" size="default" label-width="140px">
-          <el-form-item label="输入搜索：">
-            <el-input v-model="listQuery.keyword" class="input-width" placeholder="角色名称" clearable></el-input>
+          <el-form-item label="검색어 입력:">
+            <el-input v-model="listQuery.keyword" class="input-width" placeholder="역할 이름" clearable></el-input>
           </el-form-item>
         </el-form>
       </div>
@@ -205,53 +205,53 @@ const formatDateTime = (time: string) => {
       <el-icon class="el-icon-middle">
         <Tickets />
       </el-icon>
-      <span>数据列表</span>
-      <el-button size="default" class="btn-add" @click="handleAdd()" style="margin-left: 20px">添加</el-button>
+      <span>데이터 목록</span>
+      <el-button size="default" class="btn-add" @click="handleAdd()" style="margin-left: 20px">추가</el-button>
     </el-card>
     <div class="table-container">
       <el-table ref="roleTable" :data="list" style="width: 100%;" v-loading="listLoading" border>
-        <el-table-column label="编号" width="100" align="center">
+        <el-table-column label="번호" width="100" align="center">
           <template #default="scope">{{ scope.row.id }}</template>
         </el-table-column>
-        <el-table-column label="角色名称" align="center">
+        <el-table-column label="역할 이름" align="center">
           <template #default="scope">{{ scope.row.name }}</template>
         </el-table-column>
-        <el-table-column label="描述" align="center">
+        <el-table-column label="설명" align="center">
           <template #default="scope">{{ scope.row.description }}</template>
         </el-table-column>
-        <el-table-column label="用户数" width="100" align="center">
+        <el-table-column label="사용자 수" width="100" align="center">
           <template #default="scope">{{ scope.row.adminCount }}</template>
         </el-table-column>
-        <el-table-column label="添加时间" width="160" align="center">
+        <el-table-column label="추가 시간" width="160" align="center">
           <template #default="scope">{{ formatDateTime(scope.row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="是否启用" width="140" align="center">
+        <el-table-column label="사용 여부" width="140" align="center">
           <template #default="scope">
             <el-switch @change="handleStatusChange(scope.$index, scope.row)" :active-value="1" :inactive-value="0"
               v-model="scope.row.status">
             </el-switch>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="160" align="center">
+        <el-table-column label="작업" width="160" align="center">
           <template #default="scope">
             <el-row>
               <el-col :span="12">
-                <el-button size="small" type="primary" link @click="handleSelectMenu(scope.$index, scope.row)">分配菜单
+                <el-button size="small" type="primary" link @click="handleSelectMenu(scope.$index, scope.row)">메뉴 할당
                 </el-button>
               </el-col>
               <el-col :span="12">
-                <el-button size="small" type="primary" link @click="handleSelectResource(scope.$index, scope.row)">分配资源
+                <el-button size="small" type="primary" link @click="handleSelectResource(scope.$index, scope.row)">리소스 할당
                 </el-button>
               </el-col>
             </el-row>
             <el-row>
               <el-col :span="12">
                 <el-button size="small" type="primary" link @click="handleUpdate(scope.$index, scope.row)">
-                  编辑
+                  편집
                 </el-button>
               </el-col>
               <el-col :span="12">
-                <el-button size="small" type="primary" link @click="handleDelete(scope.$index, scope.row)">删除
+                <el-button size="small" type="primary" link @click="handleDelete(scope.$index, scope.row)">삭제
                 </el-button>
               </el-col>
             </el-row>
@@ -265,25 +265,25 @@ const formatDateTime = (time: string) => {
         :page-size="listQuery.pageSize" :page-sizes="[5, 10, 15]" :total="total">
       </el-pagination>
     </div>
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑角色' : '添加角色'" width="40%">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '역할 편집' : '역할 추가'" width="40%">
       <el-form :model="role" label-width="150px" size="default">
-        <el-form-item label="角色名称：">
+        <el-form-item label="역할 이름:">
           <el-input v-model="role.name" style="width: 250px"></el-input>
         </el-form-item>
-        <el-form-item label="描述：">
+        <el-form-item label="설명:">
           <el-input v-model="role.description" type="textarea" :rows="5" style="width: 250px"></el-input>
         </el-form-item>
-        <el-form-item label="是否启用：">
+        <el-form-item label="사용 여부:">
           <el-radio-group v-model="role.status">
-            <el-radio :label="1">是</el-radio>
-            <el-radio :label="0">否</el-radio>
+            <el-radio :label="1">예</el-radio>
+            <el-radio :label="0">아니요</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false" size="default">取 消</el-button>
-          <el-button type="primary" @click="handleDialogConfirm()" size="default">确 定</el-button>
+          <el-button @click="dialogVisible = false" size="default">취 소</el-button>
+          <el-button type="primary" @click="handleDialogConfirm()" size="default">확 인</el-button>
         </span>
       </template>
     </el-dialog>

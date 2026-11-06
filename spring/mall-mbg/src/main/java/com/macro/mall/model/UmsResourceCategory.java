@@ -7,13 +7,13 @@ import java.util.Date;
 public class UmsResourceCategory implements Serializable {
     private Long id;
 
-    @Schema(title = "创建时间")
+    @Schema(title = "생성 시간")
     private Date createTime;
 
-    @Schema(title = "分类名称")
+    @Schema(title = "카테고리 이름")
     private String name;
 
-    @Schema(title = "排序")
+    @Schema(title = "정렬")
     private Integer sort;
 
     private static final long serialVersionUID = 1L;

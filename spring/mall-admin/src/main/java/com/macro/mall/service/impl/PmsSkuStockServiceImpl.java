@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 商品SKU库存管理Service实现类
+ * 상품 SKU 재고 관리 Service 구현 클래스
  * Created by macro on 2018/4/27.
  */
 @Service

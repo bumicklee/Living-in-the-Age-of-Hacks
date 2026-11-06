@@ -1,14 +1,14 @@
 @use './variables.scss' as vars;
 
 #app {
-  // 主体区域
+  // 메인 영역
   .main-container {
     min-height: 100%;
     transition: margin-left 0.28s;
     margin-left: 180px;
   }
 
-  // 侧边栏
+  // 사이드바
   .sidebar-container {
     .horizontal-collapse-transition {
       transition:
@@ -56,7 +56,7 @@
     .el-sub-menu {
       & > .el-sub-menu__title {
         padding-left: 10px !important;
-        // 解决div el-sub-menu__title中svg图标不显示
+        // div el-sub-menu__title 안의 svg 아이콘이 표시되지 않는 문제 해결
         display: block;
         & > span {
           height: 0;
@@ -84,7 +84,7 @@
     min-width: 180px !important;
   }
 
-  //适配移动端
+  //모바일 대응
   .mobile {
     .main-container {
       margin-left: 0px;

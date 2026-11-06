@@ -6,49 +6,49 @@ import { isvalidUsername } from '@/utils/validate';
 import login_center_bg from '@/assets/images/login_center_bg.png'
 import { type FormInstance, type FormRules } from 'element-plus';
 
-// 使用Vue Router和Pinia
+// Vue Router와Pinia
 const router = useRouter()
 const userStore = useUserStore()
 
-// 表单引用
+// 폼 참조
 const loginFormRef = ref<FormInstance>()
 
-// 登陆表单数据
+// 로그인 폼 데이터
 const loginForm = reactive({
   username: '',
   password: '',
 })
 
-// 表单参数校验规则
+// 폼 파라미터 검증 규칙
 const loginRules = reactive<FormRules<typeof loginForm>>({
   username: [{ required: true, trigger: 'blur', validator: validateUsername }],
   password: [{ required: true, trigger: 'blur', validator: validatePass }]
 })
 
-// 登陆按钮进度条
+// 로그인 버튼 진행 표시줄
 const loading = ref(false)
-// 公众号对话框是否可见
+// 공식 계정 대화상자 표시 여부
 const dialogVisible = ref(false)
 
-// 用户名验证函数
+// 사용자 이름 검증 함수
 function validateUsername(rule: unknown, value: string, callback: (error?: Error) => void) {
   if (!isvalidUsername(value)) {
-    callback(new Error('请输入正确的用户名'))
+    callback(new Error('올바른 사용자 이름을 입력하세요'))
   } else {
     callback()
   }
 };
 
-// 密码验证函数
+// 비밀번호 검증 함수
 function validatePass(rule: unknown, value: string, callback: (error?: Error) => void) {
   if (value.length < 3) {
-    callback(new Error('密码不能小于3位'))
+    callback(new Error('비밀번호는 3자리 이상이어야 합니다'))
   } else {
     callback()
   }
 };
 
-// 组件挂载完成后调用
+// 컴포넌트 마운트 완료 후 호출
 onMounted(() => {
   loginForm.username = userStore.userInfo.username
   loginForm.password = userStore.userInfo.password
@@ -57,7 +57,7 @@ onMounted(() => {
   }
 })
 
-// 处理登录按钮事件
+// 로그인 버튼 이벤트 처리
 const handleLogin = () => {
   loginFormRef.value!.validate(async (valid) => {
     if (valid) {
@@ -75,7 +75,7 @@ const handleLogin = () => {
         console.log(err)
       }
     } else {
-      console.log('参数验证不合法！')
+      console.log('파라미터 검증이 올바르지 않습니다!')
     }
   })
 }
@@ -90,7 +90,7 @@ const handleLogin = () => {
         </div>
         <h2 class="login-title color-main">mall-admin-web</h2>
         <el-form-item prop="username">
-          <el-input name="username" type="text" v-model="loginForm.username" autoComplete="on" placeholder="请输入用户名">
+          <el-input name="username" type="text" v-model="loginForm.username" autoComplete="on" placeholder="사용자 이름을 입력하세요">
             <template #prefix>
               <span>
                 <svg-icon icon-class="user" class="color-main"></svg-icon>
@@ -100,7 +100,7 @@ const handleLogin = () => {
         </el-form-item>
         <el-form-item prop="password">
           <el-input name="password" @keyup.enter="handleLogin" v-model="loginForm.password" autoComplete="on"
-            show-password placeholder="请输入密码">
+            show-password placeholder="비밀번호를 입력하세요">
             <template #prefix>
               <span>
                 <svg-icon icon-class="password" class="color-main"></svg-icon>
@@ -110,26 +110,26 @@ const handleLogin = () => {
         </el-form-item>
         <el-form-item style="margin-bottom: 60px;text-align: center">
           <el-button style="width: 45%" type="primary" :loading="loading" @click="handleLogin">
-            登录
+            로그인
           </el-button>
           <el-button style="width: 45%" type="primary" @click="dialogVisible = true">
-            获取体验账号
+            체험 계정 조회
           </el-button>
         </el-form-item>
       </el-form>
     </el-card>
     <img :src="login_center_bg" class="login-center-layout">
-    <el-dialog title="公众号二维码" v-model="dialogVisible" :show-close="false" :center="true" width="30%">
+    <el-dialog title="공식 계정 QR 코드" v-model="dialogVisible" :show-close="false" :center="true" width="30%">
       <div style="text-align: center">
-        <span class="font-title-large"><span class="color-main font-extra-large">关注公众号</span>回复<span
-            class="color-main font-extra-large">体验</span>获取体验账号</span>
+        <span class="font-title-large"><span class="color-main font-extra-large">공식 계정 팔로우</span>답변<span
+            class="color-main font-extra-large">체험</span>체험 계정 조회</span>
         <br>
         <img src="http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/banner/qrcode_for_macrozheng_258.jpg" width="160"
           height="160" style="margin-top: 10px">
       </div>
       <template #footer>
         <span class="dialog-footer">
-          <el-button type="primary" @click="dialogVisible = false">确定</el-button>
+          <el-button type="primary" @click="dialogVisible = false">확인</el-button>
         </span>
       </template>
     </el-dialog>

@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * 自定义无权限访问的返回结果
+ * 권한 없는 접근에 대한 사용자 정의 반환 결과
  * Created by macro on 2018/4/26.
  */
 public class RestfulAccessDeniedHandler implements AccessDeniedHandler{

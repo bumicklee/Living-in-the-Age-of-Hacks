@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 后台用户缓存管理Service实现类
+ * 관리자 사용자 캐시 관리 Service 구현 클래스
  * Created by macro on 2020/3/13.
  */
 @Service

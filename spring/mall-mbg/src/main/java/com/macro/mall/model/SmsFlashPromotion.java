@@ -7,19 +7,19 @@ import java.util.Date;
 public class SmsFlashPromotion implements Serializable {
     private Long id;
 
-    @Schema(title = "秒杀时间段名称")
+    @Schema(title = "타임 세일 시간대 이름")
     private String title;
 
-    @Schema(title = "开始日期")
+    @Schema(title = "시작일")
     private Date startDate;
 
-    @Schema(title = "结束日期")
+    @Schema(title = "종료 날짜")
     private Date endDate;
 
-    @Schema(title = "上下线状态")
+    @Schema(title = "판매 상태")
     private Integer status;
 
-    @Schema(title = "创建时间")
+    @Schema(title = "생성 시간")
     private Date createTime;
 
     private static final long serialVersionUID = 1L;

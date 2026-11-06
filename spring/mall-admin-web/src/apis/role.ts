@@ -4,7 +4,7 @@ import type { UmsRole } from '@/types/role'
 import http from '@/utils/http'
 
 /**
- * 获取所有角色列表
+ * 전체 역할 목록 조회
  */
 export function getRoleListAllAPI() {
   return http<UmsRole[]>({
@@ -14,7 +14,7 @@ export function getRoleListAllAPI() {
 }
 
 /**
- * 根据角色名称分页获取角色列表
+ * 역할 이름으로 역할 목록 페이징 조회
  */
 export function getRoleListAPI(params: PageParam) {
   return http<CommonPage<UmsRole>>({
@@ -25,7 +25,7 @@ export function getRoleListAPI(params: PageParam) {
 }
 
 /**
- * 添加角色
+ * 역할 추가
  */
 export function roleCreateAPI(data: UmsRole) {
   return http({
@@ -36,7 +36,7 @@ export function roleCreateAPI(data: UmsRole) {
 }
 
 /**
- * 根据ID修改角色
+ * ID로 역할 수정
  */
 export function roleUpdateByIdAPI(id: number, data: UmsRole) {
   return http({
@@ -47,7 +47,7 @@ export function roleUpdateByIdAPI(id: number, data: UmsRole) {
 }
 
 /**
- * 修改角色状态启用状态
+ * 역할 상태 사용 여부 수정
  */
 export function roleUpdateStatusAPI(id: number, params: { status: number }) {
   return http({
@@ -58,7 +58,7 @@ export function roleUpdateStatusAPI(id: number, params: { status: number }) {
 }
 
 /**
- * 根据ids批量删除角色
+ * ids로 역할 일괄 삭제
  */
 export function roleDeleteByIdsAPI(params: { ids: string }) {
   return http({
@@ -69,7 +69,7 @@ export function roleDeleteByIdsAPI(params: { ids: string }) {
 }
 
 /**
- * 根据角色ID获取菜单列表
+ * 역할 ID로 메뉴 목록 조회
  */
 export function roleListMenuByRoleIdAPI(id: number) {
   return http<UmsMenu[]>({
@@ -79,12 +79,12 @@ export function roleListMenuByRoleIdAPI(id: number) {
 }
 
 /**
- * 给角色分配菜单
+ * 역할에 메뉴 할당
  */
 export function roleAllocMenuAPI(params: {
-  /** 角色ID */
+  /** 역할ID */
   roleId: number
-  /** 菜单ID，多个以逗号分割 */
+  /** 메뉴 ID, 여러 개는 쉼표로 구분 */
   menuIds: string
 }) {
   return http({
@@ -95,7 +95,7 @@ export function roleAllocMenuAPI(params: {
 }
 
 /**
- * 获取角色相关资源
+ * 역할 관련 리소스 조회
  */
 export function roleListResourceById(id: number) {
   return http({
@@ -105,12 +105,12 @@ export function roleListResourceById(id: number) {
 }
 
 /**
- * 给角色分配资源
+ * 역할에 리소스 할당
  */
 export function roleAllocResourceAPI(params: {
-  /** 角色ID */
+  /** 역할ID */
   roleId: number
-  /** 资源ID，多个以逗号分割 */
+  /** 리소스 ID, 여러 개는 쉼표로 구분 */
   resourceIds: string
 }) {
   return http({

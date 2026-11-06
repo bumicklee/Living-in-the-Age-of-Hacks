@@ -2,15 +2,15 @@
 import { useRouter } from 'vue-router'
 import img_404 from '@/assets/images/gif_404.gif'
 
-// 定义组件名称
+// 컴포넌트 이름 정의
 defineOptions({
   name: 'wrongPage'
 })
 
-// 使用路由
+// 라우트 사용
 const router = useRouter()
 
-// 方法定义
+// 메서드 정의
 const handleGoMain = () => {
   router.push({ path: '/' })
 }
@@ -25,9 +25,9 @@ const handleGoMain = () => {
         <el-col :span="12">
           <div style="margin-left: 100px;margin-top: 60px">
             <h1 class="color-main">OOPS!</h1>
-            <h2 style="color: #606266">很抱歉，页面它不小心迷路了！</h2>
-            <div style="color:#909399;font-size: 14px">请检查您输入的网址是否正确，请点击以下按钮返回主页或者发送错误报告</div>
-            <el-button style="margin-top: 20px" type="primary" round @click="handleGoMain">返回首页</el-button>
+            <h2 style="color: #606266">죄송합니다. 페이지가 길을 잃었어요!</h2>
+            <div style="color:#909399;font-size: 14px">입력하신 주소가 올바른지 확인해 주세요. 아래 버튼을 눌러 홈으로 돌아가거나 오류 보고서를 보내 주세요</div>
+            <el-button style="margin-top: 20px" type="primary" round @click="handleGoMain">홈으로 돌아가기</el-button>
           </div>
         </el-col>
       </el-row>

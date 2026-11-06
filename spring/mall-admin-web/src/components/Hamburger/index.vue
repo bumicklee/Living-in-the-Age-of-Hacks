@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import type { PropType } from 'vue';
 
-// 定义组件名称
+// 컴포넌트 이름 정의
 defineOptions({
   name: 'Hamburger'
 })
 
-// 定义props
+// 정의props
 defineProps({
   isActive: {
     type: Boolean,

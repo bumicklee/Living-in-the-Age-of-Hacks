@@ -4,34 +4,34 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * Controller层的日志封装类
+ * Controller계층의 로그 래핑 클래스
  * Created by macro on 2018/4/26.
  */
 @Data
 @EqualsAndHashCode
 public class WebLog {
     /**
-     * 操作描述
+     * 작업 설명
      */
     private String description;
 
     /**
-     * 操作用户
+     * 작업 사용자
      */
     private String username;
 
     /**
-     * 操作时间
+     * 작업 시간
      */
     private Long startTime;
 
     /**
-     * 消耗时间
+     * 소요 시간
      */
     private Integer spendTime;
 
     /**
-     * 根路径
+     * 루트 경로
      */
     private String basePath;
 
@@ -46,22 +46,22 @@ public class WebLog {
     private String url;
 
     /**
-     * 请求类型
+     * 요청 유형
      */
     private String method;
 
     /**
-     * IP地址
+     * IP주소
      */
     private String ip;
 
     /**
-     * 请求参数
+     * 요청 파라미터
      */
     private Object parameter;
 
     /**
-     * 返回结果
+     * 반환 결과
      */
     private Object result;
 

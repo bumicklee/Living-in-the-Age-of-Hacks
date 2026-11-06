@@ -1,27 +1,27 @@
-/** 菜单 */
+/** 메뉴 */
 export type UmsMenu = {
-  /** 唯一ID */
+  /** 고유ID */
   id?: number
-  /** 父级ID */
+  /** 상위ID */
   parentId: number
-  /** 创建时间 */
+  /** 생성 시간 */
   createTime?: string
-  /** 菜单名称 */
+  /** 메뉴 이름 */
   title: string
-  /** 菜单级数 */
+  /** 메뉴 단계 */
   level?: number
-  /** 菜单排序 */
+  /** 메뉴 정렬 */
   sort: number
-  /** 前端名称 */
+  /** 프런트엔드 이름 */
   name: string
-  /** 前端图标 */
+  /** 프런트엔드 아이콘 */
   icon: string
-  /** 前端隐藏 */
+  /** 프런트엔드에서 숨김 */
   hidden: number
 }
 
-/** 后台菜单节点封装 */
+/** 관리자 메뉴 노드 래핑 */
 export type UmsMenuNode = UmsMenu & {
-  /** 子级菜单 */
+  /** 하위 메뉴 */
   children: UmsMenu[]
 }

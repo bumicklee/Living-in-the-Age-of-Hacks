@@ -8,26 +8,26 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * 前台商品详情
+ * 프런트 상품 상세
  * Created by macro on 2020/4/6.
  */
 @Getter
 @Setter
 public class PmsPortalProductDetail{
-    @Schema(title = "商品信息")
+    @Schema(title = "상품 정보")
     private PmsProduct product;
-    @Schema(title = "商品品牌")
+    @Schema(title = "상품 브랜드")
     private PmsBrand brand;
-    @Schema(title = "商品属性与参数")
+    @Schema(title = "상품 속성 및 파라미터")
     private List<PmsProductAttribute> productAttributeList;
-    @Schema(title = "手动录入的商品属性与参数值")
+    @Schema(title = "직접 입력한 상품 속성 및 파라미터 값")
     private List<PmsProductAttributeValue> productAttributeValueList;
-    @Schema(title = "商品的sku库存信息")
+    @Schema(title = "상품의 sku 재고 정보")
     private List<PmsSkuStock> skuStockList;
-    @Schema(title = "商品阶梯价格设置")
+    @Schema(title = "상품 수량별 가격 설정")
     private List<PmsProductLadder> productLadderList;
-    @Schema(title = "商品满减价格设置")
+    @Schema(title = "상품 금액 할인 가격 설정")
     private List<PmsProductFullReduction> productFullReductionList;
-    @Schema(title = "商品可用优惠券")
+    @Schema(title = "상품 사용 가능 쿠폰")
     private List<SmsCoupon> couponList;
 }

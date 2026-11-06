@@ -1,223 +1,223 @@
 import type { PageParam } from './common'
 
-/** 订单信息 */
+/** 주문 정보 */
 export type OmsOrder = {
-  /** 订单id */
+  /** 주문id */
   id: number
-  /** 会员id */
+  /** 회원id */
   memberId?: number
-  /** 优惠券id */
+  /** 쿠폰id */
   couponId?: number
-  /** 订单编号 */
+  /** 주문 번호 */
   orderSn?: string
-  /** 提交时间 */
+  /** 제출 시간 */
   createTime: string
-  /** 用户帐号 */
+  /** 사용자 계정 */
   memberUsername?: string
-  /** 订单总金额 */
+  /** 주문 총 금액 */
   totalAmount: number
-  /** 应付金额（实际支付金额） */
+  /** 결제 예정 금액(실제 결제 금액) */
   payAmount: number
-  /** 运费金额 */
+  /** 배송비 금액 */
   freightAmount: number
-  /** 促销优化金额（促销价、满减、阶梯价） */
+  /** 프로모션 할인 금액(프로모션가, 금액 할인, 단계별 가격) */
   promotionAmount?: number
-  /** 积分抵扣金额 */
+  /** 포인트 차감 금액 */
   integrationAmount?: number
-  /** 优惠券抵扣金额 */
+  /** 쿠폰 할인 금액 */
   couponAmount?: number
-  /** 管理员后台调整订单使用的折扣金额 */
+  /** 관리자가 관리자 화면에서 주문에 적용한 할인 금액 조정 */
   discountAmount: number
-  /** 支付方式：0->未支付；1->支付宝；2->微信 */
+  /** 결제 수단:0->미결제;1->알리페이;2->위챗 */
   payType: number
-  /** 订单来源：0->PC订单；1->app订单 */
+  /** 주문 출처:0->PC주문;1->app주문 */
   sourceType: number
-  /** 订单状态：0->待付款；1->待发货；2->已发货；3->已完成；4->已关闭；5->无效订单 */
+  /** 주문 상태:0->결제 대기;1->배송 대기;2->발송됨;3->완료;4->닫힘;5->무효 주문 */
   status: number
-  /** 订单类型：0->正常订单；1->秒杀订单 */
+  /** 주문 유형:0->정상 주문;1->타임 세일 주문 */
   orderType: number
-  /** 物流公司(配送方式) */
+  /** 택배사(배송 방식) */
   deliveryCompany?: string
-  /** 物流单号 */
+  /** 운송장 번호 */
   deliverySn?: string
-  /** 自动确认时间（天） */
+  /** 자동 확인 시간(일) */
   autoConfirmDay?: number
-  /** 可以获得的积分 */
+  /** 획득 가능한 포인트 */
   integration?: number
-  /** 可以活动的成长值 */
+  /** 획득 가능한 성장 포인트 */
   growth?: number
-  /** 活动信息 */
+  /** 이벤트 정보 */
   promotionInfo: string
-  /** 发票类型：0->不开发票；1->电子发票；2->纸质发票 */
+  /** 영수증 유형:0->인보이스 미발행;1->전자 영수증;2->종이 영수증 */
   billType?: number
-  /** 发票抬头 */
+  /** 영수증 발행 대상 */
   billHeader?: string
-  /** 发票内容 */
+  /** 영수증 내용 */
   billContent?: string
-  /** 收票人电话 */
+  /** 세금계산서 수령인 전화번호 */
   billReceiverPhone?: string
-  /** 收票人邮箱 */
+  /** 세금계산서 수령인 이메일 */
   billReceiverEmail?: string
-  /** 收货人姓名 */
+  /** 수령인 이름 */
   receiverName?: string
-  /** 收货人电话 */
+  /** 수령인 전화번호 */
   receiverPhone?: string
-  /** 收货人邮编 */
+  /** 수령인 우편번호 */
   receiverPostCode?: string
-  /** 省份/直辖市 */
+  /** 시/도, 직할시 */
   receiverProvince: string
-  /** 城市 */
+  /** 도시 */
   receiverCity?: string
-  /** 区 */
+  /** 구 */
   receiverRegion?: string
-  /** 详细地址 */
+  /** 상세 주소 */
   receiverDetailAddress?: string
-  /** 订单备注 */
+  /** 주문 메모 */
   note?: string
-  /** 确认收货状态：0->未确认；1->已确认 */
+  /** 수취 확인 상태:0->미확인;1->확인됨 */
   confirmStatus?: number
-  /** 删除状态：0->未删除；1->已删除 */
+  /** 삭제 상태:0->삭제 안 됨;1->삭제됨 */
   deleteStatus?: number
-  /** 下单时使用的积分 */
+  /** 주문 시 사용한 포인트 */
   useIntegration?: number
-  /** 支付时间 */
+  /** 결제 시간 */
   paymentTime: string
-  /** 发货时间 */
+  /** 발송 시간 */
   deliveryTime: string
-  /** 确认收货时间 */
+  /** 수취 확인 시간 */
   receiveTime: string
-  /** 评价时间 */
+  /** 리뷰 작성 시간 */
   commentTime: string
-  /** 修改时间 */
+  /** 수정 시간 */
   modifyTime?: string
 }
 
-/** 订单商品项 */
+/** 주문 상품 항목 */
 export type OmsOrderItem = {
-  /** 商品项id */
+  /** 상품 항목id */
   id: number
-  /** 订单id */
+  /** 주문id */
   orderId: number
-  /** 订单编号 */
+  /** 주문 번호 */
   orderSn: string
-  /** 商品id */
+  /** 상품id */
   productId: number
-  /** 商品图片 */
+  /** 상품 이미지 */
   productPic: string
-  /** 商品名称 */
+  /** 상품명 */
   productName: string
-  /** 商品品牌 */
+  /** 상품 브랜드 */
   productBrand: string
-  /** 商品货号 */
+  /** 상품 코드 */
   productSn: string
-  /** 销售价格 */
+  /** 판매 가격 */
   productPrice: number
-  /** 购买数量 */
+  /** 구매 수량 */
   productQuantity: number
-  /** 商品sku编号 */
+  /** 상품 sku 번호 */
   productSkuId: number
-  /** 商品sku条码 */
+  /** 상품 sku 바코드 */
   productSkuCode: string
-  /** 商品分类id */
+  /** 상품 카테고리id */
   productCategoryId: number
-  /** 商品促销名称 */
+  /** 상품 프로모션명 */
   promotionName: string
-  /** 商品促销分解金额 */
+  /** 상품 프로모션 분배 금액 */
   promotionAmount: number
-  /** 优惠券优惠分解金额 */
+  /** 쿠폰 할인 분배 금액 */
   couponAmount: number
-  /** 积分优惠分解金额 */
+  /** 포인트 할인 분배 금액 */
   integrationAmount: number
-  /** 该商品经过优惠后的分解金额 */
+  /** 할인 적용 후 해당 상품의 분할 금액 */
   realAmount: number
-  /** 赠送积分 */
+  /** 포인트 지급 */
   giftIntegration: number
-  /** 赠送成长值 */
+  /** 성장 포인트 지급 */
   giftGrowth: number
-  /** 商品销售属性 */
+  /** 상품 판매 속성 */
   productAttr: string
 }
 
-/** 订单操作历史 */
+/** 주문 작업 이력 */
 export type OmsOrderOperateHistory = {
-  /** 历史记录id */
+  /** 이력id */
   id: number
-  /** 订单id */
+  /** 주문id */
   orderId: number
-  /** 操作人：用户；系统；后台管理员 */
+  /** 작업자: 사용자; 시스템; 관리자 */
   operateMan: string
-  /** 操作时间 */
+  /** 작업 시간 */
   createTime: string
-  /** 订单状态：0->待付款；1->待发货；2->已发货；3->已完成；4->已关闭；5->无效订单 */
+  /** 주문 상태:0->결제 대기;1->배송 대기;2->발송됨;3->완료;4->닫힘;5->무효 주문 */
   orderStatus: number
-  /** 备注 */
+  /** 메모 */
   note: string
 }
 
-/** 订单列表查询参数 */
+/** 주문 목록 조회 파라미터 */
 export type OrderQueryParam = PageParam & {
-  /** 订单编号 */
+  /** 주문 번호 */
   orderSn?: string
-  /** 收货人姓名/号码 */
+  /** 수령인 이름/번호 */
   receiverKeyword?: string
-  /** 订单状态：0->待付款；1->待发货；2->已发货；3->已完成；4->已关闭；5->无效订单 */
+  /** 주문 상태:0->결제 대기;1->배송 대기;2->발송됨;3->완료;4->닫힘;5->무효 주문 */
   status?: number
-  /** 订单类型：0->正常订单；1->秒杀订单 */
+  /** 주문 유형:0->정상 주문;1->타임 세일 주문 */
   orderType?: number
-  /** 订单来源：0->PC订单；1->app订单 */
+  /** 주문 출처:0->PC주문;1->app주문 */
   sourceType?: number
-  /** 订单提交时间 */
+  /** 주문 제출 시간 */
   createTime?: string
 }
 
-/** 订单发货参数 */
+/** 주문 발송 파라미터 */
 export type OmsOrderDeliveryParam = {
-  /** 订单id */
+  /** 주문id */
   orderId: number
-  /** 物流公司 */
+  /** 택배사 */
   deliveryCompany?: string
-  /** 物流单号 */
+  /** 운송장 번호 */
   deliverySn?: string
 }
 
-/** 订单详情信息 */
+/** 주문 상세 정보 */
 export type OmsOrderDetail = OmsOrder & {
-  /** 订单商品列表 */
+  /** 주문 상품 목록 */
   orderItemList: OmsOrderItem[]
-  /** 订单操作记录列表 */
+  /** 주문 작업 기록 목록 */
   historyList: OmsOrderOperateHistory[]
 }
 
-/** 订单收货人信息参数 */
+/** 주문 수령인 정보 파라미터 */
 export type OmsReceiverInfoParam = {
-  /** 订单ID */
+  /** 주문ID */
   orderId: number
-  /** 收货人姓名 */
+  /** 수령인 이름 */
   receiverName?: string
-  /** 收货人电话 */
+  /** 수령인 전화번호 */
   receiverPhone?: string
-  /** 收货人邮编 */
+  /** 수령인 우편번호 */
   receiverPostCode?: string
-  /** 详细地址 */
+  /** 상세 주소 */
   receiverDetailAddress?: string
-  /** 省份/直辖市 */
+  /** 시/도, 직할시 */
   receiverProvince?: string
-  /** 城市 */
+  /** 도시 */
   receiverCity?: string
-  /** 区 */
+  /** 구 */
   receiverRegion?: string
-  /** 订单状态：0->待付款；1->待发货；2->已发货；3->已完成；4->已关闭；5->无效订单 */
+  /** 주문 상태:0->결제 대기;1->배송 대기;2->발송됨;3->완료;4->닫힘;5->무효 주문 */
   status: number
 }
 
-/** 订单费用信息参数 */
+/** 주문 비용 정보 파라미터 */
 export type OmsMoneyInfoParam = {
-  /** 订单ID */
+  /** 주문ID */
   orderId: number
-  /** 运费金额 */
+  /** 배송비 금액 */
   freightAmount: number
-  /** 管理员后台调整订单所使用的折扣金额 */
+  /** 관리자가 관리자 화면에서 주문에 적용한 할인 금액 조정 */
   discountAmount: number
-  /** 订单状态：0->待付款；1->待发货；2->已发货；3->已完成；4->已关闭；5->无效订单 */
+  /** 주문 상태:0->결제 대기;1->배송 대기;2->발송됨;3->완료;4->닫힘;5->무효 주문 */
   status: number
 }

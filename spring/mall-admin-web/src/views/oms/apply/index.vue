@@ -7,45 +7,45 @@ import { formatDateTime } from '@/utils/datetime'
 import { getReturnApplyListAPI, returnApplyDeleteByIdsAPI } from '@/apis/returnApply'
 import type { OmsOrderReturnApply, ReturnApplyQueryParam } from '@/types/returnApply'
 
-// 获取路由对象
+// 라우트 객체 조회
 const router = useRouter()
 
-// 默认处理状态
+// 기본 처리 상태
 const defaultStatusOptions = [
   {
-    label: '待处理',
+    label: '처리 대기',
     value: 0
   },
   {
-    label: '退货中',
+    label: '반품 중',
     value: 1
   },
   {
-    label: '已完成',
+    label: '완료',
     value: 2
   },
   {
-    label: '已拒绝',
+    label: '거절됨',
     value: 3
   }
 ]
 
-// 列表查询参数
+// 목록 조회 파라미터
 const listQuery = ref<ReturnApplyQueryParam>({
   pageNum: 1,
   pageSize: 10
 })
-// 状态选项
+// 상태 옵션
 const statusOptions = ref(Object.assign({}, defaultStatusOptions))
-// 列表数据
+// 목록 데이터
 const list = ref<OmsOrderReturnApply[]>([])
-// 总数
+// 총 개수
 const total = ref(0)
-// 加载状态
+// 로딩 상태
 const listLoading = ref(false)
-// 多选数据
+// 다중 선택 데이터
 const multipleSelection = ref<OmsOrderReturnApply[]>([])
-// 获取列表
+// 목록 조회
 const getList = async () => {
   listLoading.value = true
   const res = await getReturnApplyListAPI(listQuery.value)
@@ -54,86 +54,86 @@ const getList = async () => {
   total.value = res.data.total
 }
 
-// 组件挂载后获取列表
+// 컴포넌트 마운트 후 목록 조회
 onMounted(() => {
   getList()
 })
 
-// 操作类型
+// 작업 유형
 const operateType = ref()
-// 操作选项
+// 작업 옵션
 const operateOptions = ref([
   {
-    label: "批量删除",
+    label: "일괄 삭제",
     value: 1
   }
 ])
 
-// 格式化状态
+// 상태 포맷
 const formatStatus = (status: number) => {
   return defaultStatusOptions.find(item => item.value === status)?.label
 }
 
-// 格式化退款金额
+// 환불 금액 포맷
 const formatReturnAmount = (row: OmsOrderReturnApply) => {
   return row.productRealPrice * row.productCount
 }
 
-// 处理选择变化
+// 선택 변경 처리
 const handleSelectionChange = (val: OmsOrderReturnApply[]) => {
   multipleSelection.value = val
 }
 
-// 重置搜索
+// 검색 초기화
 const handleResetSearch = () => {
   listQuery.value = { pageNum: 1, pageSize: 10 }
 }
 
-// 搜索列表
+// 검색 목록
 const handleSearchList = () => {
   listQuery.value.pageNum = 1
   getList()
 }
 
-// 查看详情
+// 상세 보기
 const handleViewDetail = (index: number, row: OmsOrderReturnApply) => {
   router.push({ path: '/oms/returnApplyDetail', query: { id: row.id } })
 }
 
-// 批量操作
+// 일괄 작업
 const handleBatchOperate = async () => {
   if (!multipleSelection.value || multipleSelection.value.length < 1) {
     ElMessage({
-      message: '请选择要操作的申请',
+      message: '작업할 신청을 선택하세요',
       type: 'warning',
       duration: 1000
     })
     return
   }
   if (operateType.value === 1) {
-    // 批量删除
-    await ElMessageBox.confirm('是否要进行删除操作?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    // 일괄 삭제
+    await ElMessageBox.confirm('삭제할까요??', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     await returnApplyDeleteByIdsAPI({ ids: multipleSelection.value.map(item => item.id).join(',') })
     getList()
     ElMessage({
       type: 'success',
-      message: '删除成功!'
+      message: '삭제 성공!'
     })
   }
 }
 
-// 处理每页大小变化
+// 페이지당 크기 변경 처리
 const handleSizeChange = (val: number) => {
   listQuery.value.pageNum = 1
   listQuery.value.pageSize = val
   getList()
 }
 
-// 处理当前页变化
+// 현재 페이지 변경 처리
 const handleCurrentChange = (val: number) => {
   listQuery.value.pageNum = val
   getList()
@@ -149,36 +149,36 @@ const handleCurrentChange = (val: number) => {
         <el-icon class="el-icon-middle">
           <Search />
         </el-icon>
-        <span>筛选搜索</span>
+        <span>필터 검색</span>
         <el-button style="float:right" type="primary" @click="handleSearchList()">
-          查询搜索
+          조회 검색
         </el-button>
         <el-button style="float:right;margin-right: 15px" @click="handleResetSearch()">
-          重置
+          초기화
         </el-button>
       </div>
       <div style="margin-top: 20px">
         <el-form :inline="true" :model="listQuery" label-width="140px">
-          <el-form-item label="输入搜索：">
-            <el-input v-model="listQuery.id" class="input-width" placeholder="服务单号"></el-input>
+          <el-form-item label="검색어 입력:">
+            <el-input v-model="listQuery.id" class="input-width" placeholder="서비스 요청 번호"></el-input>
           </el-form-item>
-          <el-form-item label="处理状态：">
-            <el-select v-model="listQuery.status" placeholder="全部" clearable class="input-width">
+          <el-form-item label="처리 상태:">
+            <el-select v-model="listQuery.status" placeholder="전체" clearable class="input-width">
               <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="申请时间：">
+          <el-form-item label="신청 시간:">
             <el-date-picker class="input-width" v-model="listQuery.createTime" value-format="yyyy-MM-dd" type="date"
-              placeholder="请选择时间">
+              placeholder="시간을 선택하세요">
             </el-date-picker>
           </el-form-item>
-          <el-form-item label="操作人员：">
-            <el-input v-model="listQuery.handleMan" class="input-width" placeholder="全部"></el-input>
+          <el-form-item label="작업 담당자:">
+            <el-input v-model="listQuery.handleMan" class="input-width" placeholder="전체"></el-input>
           </el-form-item>
-          <el-form-item label="处理时间：">
+          <el-form-item label="처리 시간:">
             <el-date-picker class="input-width" v-model="listQuery.handleTime" value-format="yyyy-MM-dd" type="date"
-              placeholder="请选择时间">
+              placeholder="시간을 선택하세요">
             </el-date-picker>
           </el-form-item>
         </el-form>
@@ -188,44 +188,44 @@ const handleCurrentChange = (val: number) => {
       <el-icon class="el-icon-middle">
         <Tickets />
       </el-icon>
-      <span>数据列表</span>
+      <span>데이터 목록</span>
     </el-card>
     <div class="table-container">
       <el-table ref="returnApplyTable" :data="list" style="width: 100%;" @selection-change="handleSelectionChange"
         v-loading="listLoading" border>
         <el-table-column type="selection" width="60" align="center"></el-table-column>
-        <el-table-column label="服务单号" width="180" align="center">
+        <el-table-column label="서비스 요청 번호" width="180" align="center">
           <template #default="scope">{{ scope.row.id }}</template>
         </el-table-column>
-        <el-table-column label="申请时间" width="180" align="center">
+        <el-table-column label="신청 시간" width="180" align="center">
           <template #default="scope">{{ formatDateTime(scope.row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="用户账号" align="center">
+        <el-table-column label="사용자 계정" align="center">
           <template #default="scope">{{ scope.row.memberUsername }}</template>
         </el-table-column>
-        <el-table-column label="退款金额" width="180" align="center">
-          <template #default="scope">￥{{ formatReturnAmount(scope.row) }}</template>
+        <el-table-column label="환불 금액" width="180" align="center">
+          <template #default="scope">₩{{ formatReturnAmount(scope.row) }}</template>
         </el-table-column>
-        <el-table-column label="申请状态" width="180" align="center">
+        <el-table-column label="신청 상태" width="180" align="center">
           <template #default="scope">{{ formatStatus(scope.row.status) }}</template>
         </el-table-column>
-        <el-table-column label="处理时间" width="180" align="center">
+        <el-table-column label="처리 시간" width="180" align="center">
           <template #default="scope">{{ formatDateTime(scope.row.handleTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="180" align="center">
+        <el-table-column label="작업" width="180" align="center">
           <template #default="scope">
-            <el-button size="small" @click="handleViewDetail(scope.$index, scope.row)">查看详情</el-button>
+            <el-button size="small" @click="handleViewDetail(scope.$index, scope.row)">상세 보기</el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
     <div class="batch-operate-container">
-      <el-select v-model="operateType" placeholder="批量操作">
+      <el-select v-model="operateType" placeholder="일괄 작업">
         <el-option v-for="item in operateOptions" :key="item.value" :label="item.label" :value="item.value">
         </el-option>
       </el-select>
       <el-button style="margin-left: 20px" class="search-button" @click="handleBatchOperate()" type="primary">
-        确定
+        확인
       </el-button>
     </div>
     <div class="pagination-container">

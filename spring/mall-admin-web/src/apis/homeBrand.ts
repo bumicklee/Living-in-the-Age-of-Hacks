@@ -3,7 +3,7 @@ import type { HomeBrandQueryParam, SmsHomeBrand } from '@/types/homeBrand'
 import http from '@/utils/http'
 
 /**
- * 分页查询推荐品牌
+ * 추천 브랜드 페이지 조회
  */
 export function getHomeBrandListAPI(params: HomeBrandQueryParam) {
   return http<CommonPage<SmsHomeBrand>>({
@@ -14,12 +14,12 @@ export function getHomeBrandListAPI(params: HomeBrandQueryParam) {
 }
 
 /**
- * 批量修改推荐品牌状态
+ * 추천 브랜드 상태 일괄 수정
  */
 export function homeBrandUpdateRecommendStatusAPI(params: {
-  /** 品牌推荐ID */
+  /** 브랜드 추천ID */
   ids: string
-  /** 品牌推荐状态 */
+  /** 브랜드 추천 상태 */
   recommendStatus: number
 }) {
   return http({
@@ -30,7 +30,7 @@ export function homeBrandUpdateRecommendStatusAPI(params: {
 }
 
 /**
- * 批量删除推荐品牌
+ * 추천 브랜드 일괄 삭제
  */
 export function homeBrandDeleteByIdsAPI(params: { ids: string }) {
   return http({
@@ -41,7 +41,7 @@ export function homeBrandDeleteByIdsAPI(params: { ids: string }) {
 }
 
 /**
- * 添加首页推荐品牌
+ * 홈 추천 브랜드 추가
  */
 export function homeBrandCreateAPI(data: SmsHomeBrand[]) {
   return http({
@@ -52,7 +52,7 @@ export function homeBrandCreateAPI(data: SmsHomeBrand[]) {
 }
 
 /**
- * 修改推荐品牌排序
+ * 추천 브랜드 정렬 수정
  */
 export function homeBrandUpdateSortAPI(params: { id: number; sort: number }) {
   return http({

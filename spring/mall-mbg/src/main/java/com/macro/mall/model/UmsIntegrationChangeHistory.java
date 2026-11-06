@@ -11,19 +11,19 @@ public class UmsIntegrationChangeHistory implements Serializable {
 
     private Date createTime;
 
-    @Schema(title = "改变类型：0->增加；1->减少")
+    @Schema(title = "변경 유형:0->추가;1->감소")
     private Integer changeType;
 
-    @Schema(title = "积分改变数量")
+    @Schema(title = "포인트 변동 수량")
     private Integer changeCount;
 
-    @Schema(title = "操作人员")
+    @Schema(title = "작업 담당자")
     private String operateMan;
 
-    @Schema(title = "操作备注")
+    @Schema(title = "작업 메모")
     private String operateNote;
 
-    @Schema(title = "积分来源：0->购物；1->管理员修改")
+    @Schema(title = "포인트 출처:0->쇼핑;1->관리자 수정")
     private Integer sourceType;
 
     private static final long serialVersionUID = 1L;

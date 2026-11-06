@@ -3,7 +3,7 @@ import type { ResourceQueryParam, UmsResource } from '@/types/resource'
 import http from '@/utils/http'
 
 /**
- * 查询所有后台资源
+ * 모든 관리자 리소스 조회
  */
 export function fetchAllResourceList() {
   return http<UmsResource[]>({
@@ -13,7 +13,7 @@ export function fetchAllResourceList() {
 }
 
 /**
- * 分页模糊查询后台资源
+ * 관리자 리소스 페이지 단위 모호 검색
  */
 export function getResourceListAPI(params: ResourceQueryParam) {
   return http<CommonPage<UmsResource>>({
@@ -24,7 +24,7 @@ export function getResourceListAPI(params: ResourceQueryParam) {
 }
 
 /**
- * 添加后台资源
+ * 관리자 리소스 추가
  */
 export function resourceCreateAPI(data: UmsResource) {
   return http({
@@ -35,7 +35,7 @@ export function resourceCreateAPI(data: UmsResource) {
 }
 
 /**
- * 修改后台资源
+ * 관리자 리소스 수정
  */
 export function resourceUpdateAPI(id: number, data: UmsResource) {
   return http({
@@ -46,7 +46,7 @@ export function resourceUpdateAPI(id: number, data: UmsResource) {
 }
 
 /**
- * 根据ID删除后台资源
+ * ID로 관리자 리소스 삭제
  */
 export function resourceDeleteByIdAPI(id: number) {
   return http({

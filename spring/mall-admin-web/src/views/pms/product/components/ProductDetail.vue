@@ -9,11 +9,11 @@ import ProductRelationDetail from './ProductRelationDetail.vue'
 import { productCreateAPI, getPruductUpdateInfoAPI, productUpdateByIdAPI } from '@/apis/product'
 import type { PmsProductParam } from '@/types/product'
 
-// 获取路由对象
+// 라우트 객체 조회
 const route = useRoute()
 const router = useRouter()
 
-// 定义属性
+// 속성 정의
 const props = defineProps({
   isEdit: {
     type: Boolean,
@@ -21,7 +21,7 @@ const props = defineProps({
   }
 })
 
-// 默认商品参数
+// 기본 상품 파라미터
 const defaultProductParam: PmsProductParam = {
   albumPics: '',
   brandName: '',
@@ -72,16 +72,16 @@ const defaultProductParam: PmsProductParam = {
   verifyStatus: 0,
   weight: 0
 }
-// el-steps的激活状态
+// el-steps활성 상태
 const active = ref(0)
-// 商品信息/促销/属性/关联组件显示状态
+// 상품 정보/프로모션/속성/연관 컴포넌트 표시 상태
 const showStatus = ref([true, false, false, false])
-// 当前商品参数
+// 현재 상품 파라미터
 const productParam = ref<PmsProductParam>(Object.assign({}, defaultProductParam))
-// 实现数据跨层传递
+// 계층 간 데이터 전달 구현
 provide('product-key', productParam)
 
-// 组件挂载后执行
+// 컴포넌트 마운트 후 실행
 onMounted(async () => {
   if (props.isEdit) {
     const res = await getPruductUpdateInfoAPI(Number(route.query.id))
@@ -89,13 +89,13 @@ onMounted(async () => {
   }
 })
 
-// 隐藏所有商品编辑组件
+// 모든 상품 편집 컴포넌트 숨기기
 const hideAll = () => {
-  // 将所有状态设置为false
+  // 모든 상태를 다음으로 설정:false
   showStatus.value.fill(false)
 }
 
-// 上一步
+// 이전 단계
 const prevStep = () => {
   if (active.value > 0 && active.value < showStatus.value.length) {
     active.value--
@@ -104,7 +104,7 @@ const prevStep = () => {
   }
 }
 
-// 下一步
+// 다음 단계
 const nextStep = () => {
   if (active.value < showStatus.value.length - 1) {
     active.value++
@@ -113,18 +113,18 @@ const nextStep = () => {
   }
 }
 
-// 结束步骤，提交数据
+// 종료 단계, 데이터 제출
 const finishCommit = async (isEdit: boolean) => {
-  await ElMessageBox.confirm('是否要提交该商品？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('이 상품을 제출할까요?', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning'
   })
   if (isEdit) {
     await productUpdateByIdAPI(Number(route.query.id), productParam.value)
     ElMessage({
       type: 'success',
-      message: '提交成功',
+      message: '제출 성공',
       duration: 1000
     })
     router.back()
@@ -132,7 +132,7 @@ const finishCommit = async (isEdit: boolean) => {
     await productCreateAPI(productParam.value)
     ElMessage({
       type: 'success',
-      message: '提交成功',
+      message: '제출 성공',
       duration: 1000
     })
     location.reload()
@@ -143,10 +143,10 @@ const finishCommit = async (isEdit: boolean) => {
 <template>
   <el-card class="form-container" shadow="never">
     <el-steps :active="active" finish-status="success" align-center>
-      <el-step title="填写商品信息"></el-step>
-      <el-step title="填写商品促销"></el-step>
-      <el-step title="填写商品属性"></el-step>
-      <el-step title="选择商品关联"></el-step>
+      <el-step title="상품 정보 입력"></el-step>
+      <el-step title="상품 프로모션 입력"></el-step>
+      <el-step title="상품 속성 입력"></el-step>
+      <el-step title="상품 연관 선택"></el-step>
     </el-steps>
     <product-info-detail v-show="showStatus[0]" :is-edit="isEdit" @next-step="nextStep">
     </product-info-detail>

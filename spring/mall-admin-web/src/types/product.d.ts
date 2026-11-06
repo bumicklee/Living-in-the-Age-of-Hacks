@@ -5,188 +5,188 @@ import type { PmsSkuStock } from './skuStock'
 export type PmsProduct = {
   /** ID */
   id?: number
-  /** 品牌ID */
+  /** 브랜드ID */
   brandId?: number
-  /** 产品分类ID */
+  /** 제품 카테고리ID */
   productCategoryId?: number
-  /** 运费模板ID */
+  /** 배송비 템플릿ID */
   feightTemplateId?: number
-  /** 属性分类ID */
+  /** 속성 카테고리ID */
   productAttributeCategoryId?: number
-  /** 名称 */
+  /** 이름 */
   name: string
-  /** 图片 */
+  /** 이미지 */
   pic?: string
-  /** 货号 */
+  /** 상품 번호 */
   productSn: string
-  /** 删除状态：0->未删除；1->已删除 */
+  /** 삭제 상태:0->삭제 안 됨;1->삭제됨 */
   deleteStatus?: number
-  /** 上架状态：0->下架；1->上架 */
+  /** 판매 상태:0->판매 중지;1->판매 중 */
   publishStatus?: number
-  /** 新品状态:0->不是新品；1->新品 */
+  /** 신상품 상태:0->신상품 아님;1->신상품 */
   newStatus?: number
-  /** 推荐状态；0->不推荐；1->推荐 */
+  /** 추천 상태;0->추천 안 함;1->추천 */
   recommandStatus?: number
-  /** 审核状态：0->未审核；1->审核通过 */
+  /** 심사 상태:0->미심사;1->심사 통과 */
   verifyStatus?: number
-  /** 排序 */
+  /** 정렬 */
   sort?: number
-  /** 销量 */
+  /** 판매량 */
   sale?: number
-  /** 价格 */
+  /** 가격 */
   price?: number
-  /** 促销价格 */
+  /** 프로모션 가격 */
   promotionPrice?: number
-  /** 赠送的成长值 */
+  /** 지급된 성장 포인트 */
   giftGrowth?: number
-  /** 赠送的积分 */
+  /** 지급된 포인트 */
   giftPoint?: number
-  /** 限制使用的积分数 */
+  /** 사용 가능한 포인트 수 제한 */
   usePointLimit?: number
-  /** 副标题 */
+  /** 부제목 */
   subTitle?: string
-  /** 市场价 */
+  /** 시장가 */
   originalPrice?: number
-  /** 库存 */
+  /** 재고 */
   stock?: number
-  /** 库存预警值 */
+  /** 재고 경고 기준값 */
   lowStock?: number
-  /** 单位 */
+  /** 단위 */
   unit?: string
-  /** 商品重量，默认为克 */
+  /** 상품 중량, 기본 단위는 그램 */
   weight?: number
-  /** 是否为预告商品：0->不是；1->是 */
+  /** 예고 상품 여부:0->아니요;1->예 */
   previewStatus?: number
-  /** 以逗号分割的产品服务：1->无忧退货；2->快速退款；3->免费包邮 */
+  /** 쉼표로 구분된 제품 서비스:1->걱정 없는 반품;2->빠른 환불;3->무료 배송 */
   serviceIds?: string
-  /** 关键词 */
+  /** 키워드 */
   keywords?: string
-  /** 备注 */
+  /** 메모 */
   note?: string
-  /** 画册图片，连产品图片限制为5张，以逗号分割 */
+  /** 앨범 이미지, 상품 이미지 포함 최대 5장, 쉼표로 구분 */
   albumPics?: string
-  /** 详情标题 */
+  /** 상세 제목 */
   detailTitle?: string
-  /** 促销开始时间 */
+  /** 프로모션 시작 시간 */
   promotionStartTime?: string
-  /** 促销结束时间 */
+  /** 프로모션 종료 시간 */
   promotionEndTime?: string
-  /** 活动限购数量 */
+  /** 이벤트 구매 제한 수량 */
   promotionPerLimit?: number
-  /** 促销类型：0->没有促销使用原价;1->使用促销价；2->使用会员价；3->使用阶梯价格；4->使用满减价格；5->限时购 */
+  /** 프로모션 유형:0->프로모션이 없으면 정가 사용;1->프로모션 가격 적용;2->회원 가격 적용;3->단계별 가격 적용;4->금액 할인 가격 적용;5->타임 세일 */
   promotionType?: number
-  /** 品牌名称 */
+  /** 브랜드명 */
   brandName?: string
-  /** 商品分类名称 */
+  /** 상품 카테고리명 */
   productCategoryName?: string
-  /** 商品描述 */
+  /** 상품 설명 */
   description?: string
-  /** 详情描述 */
+  /** 상세 설명 */
   detailDesc?: string
-  /** 产品详情网页内容 */
+  /** 제품 상세 웹 페이지 내용 */
   detailHtml?: string
-  /** 移动端网页详情 */
+  /** 모바일 웹 상세 */
   detailMobileHtml?: string
 }
 
-/** 商品列表查询参数 */
+/** 상품 목록 조회 파라미터 */
 export type ProductQueryParam = PageParam & {
-  /** 上架状态 */
+  /** 판매 상태 */
   publishStatus?: number
-  /** 审核状态 */
+  /** 심사 상태 */
   verifyStatus?: number
-  /** 商品货号 */
+  /** 상품 코드 */
   productSn?: string
-  /** 商品分类编号 */
+  /** 상품 카테고리 번호 */
   productCategoryId?: number
-  /** 商品品牌编号 */
+  /** 상품 브랜드 번호 */
   brandId?: number
 }
 
-/** 创建和修改商品的请求参数 */
+/** 상품 생성·수정 요청 파라미터 */
 export type PmsProductParam = PmsProduct & {
-  /** 商品阶梯价格设置 */
+  /** 상품 수량별 가격 설정 */
   productLadderList?: PmsProductLadder[]
-  /** 商品满减价格设置 */
+  /** 상품 금액 할인 가격 설정 */
   productFullReductionList?: PmsProductFullReduction[]
-  /** 商品会员价格设置 */
+  /** 상품 회원 가격 설정 */
   memberPriceList?: PmsMemberPrice[]
-  /** 商品的sku库存信息 */
+  /** 상품의 sku 재고 정보 */
   skuStockList?: PmsSkuStock[]
-  /** 商品参数及自定义规格属性 */
+  /** 상품 파라미터 및 사용자 정의 규격 속성 */
   productAttributeValueList?: PmsProductAttributeValue[]
-  /** 专题和商品关系  */
+  /** 기획전과 상품 관계  */
   subjectProductRelationList?: CmsSubjectProductRelation[]
-  /** 优选专区和商品的关系  */
+  /** 엄선 전용관과 상품의 관계  */
   prefrenceAreaProductRelationList?: CmsPrefrenceAreaProductRelation[]
-  /** 商品所选分类的父id */
+  /** 상품이 선택한 카테고리의 부모id */
   cateParentId?: number
-  /** 秒杀商品数数量 */
+  /** 타임 세일 상품 수 */
   flashPromotionCount: number
-  /** 秒杀活动ID */
+  /** 타임 세일 이벤트ID */
   flashPromotionId: number
-  /** 秒杀商品价格 */
+  /** 타임 세일 상품 가격 */
   flashPromotionPrice: number
-  /** 秒杀排序价格 */
+  /** 타임 세일 정렬 가격 */
   flashPromotionSort: number
 }
 
-/** 商品阶梯价格 */
+/** 상품 수량별 가격 */
 export type PmsProductLadder = {
   /** ID */
   id?: number
-  /** 商品ID */
+  /** 상품ID */
   productId?: number
-  /** 满足的商品数量 */
+  /** 충족한 상품 수량 */
   count: number
-  /** 折扣 */
+  /** 할인 */
   discount?: number
-  /** 折后价格 */
+  /** 할인 후 가격 */
   price?: number
 }
 
-/** 商品满减价格设置 */
+/** 상품 금액 할인 가격 설정 */
 export type PmsProductFullReduction = {
   /** ID */
   id?: number
-  /** 商品ID */
+  /** 상품ID */
   productId?: number
-  /** 满足金额 */
+  /** 충족 금액 */
   fullPrice?: number
-  /** 减免金额 */
+  /** 할인 금액 */
   reducePrice?: number
 }
 
-/** 商品会员价格 */
+/** 상품 회원 가격 */
 export type PmsMemberPrice = {
   /** ID */
   id?: number
-  /** 商品ID */
+  /** 상품ID */
   productId?: number
-  /** 会员等级ID */
+  /** 회원 등급ID */
   memberLevelId?: number
-  /** 会员价格 */
+  /** 회원 가격 */
   memberPrice?: number
-  /** 会员等级名称 */
+  /** 회원 등급 이름 */
   memberLevelName?: string
 }
 
-/** 专题和商品关系 */
+/** 기획전과 상품 관계 */
 export type CmsSubjectProductRelation = {
   /** ID */
   id?: number
-  /** 专题ID */
+  /** 기획전ID */
   subjectId?: number
-  /** 商品ID */
+  /** 상품ID */
   productId?: number
 }
 
-/** 优选专区和商品的关系 */
+/** 엄선 전용관과 상품의 관계 */
 export type CmsPrefrenceAreaProductRelation = {
   /** ID */
   id?: number
-  /** 优选专区ID */
+  /** 엄선 전용관ID */
   prefrenceAreaId?: number
-  /** 商品ID */
+  /** 상품ID */
   productId?: number
 }

@@ -2,7 +2,7 @@ import type { UmsResourceCategory } from '@/types/resource'
 import http from '@/utils/http'
 
 /**
- * 查询所有后台资源分类
+ * 모든 관리자 리소스 분류 조회
  */
 export function resourceCategoryListAllAPI() {
   return http<UmsResourceCategory[]>({
@@ -12,7 +12,7 @@ export function resourceCategoryListAllAPI() {
 }
 
 /**
- * 添加后台资源分类
+ * 관리자 리소스 카테고리 추가
  */
 export function resourceCategoryCreateAPI(data: UmsResourceCategory) {
   return http({
@@ -23,7 +23,7 @@ export function resourceCategoryCreateAPI(data: UmsResourceCategory) {
 }
 
 /**
- * 修改后台资源分类
+ * 관리자 리소스 카테고리 수정
  */
 export function resourceCategoryUpdateAPI(id: number, data: UmsResourceCategory) {
   return http({
@@ -34,7 +34,7 @@ export function resourceCategoryUpdateAPI(id: number, data: UmsResourceCategory)
 }
 
 /**
- * 根据ID删除后台资源分类
+ * ID로 관리자 리소스 분류 삭제
  */
 export function resourceCategoryDeleteByIdAPI(id: number) {
   return http({

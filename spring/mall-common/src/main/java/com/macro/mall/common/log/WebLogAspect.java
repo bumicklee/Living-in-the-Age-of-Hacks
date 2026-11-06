@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 统一日志处理切面
+ * 통합 로그 처리 애스펙트
  * Created by macro on 2018/4/26.
  */
 @Aspect
@@ -54,10 +54,10 @@ public class WebLogAspect {
     @Around("webLog()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
-        //获取当前请求对象
+        //현재 요청 객체 조회
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes.getRequest();
-        //记录请求信息(通过Logstash传入Elasticsearch)
+        //요청 정보 기록(Logstash를 통해 전달Elasticsearch)
         WebLog webLog = new WebLog();
         Object result = joinPoint.proceed();
         Signature signature = joinPoint.getSignature();
@@ -91,18 +91,18 @@ public class WebLogAspect {
     }
 
     /**
-     * 根据方法和传入的参数获取请求参数
+     * 메서드와 전달된 파라미터로 요청 파라미터 조회
      */
     private Object getParameter(Method method, Object[] args) {
         List<Object> argList = new ArrayList<>();
         Parameter[] parameters = method.getParameters();
         for (int i = 0; i < parameters.length; i++) {
-            //将RequestBody注解修饰的参数作为请求参数
+            //RequestBody 어노테이션이 붙은 파라미터를 요청 파라미터로 사용
             RequestBody requestBody = parameters[i].getAnnotation(RequestBody.class);
             if (requestBody != null) {
                 argList.add(args[i]);
             }
-            //将RequestParam注解修饰的参数作为请求参数
+            //RequestParam 어노테이션이 붙은 파라미터를 요청 파라미터로 사용
             RequestParam requestParam = parameters[i].getAnnotation(RequestParam.class);
             if (requestParam != null) {
                 Map<String, Object> map = new HashMap<>();

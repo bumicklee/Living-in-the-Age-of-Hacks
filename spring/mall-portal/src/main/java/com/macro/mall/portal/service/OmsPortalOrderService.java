@@ -11,72 +11,72 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 前台订单管理Service
+ * 프런트 주문 관리Service
  * Created by macro on 2018/8/30.
  */
 public interface OmsPortalOrderService {
     /**
-     * 根据用户购物车信息生成确认单信息
+     * 사용자 장바구니 정보로 주문 확인서 정보 생성
      */
     ConfirmOrderResult generateConfirmOrder(List<Long> cartIds);
 
     /**
-     * 根据提交信息生成订单
+     * 제출 정보로 주문 생성
      */
     @Transactional
     Map<String, Object> generateOrder(OrderParam orderParam);
 
     /**
-     * 支付成功后的回调
+     * 결제 성공 후 콜백
      */
     @Transactional
     Integer paySuccess(Long orderId, Integer payType);
 
     /**
-     * 自动取消超时订单
+     * 만료된 주문 자동 취소
      */
     @Transactional
     Integer cancelTimeOutOrder();
 
     /**
-     * 取消单个超时订单
+     * 기한 초과 주문 단건 취소
      */
     @Transactional
     void cancelOrder(Long orderId);
 
     /**
-     * 发送延迟消息取消订单
+     * 지연 메시지를 전송해 주문 취소
      */
     void sendDelayMessageCancelOrder(Long orderId);
 
     /**
-     * 确认收货
+     * 수취 확인
      */
     void confirmReceiveOrder(Long orderId);
 
     /**
-     * 分页获取用户订单
+     * 사용자 주문 페이지 조회
      */
     CommonPage<OmsOrderDetail> list(Integer status, Integer pageNum, Integer pageSize);
 
     /**
-     * 根据订单ID获取订单详情
+     * 주문 ID로 주문 상세 조회
      */
     OmsOrderDetail detail(Long orderId);
 
     /**
-     * 用户根据订单ID删除订单
+     * 사용자가 주문 ID로 주문 삭제
      */
     void deleteOrder(Long orderId);
 
     /**
-     * 根据orderSn来实现的支付成功逻辑
+     * orderSn 기준 결제 성공 처리 로직
      */
     @Transactional
     void paySuccessByOrderSn(String orderSn, Integer payType);
 
     /**
-     * 根据orderSn来获取订单
+     * orderSn으로 주문 조회
      */
     OmsOrder getOrderByOrderSn(String orderSn);
 }

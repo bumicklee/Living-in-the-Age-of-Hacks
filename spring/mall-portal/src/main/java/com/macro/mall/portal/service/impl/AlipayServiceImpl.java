@@ -25,7 +25,7 @@ import java.util.Map;
 
 /**
  * @auther macrozheng
- * @description 支付宝支付Service实现类
+ * @description 알리페이 결제 Service 구현 클래스
  * @date 2023/9/8
  * @github https://github.com/macrozheng
  */
@@ -44,28 +44,28 @@ public class AlipayServiceImpl implements AlipayService {
     public String pay(AliPayParam aliPayParam) {
         AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
         if(StrUtil.isNotEmpty(alipayConfig.getNotifyUrl())){
-            //异步接收地址，公网可访问
+            //비동기 수신 주소, 외부(공인망)에서 접근 가능해야 함
             request.setNotifyUrl(alipayConfig.getNotifyUrl());
         }
         if(StrUtil.isNotEmpty(alipayConfig.getReturnUrl())){
-            //同步跳转地址
+            //동기 이동 주소
             request.setReturnUrl(alipayConfig.getReturnUrl());
         }
-        //******必传参数******
+        //******필수 파라미터******
         JSONObject bizContent = new JSONObject();
-        //商户订单号，商家自定义，保持唯一性
+        //가맹점 주문번호, 가맹점이 직접 정의하며 고유해야 함
         bizContent.put("out_trade_no", aliPayParam.getOutTradeNo());
-        //订单总金额以数据库中订单表中为准
+        //주문 총 금액은 데이터베이스 주문 테이블의 값을 기준으로 함
         OmsOrder order = portalOrderService.getOrderByOrderSn(aliPayParam.getOutTradeNo());
         if(order==null||order.getPayAmount()==null){
-            Asserts.fail("订单信息或金额不能为空！");
+            Asserts.fail("주문 정보 또는 금액은 비어 있을 수 없습니다!");
         }
         BigDecimal totalAmount = order.getPayAmount();
-        //支付金额，最小值0.01元
+        //결제 금액, 최솟값 0.01위안
         bizContent.put("total_amount", totalAmount);
-        //订单标题，不可使用特殊符号
+        //주문 제목, 특수 문자 사용 불가
         bizContent.put("subject", aliPayParam.getSubject());
-        //电脑网站支付场景固定传值FAST_INSTANT_TRADE_PAY
+        //PC 웹사이트 결제 시나리오에서 고정 전달 값FAST_INSTANT_TRADE_PAY
         bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
         request.setBizContent(bizContent.toString());
         String formHtml = null;
@@ -82,24 +82,24 @@ public class AlipayServiceImpl implements AlipayService {
         String result = "failure";
         boolean signVerified = false;
         try {
-            //调用SDK验证签名
+            //SDK를 호출하여 서명 검증
             signVerified = AlipaySignature.rsaCheckV1(params, alipayConfig.getAlipayPublicKey(), alipayConfig.getCharset(), alipayConfig.getSignType());
         } catch (AlipayApiException e) {
-            log.error("支付回调签名校验异常！",e);
+            log.error("결제 콜백 서명 검증 중 예외 발생!",e);
             e.printStackTrace();
         }
         if (signVerified) {
             String tradeStatus = params.get("trade_status");
             if("TRADE_SUCCESS".equals(tradeStatus)){
                 result = "success";
-                log.info("notify方法被调用了，tradeStatus:{}",tradeStatus);
+                log.info("notify메서드가 호출되었습니다,tradeStatus:{}",tradeStatus);
                 String outTradeNo = params.get("out_trade_no");
                 portalOrderService.paySuccessByOrderSn(outTradeNo,1);
             }else{
-                log.warn("订单未支付成功，trade_status:{}",tradeStatus);
+                log.warn("주문 결제가 성공하지 못했습니다,trade_status:{}",tradeStatus);
             }
         } else {
-            log.warn("支付回调签名校验失败！");
+            log.warn("결제 콜백 서명 검증 실패!");
         }
         return result;
     }
@@ -107,16 +107,16 @@ public class AlipayServiceImpl implements AlipayService {
     @Override
     public String query(String outTradeNo, String tradeNo) {
         AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
-        //******必传参数******
+        //******필수 파라미터******
         JSONObject bizContent = new JSONObject();
-        //设置查询参数，out_trade_no和trade_no至少传一个
+        //조회 파라미터 설정, out_trade_no와 trade_no 중 최소 하나는 전달
         if(StrUtil.isNotEmpty(outTradeNo)){
             bizContent.put("out_trade_no",outTradeNo);
         }
         if(StrUtil.isNotEmpty(tradeNo)){
             bizContent.put("trade_no",tradeNo);
         }
-        //交易结算信息: trade_settle_info
+        //거래 정산 정보: trade_settle_info
         String[] queryOptions = {"trade_settle_info"};
         bizContent.put("query_options", queryOptions);
         request.setBizContent(bizContent.toString());
@@ -124,17 +124,17 @@ public class AlipayServiceImpl implements AlipayService {
         try {
             response = alipayClient.execute(request);
         } catch (AlipayApiException e) {
-            log.error("查询支付宝账单异常！",e);
+            log.error("알리페이 청구서 조회 중 예외 발생!",e);
         }
         if(response.isSuccess()){
-            log.info("查询支付宝账单成功！");
+            log.info("알리페이 청구서 조회 성공!");
             if("TRADE_SUCCESS".equals(response.getTradeStatus())){
                 portalOrderService.paySuccessByOrderSn(outTradeNo,1);
             }
         } else {
-            log.error("查询支付宝账单失败！");
+            log.error("알리페이 청구서 조회 실패!");
         }
-        //交易状态：WAIT_BUYER_PAY（交易创建，等待买家付款）、TRADE_CLOSED（未付款交易超时关闭，或支付完成后全额退款）、TRADE_SUCCESS（交易支付成功）、TRADE_FINISHED（交易结束，不可退款）
+        //거래 상태: WAIT_BUYER_PAY(거래 생성, 구매자 결제 대기), TRADE_CLOSED(미결제 거래 시간 초과로 종료되었거나 결제 완료 후 전액 환불), TRADE_SUCCESS(거래 결제 성공), TRADE_FINISHED(거래 종료, 환불 불가)
         return response.getTradeStatus();
     }
 
@@ -142,28 +142,28 @@ public class AlipayServiceImpl implements AlipayService {
     public String webPay(AliPayParam aliPayParam) {
         AlipayTradeWapPayRequest request = new AlipayTradeWapPayRequest ();
         if(StrUtil.isNotEmpty(alipayConfig.getNotifyUrl())){
-            //异步接收地址，公网可访问
+            //비동기 수신 주소, 외부(공인망)에서 접근 가능해야 함
             request.setNotifyUrl(alipayConfig.getNotifyUrl());
         }
         if(StrUtil.isNotEmpty(alipayConfig.getReturnUrl())){
-            //同步跳转地址
+            //동기 이동 주소
             request.setReturnUrl(alipayConfig.getReturnUrl());
         }
-        //******必传参数******
+        //******필수 파라미터******
         JSONObject bizContent = new JSONObject();
-        //商户订单号，商家自定义，保持唯一性
+        //가맹점 주문번호, 가맹점이 직접 정의하며 고유해야 함
         bizContent.put("out_trade_no", aliPayParam.getOutTradeNo());
-        //订单总金额以数据库中订单表中为准
+        //주문 총 금액은 데이터베이스 주문 테이블의 값을 기준으로 함
         OmsOrder order = portalOrderService.getOrderByOrderSn(aliPayParam.getOutTradeNo());
         if(order==null||order.getPayAmount()==null){
-            Asserts.fail("订单信息或金额不能为空！");
+            Asserts.fail("주문 정보 또는 금액은 비어 있을 수 없습니다!");
         }
         BigDecimal totalAmount = order.getPayAmount();
-        //支付金额，最小值0.01元
+        //결제 금액, 최솟값 0.01위안
         bizContent.put("total_amount", totalAmount);
-        //订单标题，不可使用特殊符号
+        //주문 제목, 특수 문자 사용 불가
         bizContent.put("subject", aliPayParam.getSubject());
-        //手机网站支付默认传值FAST_INSTANT_TRADE_PAY
+        //모바일 웹 결제 기본 전달 값FAST_INSTANT_TRADE_PAY
         bizContent.put("product_code", "QUICK_WAP_WAY");
         request.setBizContent(bizContent.toString());
         String formHtml = null;

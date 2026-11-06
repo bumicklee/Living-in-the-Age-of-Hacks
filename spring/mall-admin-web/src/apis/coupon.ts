@@ -8,7 +8,7 @@ import type {
 import http from '@/utils/http'
 
 /**
- * 根据优惠券名称和类型分页获取优惠券列表
+ * 쿠폰 이름과 유형으로 쿠폰 목록 페이징 조회
  */
 export function getCouponListAPI(params: CouponQueryParam) {
   return http<CommonPage<SmsCoupon>>({
@@ -19,7 +19,7 @@ export function getCouponListAPI(params: CouponQueryParam) {
 }
 
 /**
- * 添加优惠券
+ * 쿠폰 추가
  */
 export function couponCreateAPI(data: SmsCouponExt) {
   return http({
@@ -30,7 +30,7 @@ export function couponCreateAPI(data: SmsCouponExt) {
 }
 
 /**
- * 获取单个优惠券的详细信息
+ * 단일 쿠폰의 상세 정보 조회
  */
 export function getCouponByIdAPI(id: number) {
   return http<SmsCouponExt>({
@@ -40,7 +40,7 @@ export function getCouponByIdAPI(id: number) {
 }
 
 /**
- * 根据ID修改优惠券
+ * ID로 쿠폰 수정
  */
 export function couponUpdateByIdAPI(id: number, data: SmsCouponExt) {
   return http({
@@ -51,7 +51,7 @@ export function couponUpdateByIdAPI(id: number, data: SmsCouponExt) {
 }
 
 /**
- * 根据ID删除优惠券
+ * ID로 쿠폰 삭제
  */
 export function couponDeleteByIdAPI(id: number) {
   return http({
@@ -61,7 +61,7 @@ export function couponDeleteByIdAPI(id: number) {
 }
 
 /**
- * 根据优惠券id，使用状态，订单编号分页获取领取记录
+ * 쿠폰 id, 사용 상태, 주문 번호로 발급 내역 페이징 조회
  */
 export function getCouponHistoryListAPI(params: CouponHistoryQueryParam) {
   return http({

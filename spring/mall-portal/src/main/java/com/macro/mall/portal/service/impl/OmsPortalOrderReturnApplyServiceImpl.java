@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 
 /**
- * 订单退货管理Service实现类
+ * 주문 반품 관리 Service 구현 클래스
  * Created by macro on 2018/10/17.
  */
 @Service

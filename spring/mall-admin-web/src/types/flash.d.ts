@@ -1,66 +1,66 @@
 import type { PageParam } from './common'
 import type { PmsProduct } from './product'
 
-/** 秒杀活动信息 */
+/** 타임 세일 이벤트 정보 */
 export type SmsFlashPromotion = {
   /** ID */
   id?: number
-  /** 秒杀时间段名称 */
+  /** 타임 세일 시간대 이름 */
   title: string
-  /** 开始日期 */
+  /** 시작일 */
   startDate?: string
-  /** 结束日期 */
+  /** 종료 날짜 */
   endDate?: string
-  /** 上下线状态 */
+  /** 판매 상태 */
   status: number
-  /** 创建时间 */
+  /** 생성 시간 */
   createTime?: string
 }
 
-/** 秒杀时间段信息 */
+/** 타임 세일 시간대 정보 */
 export type SmsFlashPromotionSession = {
-  /** 编号 */
+  /** 번호 */
   id?: number
-  /** 场次名称 */
+  /** 회차명 */
   name: string
-  /** 每日开始时间 */
+  /** 일일 시작 시간 */
   startTime?: string
-  /** 每日结束时间 */
+  /** 일일 종료 시간 */
   endTime?: string
-  /** 启用状态：0->不启用；1->启用 */
+  /** 사용 상태:0->사용 안 함;1->사용 */
   status: number
-  /** 创建时间 */
+  /** 생성 시간 */
   createTime?: string
-  /** 商品数量 */
+  /** 상품 수량 */
   productCount?: number
 }
 
-/** 秒杀活动商品关系信息 */
+/** 타임 세일 이벤트 상품 관계 정보 */
 export type SmsFlashPromotionProductRelation = {
-  /** 编号 */
+  /** 번호 */
   id?: number
-  /** 秒杀活动ID */
+  /** 타임 세일 이벤트ID */
   flashPromotionId: number
-  /** 秒杀时间段ID */
+  /** 타임 세일 시간대ID */
   flashPromotionSessionId: number
-  /** 商品ID */
+  /** 상품ID */
   productId: number
-  /** 限时购价格 */
+  /** 타임 세일 가격 */
   flashPromotionPrice?: number
-  /** 限时购数量 */
+  /** 타임 세일 수량 */
   flashPromotionCount?: number
-  /** 每人限购数量 */
+  /** 1인당 구매 제한 수량 */
   flashPromotionLimit?: number
-  /** 排序 */
+  /** 정렬 */
   sort?: number
-  /** 关联商品 */
+  /** 연관 상품 */
   product?: PmsProduct
 }
 
-/** 秒杀商品列表查询参数 */
+/** 타임 세일 상품 목록 조회 파라미터 */
 export type FlashProductQueryParam = PageParam & {
-  /** 秒杀活动ID */
+  /** 타임 세일 이벤트ID */
   flashPromotionId?: number
-  /** 秒杀场次ID */
+  /** 타임 세일 회차ID */
   flashPromotionSessionId?: number
 }

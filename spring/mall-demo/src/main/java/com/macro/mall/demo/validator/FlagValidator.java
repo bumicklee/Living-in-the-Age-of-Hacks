@@ -5,7 +5,7 @@ import jakarta.validation.Payload;
 import java.lang.annotation.*;
 
 /**
- * 用户验证状态是否在指定范围内的注解
+ * 사용자 상태가 지정된 범위 안에 있는지 검증하는 어노테이션
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

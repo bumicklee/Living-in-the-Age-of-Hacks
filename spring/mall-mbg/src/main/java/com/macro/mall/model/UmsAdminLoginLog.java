@@ -15,7 +15,7 @@ public class UmsAdminLoginLog implements Serializable {
 
     private String address;
 
-    @Schema(title = "浏览器登录类型")
+    @Schema(title = "브라우저 로그인 유형")
     private String userAgent;
 
     private static final long serialVersionUID = 1L;

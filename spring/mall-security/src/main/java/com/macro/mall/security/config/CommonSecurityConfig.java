@@ -9,8 +9,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
- * SpringSecurity通用配置
- * 包括通用Bean、Security通用Bean及动态权限通用Bean
+ * SpringSecurity공통 설정
+ * 공통 Bean, Security 공통 Bean 및 동적 권한 공통 포함Bean
  * Created by macro on 2022/5/20.
  */
 @Configuration

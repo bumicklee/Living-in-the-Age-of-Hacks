@@ -22,10 +22,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * RestTemplate示例Controller
+ * RestTemplate예시Controller
  * Created by macro on 2018/9/17.
  */
-@Tag(name = "RestTemplateDemoController",description = "RestTemplate示例")
+@Tag(name = "RestTemplateDemoController",description = "RestTemplate예시")
 @Controller
 @RequestMapping("/template")
 public class RestTemplateDemoController {
@@ -96,10 +96,10 @@ public class RestTemplateDemoController {
     @ResponseBody
     public Object postForEntity3(@RequestParam String name) {
         String url = HOST_MALL_ADMIN + "/productAttribute/category/create";
-        //设置头信息
+        //헤더 정보 설정
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        //构造表单参数
+        //폼 파라미터 구성
         MultiValueMap<String, String> params= new LinkedMultiValueMap<>();
         params.add("name", name);
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, headers);

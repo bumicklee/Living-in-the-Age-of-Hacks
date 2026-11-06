@@ -2,7 +2,7 @@ import type { OssPolicyResult } from '@/types/oss'
 import http from '@/utils/http'
 
 /**
- * Oss上传签名生成
+ * Oss업로드 서명 생성
  */
 export function ossPolicyAPI() {
   return http<OssPolicyResult>({

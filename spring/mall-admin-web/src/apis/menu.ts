@@ -3,7 +3,7 @@ import type { UmsMenu, UmsMenuNode } from '@/types/menu'
 import http from '@/utils/http'
 
 /**
- *  树形结构返回所有菜单列表
+ *  모든 메뉴 목록을 트리 구조로 반환
  */
 export function getMenuTreeListAPI() {
   return http<UmsMenuNode[]>({
@@ -13,7 +13,7 @@ export function getMenuTreeListAPI() {
 }
 
 /**
- * 根据上级菜单ID分页查询菜单
+ * 상위 메뉴 ID로 메뉴 페이징 조회
  */
 export function getMenuListByParentIdAPI(parentId: number, params: PageParam) {
   return http<CommonPage<UmsMenu>>({
@@ -24,7 +24,7 @@ export function getMenuListByParentIdAPI(parentId: number, params: PageParam) {
 }
 
 /**
- * 根据ID删除后台菜单
+ * ID로 관리자 메뉴 삭제
  */
 export function deleteMenuByIdAPI(id: number) {
   return http({
@@ -34,7 +34,7 @@ export function deleteMenuByIdAPI(id: number) {
 }
 
 /**
- * 添加后台菜单
+ * 관리자 메뉴 추가
  */
 export function menuCreateAPI(data: UmsMenu) {
   return http({
@@ -45,7 +45,7 @@ export function menuCreateAPI(data: UmsMenu) {
 }
 
 /**
- * 修改后台菜单
+ * 관리자 메뉴 수정
  */
 export function updateMenu(id: number, data: UmsMenu) {
   return http({
@@ -56,7 +56,7 @@ export function updateMenu(id: number, data: UmsMenu) {
 }
 
 /**
- * 根据ID获取菜单详情
+ * ID로 메뉴 상세 조회
  */
 export function getMenuByIdAPI(id: number) {
   return http<UmsMenu>({
@@ -66,7 +66,7 @@ export function getMenuByIdAPI(id: number) {
 }
 
 /**
- * 根据ID修改菜单显示状态
+ * ID로 메뉴 표시 상태 수정
  */
 export function menuUpdateHiddenByIdAPI(id: number, params: { hidden: number }) {
   return http({

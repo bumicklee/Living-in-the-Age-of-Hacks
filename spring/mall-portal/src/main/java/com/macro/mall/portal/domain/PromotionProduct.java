@@ -10,16 +10,16 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * 促销商品信息，包括sku、打折优惠、满减优惠
+ * 프로모션 상품 정보, sku, 할인 혜택, 금액 할인 혜택 포함
  * Created by macro on 2018/8/27.
  */
 @Getter
 @Setter
 public class PromotionProduct extends PmsProduct {
-    //商品库存信息
+    //상품 재고 정보
     private List<PmsSkuStock> skuStockList;
-    //商品打折信息
+    //상품 할인 정보
     private List<PmsProductLadder> productLadderList;
-    //商品满减信息
+    //상품 금액 할인 정보
     private List<PmsProductFullReduction> productFullReductionList;
 }

@@ -16,17 +16,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
- * Oss对象存储管理Controller
+ * Oss오브젝트 스토리지 관리Controller
  * Created by macro on 2018/4/26.
  */
 @Controller
-@Tag(name = "OssController", description = "Oss对象存储管理")
+@Tag(name = "OssController", description = "Oss오브젝트 스토리지 관리")
 @RequestMapping("/aliyun/oss")
 public class OssController {
     @Autowired
     private OssService ossService;
 
-    @Operation(summary = "Oss上传签名生成")
+    @Operation(summary = "Oss업로드 서명 생성")
     @RequestMapping(value = "/policy", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<OssPolicyResult> policy() {
@@ -34,7 +34,7 @@ public class OssController {
         return CommonResult.success(result);
     }
 
-    @Operation(summary = "Oss上传成功回调")
+    @Operation(summary = "Oss업로드 성공 콜백")
     @RequestMapping(value = "callback", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult<OssCallbackResult> callback(HttpServletRequest request) {

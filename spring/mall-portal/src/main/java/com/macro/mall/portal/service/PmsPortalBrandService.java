@@ -7,22 +7,22 @@ import com.macro.mall.model.PmsProduct;
 import java.util.List;
 
 /**
- * 前台品牌管理Service
+ * 프런트 브랜드 관리Service
  * Created by macro on 2020/5/15.
  */
 public interface PmsPortalBrandService {
     /**
-     * 分页获取推荐品牌
+     * 추천 브랜드 페이지 조회
      */
     List<PmsBrand> recommendList(Integer pageNum, Integer pageSize);
 
     /**
-     * 获取品牌详情
+     * 브랜드 상세 조회
      */
     PmsBrand detail(Long brandId);
 
     /**
-     * 分页获取品牌关联商品
+     * 브랜드 연관 상품 페이지 조회
      */
     CommonPage<PmsProduct> productList(Long brandId, Integer pageNum, Integer pageSize);
 }

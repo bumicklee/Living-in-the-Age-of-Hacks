@@ -20,7 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Oss对象存储管理Service实现类
+ * Oss오브젝트 스토리지 관리 Service 구현 클래스
  * Created by macro on 2018/5/17.
  */
 @Service
@@ -44,25 +44,25 @@ public class OssServiceImpl implements OssService {
 	private OSSClient ossClient;
 
 	/**
-	 * 签名生成
+	 * 서명 생성
 	 */
 	@Override
 	public OssPolicyResult policy() {
 		OssPolicyResult result = new OssPolicyResult();
-		// 存储目录
+		// 저장 디렉터리
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 		String dir = ALIYUN_OSS_DIR_PREFIX+sdf.format(new Date());
-		// 签名有效期
+		// 서명 유효 기간
 		long expireEndTime = System.currentTimeMillis() + ALIYUN_OSS_EXPIRE * 1000;
 		Date expiration = new Date(expireEndTime);
-		// 文件大小
+		// 파일 크기
 		long maxSize = ALIYUN_OSS_MAX_SIZE * 1024 * 1024;
-		// 回调
+		// 콜백
 		OssCallbackParam callback = new OssCallbackParam();
 		callback.setCallbackUrl(ALIYUN_OSS_CALLBACK);
 		callback.setCallbackBody("filename=${object}&size=${size}&mimeType=${mimeType}&height=${imageInfo.height}&width=${imageInfo.width}");
 		callback.setCallbackBodyType("application/x-www-form-urlencoded");
-		// 提交节点
+		// 제출 노드
 		String action = "http://" + ALIYUN_OSS_BUCKET_NAME + "." + ALIYUN_OSS_ENDPOINT;
 		try {
 			PolicyConditions policyConds = new PolicyConditions();
@@ -73,7 +73,7 @@ public class OssServiceImpl implements OssService {
 			String policy = BinaryUtil.toBase64String(binaryData);
 			String signature = ossClient.calculatePostSignature(postPolicy);
 			String callbackData = BinaryUtil.toBase64String(JSONUtil.parse(callback).toString().getBytes("utf-8"));
-			// 返回结果
+			// 반환 결과
 			result.setAccessKeyId(ossClient.getCredentialsProvider().getCredentials().getAccessKeyId());
 			result.setPolicy(policy);
 			result.setSignature(signature);
@@ -81,7 +81,7 @@ public class OssServiceImpl implements OssService {
 			result.setCallback(callbackData);
 			result.setHost(action);
 		} catch (Exception e) {
-			LOGGER.error("签名生成失败", e);
+			LOGGER.error("서명 생성 실패", e);
 		}
 		return result;
 	}

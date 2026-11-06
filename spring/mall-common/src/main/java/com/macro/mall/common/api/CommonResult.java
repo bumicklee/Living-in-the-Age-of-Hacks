@@ -1,20 +1,20 @@
 package com.macro.mall.common.api;
 
 /**
- * 通用返回结果封装类
+ * 공통 반환 결과 래퍼 클래스
  * Created by macro on 2019/4/19.
  */
 public class CommonResult<T> {
     /**
-     * 状态码
+     * 상태 코드
      */
     private long code;
     /**
-     * 提示信息
+     * 안내 메시지
      */
     private String message;
     /**
-     * 数据封装
+     * 데이터 래핑
      */
     private T data;
 
@@ -28,80 +28,80 @@ public class CommonResult<T> {
     }
 
     /**
-     * 成功返回结果
+     * 성공 결과 반환
      *
-     * @param data 获取的数据
+     * @param data 조회한 데이터
      */
     public static <T> CommonResult<T> success(T data) {
         return new CommonResult<T>(ResultCode.SUCCESS.getCode(), ResultCode.SUCCESS.getMessage(), data);
     }
 
     /**
-     * 成功返回结果
+     * 성공 결과 반환
      *
-     * @param data 获取的数据
-     * @param  message 提示信息
+     * @param data 조회한 데이터
+     * @param  message 안내 메시지
      */
     public static <T> CommonResult<T> success(T data, String message) {
         return new CommonResult<T>(ResultCode.SUCCESS.getCode(), message, data);
     }
 
     /**
-     * 失败返回结果
-     * @param errorCode 错误码
+     * 실패 시 반환 결과
+     * @param errorCode 오류 코드
      */
     public static <T> CommonResult<T> failed(IErrorCode errorCode) {
         return new CommonResult<T>(errorCode.getCode(), errorCode.getMessage(), null);
     }
 
     /**
-     * 失败返回结果
-     * @param errorCode 错误码
-     * @param message 错误信息
+     * 실패 시 반환 결과
+     * @param errorCode 오류 코드
+     * @param message 오류 메시지
      */
     public static <T> CommonResult<T> failed(IErrorCode errorCode,String message) {
         return new CommonResult<T>(errorCode.getCode(), message, null);
     }
 
     /**
-     * 失败返回结果
-     * @param message 提示信息
+     * 실패 시 반환 결과
+     * @param message 안내 메시지
      */
     public static <T> CommonResult<T> failed(String message) {
         return new CommonResult<T>(ResultCode.FAILED.getCode(), message, null);
     }
 
     /**
-     * 失败返回结果
+     * 실패 시 반환 결과
      */
     public static <T> CommonResult<T> failed() {
         return failed(ResultCode.FAILED);
     }
 
     /**
-     * 参数验证失败返回结果
+     * 파라미터 검증 실패 시 반환 결과
      */
     public static <T> CommonResult<T> validateFailed() {
         return failed(ResultCode.VALIDATE_FAILED);
     }
 
     /**
-     * 参数验证失败返回结果
-     * @param message 提示信息
+     * 파라미터 검증 실패 시 반환 결과
+     * @param message 안내 메시지
      */
     public static <T> CommonResult<T> validateFailed(String message) {
         return new CommonResult<T>(ResultCode.VALIDATE_FAILED.getCode(), message, null);
     }
 
     /**
-     * 未登录返回结果
+     * 미로그인 반환 결과
      */
     public static <T> CommonResult<T> unauthorized(T data) {
         return new CommonResult<T>(ResultCode.UNAUTHORIZED.getCode(), ResultCode.UNAUTHORIZED.getMessage(), data);
     }
 
     /**
-     * 未授权返回结果
+     * 미인가 반환 결과
      */
     public static <T> CommonResult<T> forbidden(T data) {
         return new CommonResult<T>(ResultCode.FORBIDDEN.getCode(), ResultCode.FORBIDDEN.getMessage(), data);

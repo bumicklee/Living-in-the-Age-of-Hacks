@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 限时购场次管理Service实现类
+ * 타임 세일 회차 관리 Service 구현 클래스
  * Created by macro on 2018/11/16.
  */
 @Service

@@ -1,35 +1,35 @@
-/** 商品分类信息 */
+/** 상품 카테고리 정보 */
 export type PmsProductCategory = {
   /** ID */
   id?: number
-  /** 上级分类的编号：0表示一级分类 */
+  /** 상위 카테고리 번호: 0은 1단계 카테고리를 의미 */
   parentId: number
-  /** 分类名称 */
+  /** 카테고리 이름 */
   name: string
-  /** 分类级别：0->1级；1->2级 */
+  /** 카테고리 레벨:0->1급;1->2급 */
   level?: number
-  /** 商品数量 */
+  /** 상품 수량 */
   productCount?: number
-  /** 商品单位 */
+  /** 상품 단위 */
   productUnit?: string
-  /** 是否显示在导航栏：0->不显示；1->显示 */
+  /** 내비게이션 바에 표시 여부:0->표시 안 함;1->표시 */
   navStatus: number
-  /** 显示状态：0->不显示；1->显示 */
+  /** 표시 상태:0->표시 안 함;1->표시 */
   showStatus: number
-  /** 排序 */
+  /** 정렬 */
   sort?: number
-  /** 图标 */
+  /** 아이콘 */
   icon?: string
-  /** 关键字 */
+  /** 키워드 */
   keywords?: string
-  /** 描述 */
+  /** 설명 */
   description?: string
-  /** 筛选属性ID列表，后续添加的 */
+  /** 필터 속성 ID 목록, 이후 추가됨 */
   productAttributeIdList?: number[]
 }
 
-/** 商品分类信息扩展 */
+/** 상품 카테고리 정보 확장 */
 export type PmsProductCategoryExt = PmsProductCategory & {
-  /** 子级分类 */
+  /** 하위 카테고리 */
   children?: PmsProductCategory[]
 }

@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * 取消订单消息的发送者
+ * 주문 취소 메시지 발신자
  * Created by macro on 2018/9/14.
  */
 @Component
@@ -21,11 +21,11 @@ public class CancelOrderSender {
     private AmqpTemplate amqpTemplate;
 
     public void sendMessage(Long orderId,final long delayTimes){
-        //给延迟队列发送消息
+        //지연 큐에 메시지 전송
         amqpTemplate.convertAndSend(QueueEnum.QUEUE_TTL_ORDER_CANCEL.getExchange(), QueueEnum.QUEUE_TTL_ORDER_CANCEL.getRouteKey(), orderId, new MessagePostProcessor() {
             @Override
             public Message postProcessMessage(Message message) throws AmqpException {
-                //给消息设置延迟毫秒值
+                //메시지에 지연 밀리초 값 설정
                 message.getMessageProperties().setExpiration(String.valueOf(delayTimes));
                 return message;
             }

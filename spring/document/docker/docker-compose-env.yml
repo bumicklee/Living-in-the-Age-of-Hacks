@@ -6,35 +6,35 @@ services:
     command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root #设置root帐号密码
+      MYSQL_ROOT_PASSWORD: root #root 계정 비밀번호 설정
     ports:
       - 3306:3306
     volumes:
-      - /mydata/mysql/data:/var/lib/mysql #数据文件目录挂载
-      - /mydata/mysql/conf:/etc/mysql #配置文件目录挂载
-      - /mydata/mysql/log:/var/log/mysql #日志文件目录挂载
+      - /mydata/mysql/data:/var/lib/mysql #데이터 파일 디렉터리 마운트
+      - /mydata/mysql/conf:/etc/mysql #설정 파일 디렉터리 마운트
+      - /mydata/mysql/log:/var/log/mysql #로그 파일 디렉터리 마운트
   redis:
     image: redis:7
     container_name: redis
     command: redis-server --appendonly yes
     volumes:
-      - /mydata/redis/data:/data #数据文件目录挂载
+      - /mydata/redis/data:/data #데이터 파일 디렉터리 마운트
     ports:
       - 6379:6379
   nginx:
     image: nginx:1.22
     container_name: nginx
     volumes:
-      - /mydata/nginx/conf:/etc/nginx #配置文件目录挂载
-      - /mydata/nginx/html:/usr/share/nginx/html #静态资源根目录挂载
-      - /mydata/nginx/logs:/var/log/nginx #日志文件目录挂载
+      - /mydata/nginx/conf:/etc/nginx #설정 파일 디렉터리 마운트
+      - /mydata/nginx/html:/usr/share/nginx/html #정적 리소스 루트 디렉터리 마운트
+      - /mydata/nginx/logs:/var/log/nginx #로그 파일 디렉터리 마운트
     ports:
       - 80:80
   rabbitmq:
     image: rabbitmq:3.9.11-management
     container_name: rabbitmq
     volumes:
-      - /mydata/rabbitmq/data:/var/lib/rabbitmq #数据文件目录挂载
+      - /mydata/rabbitmq/data:/var/lib/rabbitmq #데이터 파일 디렉터리 마운트
     ports:
       - 5672:5672
       - 15672:15672
@@ -42,12 +42,12 @@ services:
     image: elasticsearch:7.17.3
     container_name: elasticsearch
     environment:
-      - "cluster.name=elasticsearch" #设置集群名称为elasticsearch
-      - "discovery.type=single-node" #以单一节点模式启动
-      - "ES_JAVA_OPTS=-Xms512m -Xmx1024m" #设置es使用的jvm内存大小
+      - "cluster.name=elasticsearch" #클러스터 이름을 다음으로 설정elasticsearch
+      - "discovery.type=single-node" #단일 노드 모드로 시작
+      - "ES_JAVA_OPTS=-Xms512m -Xmx1024m" #es가 사용할 jvm 메모리 크기 설정
     volumes:
-      - /mydata/elasticsearch/plugins:/usr/share/elasticsearch/plugins #插件文件目录挂载
-      - /mydata/elasticsearch/data:/usr/share/elasticsearch/data #数据文件目录挂载
+      - /mydata/elasticsearch/plugins:/usr/share/elasticsearch/plugins #플러그인 파일 디렉터리 마운트
+      - /mydata/elasticsearch/data:/usr/share/elasticsearch/data #데이터 파일 디렉터리 마운트
     ports:
       - 9200:9200
       - 9300:9300
@@ -57,11 +57,11 @@ services:
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - /mydata/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf #配置文件挂载
+      - /mydata/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf #설정 파일 마운트
     depends_on:
-      - elasticsearch #kibana在elasticsearch启动之后再启动
+      - elasticsearch #kibanaelasticsearch가 시작된 후에 시작
     links:
-      - elasticsearch:es #可以用es这个域名访问elasticsearch服务
+      - elasticsearch:es #es 도메인으로 elasticsearch 서비스에 접근 가능
     ports:
       - 4560:4560
       - 4561:4561
@@ -71,26 +71,26 @@ services:
     image: kibana:7.17.3
     container_name: kibana
     links:
-      - elasticsearch:es #可以用es这个域名访问elasticsearch服务
+      - elasticsearch:es #es 도메인으로 elasticsearch 서비스에 접근 가능
     depends_on:
-      - elasticsearch #kibana在elasticsearch启动之后再启动
+      - elasticsearch #kibanaelasticsearch가 시작된 후에 시작
     environment:
-      - "elasticsearch.hosts=http://es:9200" #设置访问elasticsearch的地址
+      - "elasticsearch.hosts=http://es:9200" #elasticsearch 접속 주소 설정
     ports:
       - 5601:5601
   mongo:
     image: mongo:4
     container_name: mongo
     volumes:
-      - /mydata/mongo/db:/data/db #数据文件目录挂载
+      - /mydata/mongo/db:/data/db #데이터 파일 디렉터리 마운트
     ports:
       - 27017:27017
   minio:
     image: minio/minio
     container_name: minio
-    command: server /data --console-address ":9001" #指定数据目录及console运行端口启动
+    command: server /data --console-address ":9001" #데이터 디렉터리와 console 실행 포트를 지정해 시작
     volumes:
-      - /mydata/minio/data:/data #数据目录挂载
+      - /mydata/minio/data:/data #데이터 디렉터리 마운트
     environment:
       - "MINIO_ROOT_USER=minioadmin"
       - "MINIO_ROOT_PASSWORD=minioadmin"

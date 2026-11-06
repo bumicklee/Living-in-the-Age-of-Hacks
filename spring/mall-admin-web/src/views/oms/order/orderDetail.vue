@@ -9,65 +9,65 @@ import type { OmsOrder, OmsOrderDetail, OmsReceiverInfoParam } from '@/types/ord
 import { formatDateTime } from '@/utils/datetime'
 import { pcaTextArr } from 'element-china-area-data'
 
-// 获取路由对象
+// 라우트 객체 조회
 const router = useRouter()
 const route = useRoute()
 
-// 订单ID
+// 주문ID
 const id = ref<number>()
-// 订单详情数据
+// 주문 상세 데이터
 const order = ref<OmsOrderDetail>({} as OmsOrderDetail)
 
-// 组件挂载后获取订单详情
+// 컴포넌트 마운트 후 주문 상세 조회
 onMounted(async () => {
   id.value = Number(route.query.id)
   const res = await getOrderDetailByIdAPI(id.value!)
   order.value = res.data
 })
 
-// 修改收货人信息对话框可见性
+// 수령인 정보 수정 대화상자 표시 여부
 const receiverDialogVisible = ref(false)
-// 收货人信息
+// 수령인 정보
 const receiverInfo = ref<OmsReceiverInfoParam>({} as OmsReceiverInfoParam)
-// 当前选中的省市区三级联动
+// 현재 선택된 시/도, 시/군/구, 읍/면/동 3단계 연동
 const selectedRegions = ref<string[]>([])
 
-// 修改费用信息对话框可见性
+// 비용 정보 수정 대화상자 표시 여부
 const moneyDialogVisible = ref(false)
-// 费用信息
+// 비용 정보
 const moneyInfo = ref({ orderId: 0, freightAmount: 0, discountAmount: 0, status: 0 })
 
-// 发送站内信对话框可见性
+// 쪽지 전송 대화 상자 표시 여부
 const messageDialogVisible = ref(false)
-// 站内信内容
+// 쪽지 내용
 const message = ref({ title: '', content: '' })
 
-// 关闭订单对话框可见性
+// 주문 종료 대화상자 표시 여부
 const closeDialogVisible = ref(false)
-// 关闭订单信息
+// 주문 종료 정보
 const closeInfo = ref({ note: '', id: 0 })
 
-// 备注订单对话框可见性
+// 주문 메모 대화 상자 표시 여부
 const markOrderDialogVisible = ref(false)
-// 备注订单信息
+// 주문 메모 정보
 const markInfo = ref({ id: 0, note: '' })
 
-// 物流对话框可见性
+// 배송 대화상자 표시 여부
 const logisticsDialogVisible = ref(false)
 
-// 格式化空值
+// 빈 값 포맷
 const formatNull = (value: string | undefined) => {
   if (!value) {
-    return '暂无'
+    return '없음'
   } else {
     return value
   }
 }
 
-// 格式化长文本
+// 긴 텍스트 포맷
 const formatLongText = (value: string | undefined) => {
   if (!value) {
-    return '暂无'
+    return '없음'
   } else if (value.length > 8) {
     return value.substring(0, 8) + '...'
   } else {
@@ -75,36 +75,36 @@ const formatLongText = (value: string | undefined) => {
   }
 }
 
-// 格式化支付方式
+// 결제 수단 포맷
 const formatPayType = (value: number) => {
   if (value === 1) {
-    return '支付宝'
+    return '알리페이'
   } else if (value === 2) {
-    return '微信'
+    return '위챗'
   } else {
-    return '未支付'
+    return '미결제'
   }
 }
 
-// 格式化订单来源
+// 주문 출처 포맷
 const formatSourceType = (value: number) => {
   if (value === 1) {
-    return 'APP订单'
+    return 'APP주문'
   } else {
-    return 'PC订单'
+    return 'PC주문'
   }
 }
 
-// 格式化订单类型
+// 주문 유형 포맷
 const formatOrderType = (value: number) => {
   if (value === 1) {
-    return '秒杀订单'
+    return '타임 세일 주문'
   } else {
-    return '正常订单'
+    return '정상 주문'
   }
 }
 
-// 格式化地址
+// 주소 포맷
 const formatAddress = (order: OmsOrder) => {
   let str = order.receiverProvince || ''
   if (order.receiverCity != null) {
@@ -115,44 +115,44 @@ const formatAddress = (order: OmsOrder) => {
   return str
 }
 
-// 格式化订单状态
+// 주문 상태 포맷
 const formatStatus = (value: number) => {
   if (value === 1) {
-    return '待发货'
+    return '배송 대기'
   } else if (value === 2) {
-    return '已发货'
+    return '발송됨'
   } else if (value === 3) {
-    return '已完成'
+    return '완료'
   } else if (value === 4) {
-    return '已关闭'
+    return '닫힘'
   } else if (value === 5) {
-    return '无效订单'
+    return '무효 주문'
   } else {
-    return '待付款'
+    return '결제 대기'
   }
 }
 
-// 格式化支付状态
+// 결제 상태 포맷
 const formatPayStatus = (value: number) => {
   if (value === 0) {
-    return '未支付'
+    return '미결제'
   } else if (value === 4) {
-    return '已退款'
+    return '환불 완료'
   } else {
-    return '已支付'
+    return '결제 완료'
   }
 }
 
-// 格式化发货状态
+// 배송 상태 포맷
 const formatDeliverStatus = (value: number) => {
   if (value === 0 || value === 1) {
-    return '未发货'
+    return '미발송'
   } else {
-    return '已发货'
+    return '발송됨'
   }
 }
 
-// 格式化商品属性
+// 상품 속성 포맷
 const formatProductAttr = (value: string) => {
   if (value == null) {
     return ''
@@ -169,31 +169,31 @@ const formatProductAttr = (value: string) => {
   }
 }
 
-// 格式化步骤状态
+// 단계 상태 포맷
 const formatStepStatus = (value: number) => {
   if (value === 1) {
-    //待发货
+    //배송 대기
     return 2
   } else if (value === 2) {
-    //已发货
+    //발송됨
     return 3
   } else if (value === 3) {
-    //已完成
+    //완료
     return 4
   } else {
-    //待付款、已关闭、无限订单
+    //결제 대기, 닫힘, 무제한 주문
     return 1
   }
 }
 
-// 选择地区
+// 지역 선택
 const onSelectRegionChange = () => {
   receiverInfo.value.receiverProvince = selectedRegions.value[0]
   receiverInfo.value.receiverCity = selectedRegions.value[1]
   receiverInfo.value.receiverRegion = selectedRegions.value[2]
 }
 
-// 显示修改收货人信息对话框
+// 수령인 정보 수정 대화상자 표시
 const showUpdateReceiverDialog = () => {
   receiverDialogVisible.value = true
   receiverInfo.value = {
@@ -207,31 +207,31 @@ const showUpdateReceiverDialog = () => {
     receiverRegion: order.value.receiverRegion,
     status: order.value.status
   }
-  // 初始化地址选择器中数据
+  // 주소 선택기 데이터 초기화
   selectedRegions.value = []
   selectedRegions.value[0] = receiverInfo.value.receiverProvince!
   selectedRegions.value[1] = receiverInfo.value.receiverCity!
   selectedRegions.value[2] = receiverInfo.value.receiverRegion!
 }
 
-// 处理更新收货人信息
+// 수령인 정보 갱신 처리
 const handleUpdateReceiverInfo = async () => {
-  await ElMessageBox.confirm('是否要修改收货信息?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('배송 정보를 수정할까요??', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning'
   })
   await orderUpdateReceiverInfoAPI(receiverInfo.value)
   receiverDialogVisible.value = false
   ElMessage({
     type: 'success',
-    message: '修改成功!'
+    message: '수정 성공!'
   })
   const response = await getOrderDetailByIdAPI(id.value!)
   order.value = response.data
 }
 
-// 显示修改费用信息对话框
+// 비용 정보 수정 대화상자 표시
 const showUpdateMoneyDialog = () => {
   moneyDialogVisible.value = true
   moneyInfo.value.orderId = order.value.id
@@ -240,123 +240,123 @@ const showUpdateMoneyDialog = () => {
   moneyInfo.value.status = order.value.status
 }
 
-// 处理更新费用信息
+// 비용 정보 갱신 처리
 const handleUpdateMoneyInfo = async () => {
-  await ElMessageBox.confirm('是否要修改费用信息?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('비용 정보를 수정할까요??', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning'
   })
   await orderUpdateMoneyInfoAPI(moneyInfo.value)
   moneyDialogVisible.value = false
   ElMessage({
     type: 'success',
-    message: '修改成功!'
+    message: '수정 성공!'
   })
   const response = await getOrderDetailByIdAPI(id.value!)
   order.value = response.data
 }
 
-// 显示发送站内信对话框
+// 인앱 메시지 발송 대화상자 표시
 const showMessageDialog = () => {
   messageDialogVisible.value = true
   message.value.title = ''
   message.value.content = ''
 }
 
-// 处理发送站内信
+// 쪽지 전송 처리
 const handleSendMessage = async () => {
-  await ElMessageBox.confirm('是否要发送站内信?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('인앱 메시지를 발송할까요??', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning'
   })
-  console.log('站内信功能暂未实现，模拟发送。。。')
+  console.log('쪽지 기능은 아직 구현되지 않아 발송을 모의로 처리합니다..')
   messageDialogVisible.value = false
   ElMessage({
     type: 'success',
-    message: '发送成功!'
+    message: '전송 성공!'
   })
 }
 
-// 显示关闭订单对话框
+// 주문 닫기 대화상자 표시
 const showCloseOrderDialog = () => {
   closeDialogVisible.value = true
   closeInfo.value.note = ''
   closeInfo.value.id = id.value!
 }
 
-// 处理关闭订单
+// 주문 닫기 처리
 const handleCloseOrder = async () => {
   try {
-    await ElMessageBox.confirm('是否要关闭?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('닫을까요??', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     await orderUpdateCloseAPI({ ids: closeInfo.value.id.toString(), note: closeInfo.value.note })
     closeDialogVisible.value = false
     ElMessage({
       type: 'success',
-      message: '订单关闭成功!'
+      message: '주문 종료 성공!'
     })
 
     const response = await getOrderDetailByIdAPI(id.value!)
     order.value = response.data
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('关闭订单失败:', error)
+      console.error('주문 종료 실패:', error)
     }
   }
 }
 
-// 显示备注订单对话框
+// 주문 메모 대화상자 표시
 const showMarkOrderDialog = () => {
   markOrderDialogVisible.value = true
   markInfo.value.id = id.value!
   markInfo.value.note = ''
 }
 
-// 处理备注订单
+// 주문 메모 처리
 const handleMarkOrder = async () => {
-  await ElMessageBox.confirm('是否要备注订单?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('주문에 메모를 남길까요??', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning'
   })
   await orderUpdateNoteAPI({ id: markInfo.value.id, note: markInfo.value.note, status: order.value.status })
   markOrderDialogVisible.value = false
   ElMessage({
     type: 'success',
-    message: '订单备注成功!'
+    message: '주문 메모 성공!'
   })
   const response = await getOrderDetailByIdAPI(id.value!)
   order.value = response.data
 }
 
-// 处理删除订单
+// 주문 삭제 처리
 const handleDeleteOrder = async () => {
   try {
-    await ElMessageBox.confirm('是否要进行该删除操作?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('삭제할까요??', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     await orderDeleteByIdsAPI({ ids: id.value!.toString() })
     ElMessage({
-      message: '删除成功！',
+      message: '삭제 성공!',
       type: 'success',
       duration: 1000
     })
     router.back()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除订单失败:', error)
+      console.error('주문 삭제 실패:', error)
     }
   }
 }
 
-// 显示物流对话框
+// 배송 대화상자 표시
 const showLogisticsDialog = () => {
   logisticsDialogVisible.value = true
 }
@@ -367,11 +367,11 @@ const showLogisticsDialog = () => {
   <div class="detail-container">
     <div>
       <el-steps :active="formatStepStatus(order.status)" finish-status="success" align-center>
-        <el-step title="提交订单" :description="order.createTime ? formatDateTime(order.createTime) : ''"></el-step>
-        <el-step title="支付订单" :description="order.paymentTime ? formatDateTime(order.paymentTime) : ''"></el-step>
-        <el-step title="平台发货" :description="order.deliveryTime ? formatDateTime(order.deliveryTime) : ''"></el-step>
-        <el-step title="确认收货" :description="order.receiveTime ? formatDateTime(order.receiveTime) : ''"></el-step>
-        <el-step title="完成评价" :description="order.commentTime ? formatDateTime(order.commentTime) : ''"></el-step>
+        <el-step title="주문 제출" :description="order.createTime ? formatDateTime(order.createTime) : ''"></el-step>
+        <el-step title="결제 주문" :description="order.paymentTime ? formatDateTime(order.paymentTime) : ''"></el-step>
+        <el-step title="플랫폼 발송" :description="order.deliveryTime ? formatDateTime(order.deliveryTime) : ''"></el-step>
+        <el-step title="수취 확인" :description="order.receiveTime ? formatDateTime(order.receiveTime) : ''"></el-step>
+        <el-step title="후기 작성 완료" :description="order.commentTime ? formatDateTime(order.commentTime) : ''"></el-step>
       </el-steps>
     </div>
     <el-card shadow="never" style="margin-top: 15px">
@@ -379,69 +379,69 @@ const showLogisticsDialog = () => {
         <el-icon class="color-danger el-icon-middle" style="margin-left: 15px;">
           <Warning />
         </el-icon>
-        <span class="color-danger">当前订单状态：{{ formatStatus(order.status) }}</span>
+        <span class="color-danger">현재 주문 상태:{{ formatStatus(order.status) }}</span>
         <div class="operate-button-container" v-show="order.status === 0">
-          <el-button size="small" @click="showUpdateReceiverDialog">修改收货人信息</el-button>
-          <el-button size="small" @click="showUpdateMoneyDialog">修改费用信息</el-button>
-          <el-button size="small" @click="showMessageDialog">发送站内信</el-button>
-          <el-button size="small" @click="showCloseOrderDialog">关闭订单</el-button>
-          <el-button size="small" @click="showMarkOrderDialog">备注订单</el-button>
+          <el-button size="small" @click="showUpdateReceiverDialog">수령인 정보 수정</el-button>
+          <el-button size="small" @click="showUpdateMoneyDialog">비용 정보 수정</el-button>
+          <el-button size="small" @click="showMessageDialog">쪽지 전송</el-button>
+          <el-button size="small" @click="showCloseOrderDialog">주문 종료</el-button>
+          <el-button size="small" @click="showMarkOrderDialog">주문 메모</el-button>
         </div>
         <div class="operate-button-container" v-show="order.status === 1">
-          <el-button size="small" @click="showUpdateReceiverDialog">修改收货人信息</el-button>
-          <el-button size="small" @click="showMessageDialog">发送站内信</el-button>
-          <el-button size="small">取消订单</el-button>
-          <el-button size="small" @click="showMarkOrderDialog">备注订单</el-button>
+          <el-button size="small" @click="showUpdateReceiverDialog">수령인 정보 수정</el-button>
+          <el-button size="small" @click="showMessageDialog">쪽지 전송</el-button>
+          <el-button size="small">주문 취소</el-button>
+          <el-button size="small" @click="showMarkOrderDialog">주문 메모</el-button>
         </div>
         <div class="operate-button-container" v-show="order.status === 2 || order.status === 3">
-          <el-button size="small" @click="showLogisticsDialog">订单跟踪</el-button>
-          <el-button size="small" @click="showMessageDialog">发送站内信</el-button>
-          <el-button size="small" @click="showMarkOrderDialog">备注订单</el-button>
+          <el-button size="small" @click="showLogisticsDialog">주문 추적</el-button>
+          <el-button size="small" @click="showMessageDialog">쪽지 전송</el-button>
+          <el-button size="small" @click="showMarkOrderDialog">주문 메모</el-button>
         </div>
         <div class="operate-button-container" v-show="order.status === 4">
-          <el-button size="small" @click="handleDeleteOrder">删除订单</el-button>
-          <el-button size="small" @click="showMarkOrderDialog">备注订单</el-button>
+          <el-button size="small" @click="handleDeleteOrder">주문 삭제</el-button>
+          <el-button size="small" @click="showMarkOrderDialog">주문 메모</el-button>
         </div>
       </div>
-      <!-- 其余模板内容保持不变，由于篇幅限制，这里省略了大部分模板代码 -->
-      <!-- 请参考原始文件补充完整模板内容 -->
+      <!-- 나머지 템플릿 내용은 그대로이며, 지면 관계상 대부분의 템플릿 코드는 생략했습니다 -->
+      <!-- 원본 파일을 참고하여 템플릿 내용을 완성해 주세요 -->
       <div style="margin-top: 20px">
         <svg-icon icon-class="marker" style="color: #606266"></svg-icon>
-        <span class="font-small">基本信息</span>
+        <span class="font-small">기본 정보</span>
       </div>
       <div class="table-layout">
         <el-row>
-          <el-col :span="4" class="table-cell-title">订单编号</el-col>
-          <el-col :span="4" class="table-cell-title">发货单流水号</el-col>
-          <el-col :span="4" class="table-cell-title">用户账号</el-col>
-          <el-col :span="4" class="table-cell-title">支付方式</el-col>
-          <el-col :span="4" class="table-cell-title">订单来源</el-col>
-          <el-col :span="4" class="table-cell-title">订单类型</el-col>
+          <el-col :span="4" class="table-cell-title">주문 번호</el-col>
+          <el-col :span="4" class="table-cell-title">발송 번호</el-col>
+          <el-col :span="4" class="table-cell-title">사용자 계정</el-col>
+          <el-col :span="4" class="table-cell-title">결제 수단</el-col>
+          <el-col :span="4" class="table-cell-title">주문 출처</el-col>
+          <el-col :span="4" class="table-cell-title">주문 유형</el-col>
         </el-row>
         <el-row>
           <el-col :span="4" class="table-cell">{{ order.orderSn }}</el-col>
-          <el-col :span="4" class="table-cell">暂无</el-col>
+          <el-col :span="4" class="table-cell">없음</el-col>
           <el-col :span="4" class="table-cell">{{ order.memberUsername }}</el-col>
           <el-col :span="4" class="table-cell">{{ formatPayType(order.payType) }}</el-col>
           <el-col :span="4" class="table-cell">{{ formatSourceType(order.sourceType) }}</el-col>
           <el-col :span="4" class="table-cell">{{ formatOrderType(order.orderType) }}</el-col>
         </el-row>
         <el-row>
-          <el-col :span="4" class="table-cell-title">配送方式</el-col>
-          <el-col :span="4" class="table-cell-title">物流单号</el-col>
-          <el-col :span="4" class="table-cell-title">自动确认收货时间</el-col>
-          <el-col :span="4" class="table-cell-title">订单可得优币</el-col>
-          <el-col :span="4" class="table-cell-title">订单可得成长值</el-col>
-          <el-col :span="4" class="table-cell-title">活动信息</el-col>
+          <el-col :span="4" class="table-cell-title">배송 방식</el-col>
+          <el-col :span="4" class="table-cell-title">운송장 번호</el-col>
+          <el-col :span="4" class="table-cell-title">자동 수취 확인 시간</el-col>
+          <el-col :span="4" class="table-cell-title">주문으로 받을 수 있는 포인트</el-col>
+          <el-col :span="4" class="table-cell-title">주문으로 받을 수 있는 성장 포인트</el-col>
+          <el-col :span="4" class="table-cell-title">이벤트 정보</el-col>
         </el-row>
         <el-row>
           <el-col :span="4" class="table-cell">{{ formatNull(order.deliveryCompany) }}</el-col>
           <el-col :span="4" class="table-cell">{{ formatNull(order.deliverySn) }}</el-col>
-          <el-col :span="4" class="table-cell">{{ order.autoConfirmDay }}天</el-col>
+          <el-col :span="4" class="table-cell">{{ order.autoConfirmDay }}일</el-col>
           <el-col :span="4" class="table-cell">{{ order.integration }}</el-col>
           <el-col :span="4" class="table-cell">{{ order.growth }}</el-col>
           <el-col :span="4" class="table-cell">
-            <el-popover placement="top-start" title="活动信息" width="200" trigger="hover" :content="order.promotionInfo">
+            <el-popover placement="top-start" title="이벤트 정보" width="200" trigger="hover" :content="order.promotionInfo">
               <template v-slot:reference>
                 <span>{{ formatLongText(order.promotionInfo) }}</span>
               </template>
@@ -451,14 +451,14 @@ const showLogisticsDialog = () => {
       </div>
       <div style="margin-top: 20px">
         <svg-icon icon-class="marker" style="color: #606266"></svg-icon>
-        <span class="font-small">收货人信息</span>
+        <span class="font-small">수령인 정보</span>
       </div>
       <div class="table-layout">
         <el-row>
-          <el-col :span="6" class="table-cell-title">收货人</el-col>
-          <el-col :span="6" class="table-cell-title">手机号码</el-col>
-          <el-col :span="6" class="table-cell-title">邮政编码</el-col>
-          <el-col :span="6" class="table-cell-title">收货地址</el-col>
+          <el-col :span="6" class="table-cell-title">수령인</el-col>
+          <el-col :span="6" class="table-cell-title">휴대폰 번호</el-col>
+          <el-col :span="6" class="table-cell-title">우편번호</el-col>
+          <el-col :span="6" class="table-cell-title">배송지</el-col>
         </el-row>
         <el-row>
           <el-col :span="6" class="table-cell">{{ order.receiverName }}</el-col>
@@ -469,232 +469,232 @@ const showLogisticsDialog = () => {
       </div>
       <div style="margin-top: 20px">
         <svg-icon icon-class="marker" style="color: #606266"></svg-icon>
-        <span class="font-small">商品信息</span>
+        <span class="font-small">상품 정보</span>
       </div>
       <el-table ref="orderItemTable" :data="order.orderItemList" style="width: 100%;margin-top: 20px" border>
-        <el-table-column label="商品图片" width="120" align="center">
+        <el-table-column label="상품 이미지" width="120" align="center">
           <template v-slot="scope">
             <img :src="scope.row.productPic" style="height: 80px">
           </template>
         </el-table-column>
-        <el-table-column label="商品名称" align="center">
+        <el-table-column label="상품명" align="center">
           <template v-slot="scope">
             <p>{{ scope.row.productName }}</p>
-            <p>品牌：{{ scope.row.productBrand }}</p>
+            <p>브랜드:{{ scope.row.productBrand }}</p>
           </template>
         </el-table-column>
-        <el-table-column label="价格/货号" width="160" align="center">
+        <el-table-column label="가격/상품번호" width="160" align="center">
           <template v-slot="scope">
-            <p>价格：￥{{ scope.row.productPrice }}</p>
-            <p>货号：{{ scope.row.productSn }}</p>
+            <p>가격: ₩{{ scope.row.productPrice }}</p>
+            <p>상품 번호:{{ scope.row.productSn }}</p>
           </template>
         </el-table-column>
-        <el-table-column label="属性" width="160" align="center">
+        <el-table-column label="속성" width="160" align="center">
           <template v-slot="scope">
             {{ formatProductAttr(scope.row.productAttr) }}
           </template>
         </el-table-column>
-        <el-table-column label="数量" width="120" align="center">
+        <el-table-column label="수량" width="120" align="center">
           <template v-slot="scope">
             {{ scope.row.productQuantity }}
           </template>
         </el-table-column>
-        <el-table-column label="小计" width="120" align="center">
+        <el-table-column label="소계" width="120" align="center">
           <template v-slot="scope">
-            ￥{{ scope.row.productPrice * scope.row.productQuantity }}
+            ₩{{ scope.row.productPrice * scope.row.productQuantity }}
           </template>
         </el-table-column>
       </el-table>
       <div style="float: right;margin: 20px">
-        合计：<span class="color-danger">￥{{ order.totalAmount }}</span>
+        합계:<span class="color-danger">₩{{ order.totalAmount }}</span>
       </div>
       <div style="margin-top: 60px">
         <svg-icon icon-class="marker" style="color: #606266"></svg-icon>
-        <span class="font-small">费用信息</span>
+        <span class="font-small">비용 정보</span>
       </div>
       <div class="table-layout">
         <el-row>
-          <el-col :span="6" class="table-cell-title">商品合计</el-col>
-          <el-col :span="6" class="table-cell-title">运费</el-col>
-          <el-col :span="6" class="table-cell-title">优惠券</el-col>
-          <el-col :span="6" class="table-cell-title">积分抵扣</el-col>
+          <el-col :span="6" class="table-cell-title">상품 합계</el-col>
+          <el-col :span="6" class="table-cell-title">배송비</el-col>
+          <el-col :span="6" class="table-cell-title">쿠폰</el-col>
+          <el-col :span="6" class="table-cell-title">포인트 차감</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell">￥{{ order.totalAmount }}</el-col>
-          <el-col :span="6" class="table-cell">￥{{ order.freightAmount }}</el-col>
-          <el-col :span="6" class="table-cell">-￥{{ order.couponAmount }}</el-col>
-          <el-col :span="6" class="table-cell">-￥{{ order.integrationAmount }}</el-col>
+          <el-col :span="6" class="table-cell">₩{{ order.totalAmount }}</el-col>
+          <el-col :span="6" class="table-cell">₩{{ order.freightAmount }}</el-col>
+          <el-col :span="6" class="table-cell">-₩{{ order.couponAmount }}</el-col>
+          <el-col :span="6" class="table-cell">-₩{{ order.integrationAmount }}</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell-title">活动优惠</el-col>
-          <el-col :span="6" class="table-cell-title">折扣金额</el-col>
-          <el-col :span="6" class="table-cell-title">订单总金额</el-col>
-          <el-col :span="6" class="table-cell-title">应付款金额</el-col>
+          <el-col :span="6" class="table-cell-title">이벤트 할인</el-col>
+          <el-col :span="6" class="table-cell-title">할인 금액</el-col>
+          <el-col :span="6" class="table-cell-title">주문 총 금액</el-col>
+          <el-col :span="6" class="table-cell-title">결제 예정 금액</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell">-￥{{ order.promotionAmount }}</el-col>
-          <el-col :span="6" class="table-cell">-￥{{ order.discountAmount }}</el-col>
+          <el-col :span="6" class="table-cell">-₩{{ order.promotionAmount }}</el-col>
+          <el-col :span="6" class="table-cell">-₩{{ order.discountAmount }}</el-col>
           <el-col :span="6" class="table-cell">
-            <span class="color-danger">￥{{ order.totalAmount + order.freightAmount }}</span>
+            <span class="color-danger">₩{{ order.totalAmount + order.freightAmount }}</span>
           </el-col>
           <el-col :span="6" class="table-cell">
-            <span class="color-danger">￥{{ order.payAmount + order.freightAmount - order.discountAmount }}</span>
+            <span class="color-danger">₩{{ order.payAmount + order.freightAmount - order.discountAmount }}</span>
           </el-col>
         </el-row>
       </div>
       <div style="margin-top: 20px">
         <svg-icon icon-class="marker" style="color: #606266"></svg-icon>
-        <span class="font-small">操作信息</span>
+        <span class="font-small">작업 정보</span>
       </div>
       <el-table style="margin-top: 20px;width: 100%" ref="orderHistoryTable" :data="order.historyList" border>
-        <el-table-column label="操作者" width="120" align="center">
+        <el-table-column label="작업자" width="120" align="center">
           <template v-slot="scope">
             {{ scope.row.operateMan }}
           </template>
         </el-table-column>
-        <el-table-column label="操作时间" width="160" align="center">
+        <el-table-column label="작업 시간" width="160" align="center">
           <template v-slot="scope">
             {{ formatDateTime(scope.row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="订单状态" width="120" align="center">
+        <el-table-column label="주문 상태" width="120" align="center">
           <template v-slot="scope">
             {{ formatStatus(scope.row.orderStatus) }}
           </template>
         </el-table-column>
-        <el-table-column label="付款状态" width="120" align="center">
+        <el-table-column label="결제 상태" width="120" align="center">
           <template v-slot="scope">
             {{ formatPayStatus(scope.row.orderStatus) }}
           </template>
         </el-table-column>
-        <el-table-column label="发货状态" width="120" align="center">
+        <el-table-column label="발송 상태" width="120" align="center">
           <template v-slot="scope">
             {{ formatDeliverStatus(scope.row.orderStatus) }}
           </template>
         </el-table-column>
-        <el-table-column label="备注" align="center">
+        <el-table-column label="메모" align="center">
           <template v-slot="scope">
             {{ scope.row.note }}
           </template>
         </el-table-column>
       </el-table>
     </el-card>
-    <el-dialog title="修改收货人信息" v-model="receiverDialogVisible" width="40%">
+    <el-dialog title="수령인 정보 수정" v-model="receiverDialogVisible" width="40%">
       <el-form :model="receiverInfo" ref="receiverInfoForm" label-width="150px">
-        <el-form-item label="收货人姓名：">
+        <el-form-item label="수령인 이름:">
           <el-input v-model="receiverInfo.receiverName" style="width: 200px"></el-input>
         </el-form-item>
-        <el-form-item label="手机号码：">
+        <el-form-item label="휴대폰 번호:">
           <el-input v-model="receiverInfo.receiverPhone" style="width: 200px">
           </el-input>
         </el-form-item>
-        <el-form-item label="邮政编码：">
+        <el-form-item label="우편번호:">
           <el-input v-model="receiverInfo.receiverPostCode" style="width: 200px">
           </el-input>
         </el-form-item>
-        <el-form-item label="所在区域：">
+        <el-form-item label="소재 지역:">
           <el-cascader v-model="selectedRegions" :options="(pcaTextArr as CascaderOption[])"
-            @change="onSelectRegionChange" placeholder="请选择省市区"></el-cascader>
+            @change="onSelectRegionChange" placeholder="시/도, 시/군/구를 선택하세요"></el-cascader>
         </el-form-item>
-        <el-form-item label="详细地址：">
+        <el-form-item label="상세 주소:">
           <el-input v-model="receiverInfo.receiverDetailAddress" type="textarea" :rows="3">
           </el-input>
         </el-form-item>
       </el-form>
       <template v-slot:footer>
         <span class="dialog-footer">
-          <el-button @click="receiverDialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="handleUpdateReceiverInfo">确 定</el-button>
+          <el-button @click="receiverDialogVisible = false">취 소</el-button>
+          <el-button type="primary" @click="handleUpdateReceiverInfo">확 인</el-button>
         </span>
       </template>
     </el-dialog>
-    <el-dialog title="修改费用信息" v-model="moneyDialogVisible" width="40%">
+    <el-dialog title="비용 정보 수정" v-model="moneyDialogVisible" width="40%">
       <div class="table-layout">
         <el-row>
-          <el-col :span="6" class="table-cell-title">商品合计</el-col>
-          <el-col :span="6" class="table-cell-title">运费</el-col>
-          <el-col :span="6" class="table-cell-title">优惠券</el-col>
-          <el-col :span="6" class="table-cell-title">积分抵扣</el-col>
+          <el-col :span="6" class="table-cell-title">상품 합계</el-col>
+          <el-col :span="6" class="table-cell-title">배송비</el-col>
+          <el-col :span="6" class="table-cell-title">쿠폰</el-col>
+          <el-col :span="6" class="table-cell-title">포인트 차감</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell">￥{{ order.totalAmount }}</el-col>
+          <el-col :span="6" class="table-cell">₩{{ order.totalAmount }}</el-col>
           <el-col :span="6" class="table-cell">
             <el-input v-model.number="moneyInfo.freightAmount" size="small"><template
-                v-slot:prepend>￥</template></el-input>
+                v-slot:prepend>₩</template></el-input>
           </el-col>
-          <el-col :span="6" class="table-cell">-￥{{ order.couponAmount }}</el-col>
-          <el-col :span="6" class="table-cell">-￥{{ order.integrationAmount }}</el-col>
+          <el-col :span="6" class="table-cell">-₩{{ order.couponAmount }}</el-col>
+          <el-col :span="6" class="table-cell">-₩{{ order.integrationAmount }}</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell-title">活动优惠</el-col>
-          <el-col :span="6" class="table-cell-title">折扣金额</el-col>
-          <el-col :span="6" class="table-cell-title">订单总金额</el-col>
-          <el-col :span="6" class="table-cell-title">应付款金额</el-col>
+          <el-col :span="6" class="table-cell-title">이벤트 할인</el-col>
+          <el-col :span="6" class="table-cell-title">할인 금액</el-col>
+          <el-col :span="6" class="table-cell-title">주문 총 금액</el-col>
+          <el-col :span="6" class="table-cell-title">결제 예정 금액</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell">-￥{{ order.promotionAmount }}</el-col>
+          <el-col :span="6" class="table-cell">-₩{{ order.promotionAmount }}</el-col>
           <el-col :span="6" class="table-cell">
             <el-input v-model.number="moneyInfo.discountAmount" size="small"><template
-                v-slot:prepend>-￥</template></el-input>
+                v-slot:prepend>-₩</template></el-input>
           </el-col>
           <el-col :span="6" class="table-cell">
-            <span class="color-danger">￥{{ order.totalAmount + moneyInfo.freightAmount }}</span>
+            <span class="color-danger">₩{{ order.totalAmount + moneyInfo.freightAmount }}</span>
           </el-col>
           <el-col :span="6" class="table-cell">
-            <span class="color-danger">￥{{ order.payAmount + moneyInfo.freightAmount - moneyInfo.discountAmount
+            <span class="color-danger">₩{{ order.payAmount + moneyInfo.freightAmount - moneyInfo.discountAmount
             }}</span>
           </el-col>
         </el-row>
       </div>
       <template v-slot:footer>
         <span class="dialog-footer">
-          <el-button @click="moneyDialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="handleUpdateMoneyInfo">确 定</el-button>
+          <el-button @click="moneyDialogVisible = false">취 소</el-button>
+          <el-button type="primary" @click="handleUpdateMoneyInfo">확 인</el-button>
         </span>
       </template>
     </el-dialog>
-    <el-dialog title="发送站内信" v-model="messageDialogVisible" width="40%">
+    <el-dialog title="쪽지 전송" v-model="messageDialogVisible" width="40%">
       <el-form :model="message" ref="receiverInfoForm" label-width="150px">
-        <el-form-item label="标题：">
+        <el-form-item label="제목:">
           <el-input v-model="message.title" style="width: 200px"></el-input>
         </el-form-item>
-        <el-form-item label="内容：">
+        <el-form-item label="내용:">
           <el-input v-model="message.content" type="textarea" :rows="3">
           </el-input>
         </el-form-item>
       </el-form>
       <template v-slot:footer>
         <span class="dialog-footer">
-          <el-button @click="messageDialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="handleSendMessage">确 定</el-button>
+          <el-button @click="messageDialogVisible = false">취 소</el-button>
+          <el-button type="primary" @click="handleSendMessage">확 인</el-button>
         </span>
       </template>
     </el-dialog>
-    <el-dialog title="关闭订单" v-model:visible="closeDialogVisible" width="40%">
+    <el-dialog title="주문 종료" v-model:visible="closeDialogVisible" width="40%">
       <el-form :model="closeInfo" label-width="150px">
-        <el-form-item label="操作备注：">
+        <el-form-item label="작업 메모:">
           <el-input v-model="closeInfo.note" type="textarea" :rows="3">
           </el-input>
         </el-form-item>
       </el-form>
       <template v-slot:footer>
         <span class="dialog-footer">
-          <el-button @click="closeDialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="handleCloseOrder">确 定</el-button>
+          <el-button @click="closeDialogVisible = false">취 소</el-button>
+          <el-button type="primary" @click="handleCloseOrder">확 인</el-button>
         </span>
       </template>
     </el-dialog>
-    <el-dialog title="备注订单" v-model="markOrderDialogVisible" width="40%">
+    <el-dialog title="주문 메모" v-model="markOrderDialogVisible" width="40%">
       <el-form :model="markInfo" label-width="150px">
-        <el-form-item label="操作备注：">
+        <el-form-item label="작업 메모:">
           <el-input v-model="markInfo.note" type="textarea" :rows="3">
           </el-input>
         </el-form-item>
       </el-form>
       <template v-slot:footer>
         <span class="dialog-footer">
-          <el-button @click="markOrderDialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="handleMarkOrder">确 定</el-button>
+          <el-button @click="markOrderDialogVisible = false">취 소</el-button>
+          <el-button type="primary" @click="handleMarkOrder">확 인</el-button>
         </span>
       </template>
     </el-dialog>

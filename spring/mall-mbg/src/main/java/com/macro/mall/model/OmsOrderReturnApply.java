@@ -8,82 +8,82 @@ import java.util.Date;
 public class OmsOrderReturnApply implements Serializable {
     private Long id;
 
-    @Schema(title = "订单id")
+    @Schema(title = "주문id")
     private Long orderId;
 
-    @Schema(title = "收货地址表id")
+    @Schema(title = "배송지 테이블id")
     private Long companyAddressId;
 
-    @Schema(title = "退货商品id")
+    @Schema(title = "반품 상품id")
     private Long productId;
 
-    @Schema(title = "订单编号")
+    @Schema(title = "주문 번호")
     private String orderSn;
 
-    @Schema(title = "申请时间")
+    @Schema(title = "신청 시간")
     private Date createTime;
 
-    @Schema(title = "会员用户名")
+    @Schema(title = "회원 사용자 이름")
     private String memberUsername;
 
-    @Schema(title = "退款金额")
+    @Schema(title = "환불 금액")
     private BigDecimal returnAmount;
 
-    @Schema(title = "退货人姓名")
+    @Schema(title = "반품인 이름")
     private String returnName;
 
-    @Schema(title = "退货人电话")
+    @Schema(title = "반품인 전화번호")
     private String returnPhone;
 
-    @Schema(title = "申请状态：0->待处理；1->退货中；2->已完成；3->已拒绝")
+    @Schema(title = "신청 상태:0->처리 대기;1->반품 중;2->완료;3->거절됨")
     private Integer status;
 
-    @Schema(title = "处理时间")
+    @Schema(title = "처리 시간")
     private Date handleTime;
 
-    @Schema(title = "商品图片")
+    @Schema(title = "상품 이미지")
     private String productPic;
 
-    @Schema(title = "商品名称")
+    @Schema(title = "상품명")
     private String productName;
 
-    @Schema(title = "商品品牌")
+    @Schema(title = "상품 브랜드")
     private String productBrand;
 
-    @Schema(title = "商品销售属性：颜色：红色；尺码：xl;")
+    @Schema(title = "상품 판매 속성: 색상: 레드; 사이즈:xl;")
     private String productAttr;
 
-    @Schema(title = "退货数量")
+    @Schema(title = "반품 수량")
     private Integer productCount;
 
-    @Schema(title = "商品单价")
+    @Schema(title = "상품 단가")
     private BigDecimal productPrice;
 
-    @Schema(title = "商品实际支付单价")
+    @Schema(title = "상품 실결제 단가")
     private BigDecimal productRealPrice;
 
-    @Schema(title = "原因")
+    @Schema(title = "사유")
     private String reason;
 
-    @Schema(title = "描述")
+    @Schema(title = "설명")
     private String description;
 
-    @Schema(title = "凭证图片，以逗号隔开")
+    @Schema(title = "증빙 이미지, 쉼표로 구분")
     private String proofPics;
 
-    @Schema(title = "处理备注")
+    @Schema(title = "메모 처리")
     private String handleNote;
 
-    @Schema(title = "处理人员")
+    @Schema(title = "처리 담당자")
     private String handleMan;
 
-    @Schema(title = "收货人")
+    @Schema(title = "수령인")
     private String receiveMan;
 
-    @Schema(title = "收货时间")
+    @Schema(title = "수령 시간")
     private Date receiveTime;
 
-    @Schema(title = "收货备注")
+    @Schema(title = "배송 메모")
     private String receiveNote;
 
     private static final long serialVersionUID = 1L;

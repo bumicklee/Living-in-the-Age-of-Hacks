@@ -12,7 +12,7 @@ import type { ProductAttrPicVo, ProductAttrVo, ProductParamVo } from '@/types/pr
 import type { PmsSkuStock } from '@/types/skuStock'
 import Tinymce from '@/components/Tinymce/index.vue'
 
-// 定义属性
+// 속성 정의
 const props = defineProps({
   isEdit: {
     type: Boolean,
@@ -20,39 +20,39 @@ const props = defineProps({
   }
 })
 
-// 定义事件
+// 이벤트 정의
 const emit = defineEmits(['prev-step', 'next-step'])
 
-// 获取跨层传递的数据
+// 계층 간 전달 데이터 조회
 const compProductParam = inject('product-key') as Ref<PmsProductParam>
 
-// 模板引用
+// 템플릿 참조
 const productAttrForm = ref<FormInstance>()
 
-// 响应式数据
+// 반응형 데이터
 const state = reactive({
-  // 编辑模式时是否初始化成功
+  // 편집 모드 초기화 성공 여부
   hasEditCreated: false,
-  // 商品属性分类下拉选项
+  // 상품 속성 카테고리 드롭다운 옵션
   productAttributeCategoryOptions: [] as ElSelectDataVo[],
-  // 选中的商品规格
+  // 선택된 상품 규격
   selectProductAttr: [] as ProductAttrVo[],
-  // 选中的商品参数
+  // 선택된 상품 파라미터
   selectProductParam: [] as ProductParamVo[],
-  // 选中的商品属性图片
+  // 선택된 상품 속성 이미지
   selectProductAttrPics: [] as ProductAttrPicVo[],
-  // 可手动添加的商品属性
+  // 수동으로 추가할 수 있는 상품 속성
   addProductAttrValue: '',
-  // 商品富文本详情激活类型
+  // 상품 리치 텍스트 상세 활성 유형
   activeHtmlName: 'pc'
 })
 
-// 商品的ID
+// 상품의ID
 const productId = computed(() => {
   return compProductParam.value.id
 })
 
-// 由于compProductParam数据为异步加载，需要监听其变化来初始化数据
+// compProductParam 데이터는 비동기로 로드되므로 변경을 감시하여 데이터를 초기화해야 함
 watch(productId, (newVal, oldVal) => {
   if (props.isEdit) {
     handleEditCreated()
@@ -60,7 +60,7 @@ watch(productId, (newVal, oldVal) => {
   console.log("attr", newVal, oldVal)
 })
 
-// 获取商品属性分类
+// 상품 속성 카테고리 조회
 const getProductAttrCateList = async () => {
   const param = { pageNum: 1, pageSize: 100 }
   const res = await fetchProductAttrCateList(param)
@@ -74,7 +74,7 @@ onMounted(async () => {
   await getProductAttrCateList()
 })
 
-// 是否有商品属性图片
+// 상품 속성 이미지 여부
 const hasAttrPic = computed(() => {
   if (state.selectProductAttrPics.length < 1) {
     return false
@@ -83,7 +83,7 @@ const hasAttrPic = computed(() => {
 })
 
 
-// 商品的主图和画册图片
+// 상품의 대표 이미지와 앨범 이미지
 const selectProductPics = computed({
   get: function () {
     const pics: string[] = []
@@ -118,7 +118,7 @@ const selectProductPics = computed({
 })
 
 
-// 处理编辑模式初始化的数据
+// 편집 모드 초기화 데이터 처리
 const handleEditCreated = () => {
   if (compProductParam.value.productAttributeCategoryId) {
     handleProductAttrChange(compProductParam.value.productAttributeCategoryId)
@@ -128,9 +128,9 @@ const handleEditCreated = () => {
 
 
 /**
- * 根据商品属性分类ID获取规格和参数
- * @param type 0:规格;1:参数
- * @param cid 商品属性分类ID
+ * 상품 속성 카테고리 ID로 규격과 파라미터 조회
+ * @param type 0:규격;1:파라미터
+ * @param cid 상품 속성 카테고리ID
  */
 const getProductAttrList = async (type: number, cid: number) => {
   const param = { pageNum: 1, pageSize: 100, type: type }
@@ -144,10 +144,10 @@ const getProductAttrList = async (type: number, cid: number) => {
       let values: string[] = []
       if (props.isEdit) {
         if (item.handAddStatus === 1) {
-          // 编辑状态下获取手动添加编辑属性
+          // 편집 상태에서 수동 추가한 편집 속성 조회
           options = getEditAttrOptions(item.id!)
         }
-        // 编辑状态下获取选中属性
+        // 편집 상태에서 선택된 속성 조회
         values = getEditAttrValues(i)
       }
       state.selectProductAttr.push({
@@ -160,7 +160,7 @@ const getProductAttrList = async (type: number, cid: number) => {
       })
     }
     if (props.isEdit) {
-      // 编辑模式下刷新商品属性图片
+      // 편집 모드에서 상품 속성 이미지 새로고침
       refreshProductAttrPics()
     }
   } else {
@@ -169,7 +169,7 @@ const getProductAttrList = async (type: number, cid: number) => {
       const item = list[i]!
       let value = undefined
       if (props.isEdit) {
-        // 编辑模式下获取参数属性
+        // 편집 모드에서 파라미터 속성 조회
         value = getEditParamValue(item.id!)
       }
       state.selectProductParam.push({
@@ -183,13 +183,13 @@ const getProductAttrList = async (type: number, cid: number) => {
   }
 }
 
-// 获取设置的可手动添加属性值
+// 설정된 수동 추가 가능 속성값 조회
 const getEditAttrOptions = (id: number) => {
   const attrValueList = compProductParam.value.productAttributeValueList
   return attrValueList?.find(item => item.productAttributeId === id)?.value?.split(',')
 }
 
-// 获取选中的规格值
+// 선택된 규격 값 조회
 const getEditAttrValues = (index: number) => {
   const skuList = compProductParam.value.skuStockList!
   const values = new Set<string>()
@@ -203,7 +203,7 @@ const getEditAttrValues = (index: number) => {
   return Array.from(values)
 }
 
-// 获取属性的值
+// 속성 값 조회
 const getEditParamValue = (id: number) => {
   return compProductParam.value.productAttributeValueList?.find(item => item.productAttributeId === id)?.value
 }
@@ -221,7 +221,7 @@ const handleAddProductAttrValue = (idx: number) => {
   const options = state.selectProductAttr[idx]!.options
   if (state.addProductAttrValue == null || state.addProductAttrValue == '') {
     ElMessage({
-      message: '属性值不能为空',
+      message: '속성값은 비워둘 수 없습니다',
       type: 'warning',
       duration: 1000
     })
@@ -229,7 +229,7 @@ const handleAddProductAttrValue = (idx: number) => {
   }
   if (options!.indexOf(state.addProductAttrValue) !== -1) {
     ElMessage({
-      message: '属性值不能重复',
+      message: '속성값은 중복될 수 없습니다',
       type: 'warning',
       duration: 1000
     })
@@ -254,23 +254,23 @@ const getProductSkuSp = (row: PmsSkuStock, index: number) => {
 
 const handleRefreshProductSkuList = async () => {
   try {
-    await ElMessageBox.confirm('刷新列表将导致sku信息重新生成，是否要刷新', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('목록을 새로고침하면 sku 정보가 다시 생성됩니다. 새로고침할까요', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     refreshProductAttrPics()
     refreshProductSkuList()
   } catch {
-    // 用户取消操作
+    // 사용자 취소 작업
   }
 }
 
 const handleSyncProductSkuPrice = async () => {
   try {
-    await ElMessageBox.confirm('将同步第一个sku的价格到所有sku,是否继续', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('첫 번째 sku의 가격을 모든 sku에 동기화합니다. 계속할까요?', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     if (compProductParam.value.skuStockList && compProductParam.value.skuStockList.length > 0) {
@@ -284,15 +284,15 @@ const handleSyncProductSkuPrice = async () => {
       compProductParam.value.skuStockList = compProductParam.value.skuStockList.concat(compProductParam.value.skuStockList, tempSkuList)
     }
   } catch {
-    // 用户取消操作
+    // 사용자 취소 작업
   }
 }
 
 const handleSyncProductSkuStock = async () => {
   try {
-    await ElMessageBox.confirm('将同步第一个sku的库存到所有sku,是否继续', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('첫 번째 sku의 재고를 모든 sku에 동기화합니다. 계속할까요?', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     if (compProductParam.value.skuStockList && compProductParam.value.skuStockList.length > 0) {
@@ -308,14 +308,14 @@ const handleSyncProductSkuStock = async () => {
       compProductParam.value.skuStockList = compProductParam.value.skuStockList.concat(compProductParam.value.skuStockList, tempSkuList)
     }
   } catch {
-    // 用户取消操作
+    // 사용자 취소 작업
   }
 }
 
 const refreshProductSkuList = () => {
   compProductParam.value.skuStockList = []
   const skuList = compProductParam.value.skuStockList
-  // 只有一个属性时
+  // 속성이 하나뿐일 때
   if (state.selectProductAttr.length === 1) {
     const attr = state.selectProductAttr[0]!
     for (let i = 0; i < attr.values!.length; i++) {
@@ -384,7 +384,7 @@ const refreshProductAttrPics = () => {
     for (let i = 0; i < values.length; i++) {
       let pic = undefined
       if (props.isEdit) {
-        // 编辑状态下获取图片
+        // 편집 상태에서 이미지 조회
         pic = getProductSkuPic(values[i]!)
       }
       state.selectProductAttrPics.push({ name: values[i], pic: pic })
@@ -392,7 +392,7 @@ const refreshProductAttrPics = () => {
   }
 }
 
-// 获取商品相关属性的图片
+// 상품 관련 속성의 이미지 조회
 const getProductSkuPic = (name: string) => {
   return compProductParam.value.skuStockList?.find(item => {
     const spData = JSON.parse(item.spData!)
@@ -400,7 +400,7 @@ const getProductSkuPic = (name: string) => {
   })?.pic
 }
 
-// 合并商品属性
+// 상품 속성 병합
 const mergeProductAttrValue = () => {
   compProductParam.value.productAttributeValueList = []
   for (let i = 0; i < state.selectProductAttr.length; i++) {
@@ -421,7 +421,7 @@ const mergeProductAttrValue = () => {
   }
 }
 
-// 合并商品属性图片
+// 상품 속성 이미지 병합
 const mergeProductAttrPics = () => {
   for (let i = 0; i < state.selectProductAttrPics.length; i++) {
     const skuStockList = compProductParam.value.skuStockList!
@@ -472,18 +472,18 @@ const handleNext = () => {
 <template>
   <div style="margin-top: 50px">
     <el-form :model="compProductParam" ref="productAttrForm" label-width="120px" class="form-inner-container">
-      <el-form-item label="属性类型：">
-        <el-select v-model="compProductParam.productAttributeCategoryId" placeholder="请选择属性类型"
+      <el-form-item label="속성 유형:">
+        <el-select v-model="compProductParam.productAttributeCategoryId" placeholder="속성 타입을 선택하세요"
           @change="handleProductAttrChange">
           <el-option v-for="item in state.productAttributeCategoryOptions" :key="item.value" :label="item.label"
             :value="item.value">
           </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="商品规格：">
+      <el-form-item label="상품 규격:">
         <el-card shadow="never" class="cardBg">
           <div v-for="(productAttr, idx) in state.selectProductAttr" :key="'productAttr' + idx">
-            {{ productAttr.name }}：
+            {{ productAttr.name }}:
             <el-checkbox-group v-if="productAttr.handAddStatus === 0" v-model="state.selectProductAttr[idx]!.values">
               <el-checkbox v-for="item in getInputListArr(productAttr.inputList!)" :label="item" :key="item"
                 class="littleMarginLeft"></el-checkbox>
@@ -494,12 +494,12 @@ const handleNext = () => {
                   class="littleMarginLeft" :key="'optons' + index">
                   <el-checkbox :label="item" :key="item"></el-checkbox>
                   <el-button type="primary" link class="littleMarginLeft"
-                    @click="handleRemoveProductAttrValue(idx, index)">删除
+                    @click="handleRemoveProductAttrValue(idx, index)">삭제
                   </el-button>
                 </div>
               </el-checkbox-group>
               <el-input v-model="state.addProductAttrValue" style="width: 160px;margin-left: 10px" clearable></el-input>
-              <el-button class="littleMarginLeft" @click="handleAddProductAttrValue(idx)">增加</el-button>
+              <el-button class="littleMarginLeft" @click="handleAddProductAttrValue(idx)">추가</el-button>
             </div>
           </div>
         </el-card>
@@ -510,46 +510,46 @@ const handleNext = () => {
               {{ getProductSkuSp(scope.row, index) }}
             </template>
           </el-table-column>
-          <el-table-column label="销售价格" width="100" align="center">
+          <el-table-column label="판매 가격" width="100" align="center">
             <template #default="scope">
               <el-input v-model="scope.row.price"></el-input>
             </template>
           </el-table-column>
-          <el-table-column label="促销价格" width="100" align="center">
+          <el-table-column label="프로모션 가격" width="100" align="center">
             <template #default="scope">
               <el-input v-model="scope.row.promotionPrice"></el-input>
             </template>
           </el-table-column>
-          <el-table-column label="商品库存" width="80" align="center">
+          <el-table-column label="상품 재고" width="80" align="center">
             <template #default="scope">
               <el-input v-model="scope.row.stock"></el-input>
             </template>
           </el-table-column>
-          <el-table-column label="库存预警值" width="80" align="center">
+          <el-table-column label="재고 경고 기준값" width="80" align="center">
             <template #default="scope">
               <el-input v-model="scope.row.lowStock"></el-input>
             </template>
           </el-table-column>
-          <el-table-column label="SKU编号" width="160" align="center">
+          <el-table-column label="SKU번호" width="160" align="center">
             <template #default="scope">
               <el-input v-model="scope.row.skuCode"></el-input>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="80" align="center">
+          <el-table-column label="작업" width="80" align="center">
             <template #default="scope">
-              <el-button type="primary" link @click="handleRemoveProductSku(scope.$index)">删除
+              <el-button type="primary" link @click="handleRemoveProductSku(scope.$index)">삭제
               </el-button>
             </template>
           </el-table-column>
         </el-table>
-        <el-button type="primary" style="margin-top: 20px" @click="handleRefreshProductSkuList">刷新列表
+        <el-button type="primary" style="margin-top: 20px" @click="handleRefreshProductSkuList">목록 새로고침
         </el-button>
-        <el-button type="primary" style="margin-top: 20px" @click="handleSyncProductSkuPrice">同步价格
+        <el-button type="primary" style="margin-top: 20px" @click="handleSyncProductSkuPrice">가격 동기화
         </el-button>
-        <el-button type="primary" style="margin-top: 20px" @click="handleSyncProductSkuStock">同步库存
+        <el-button type="primary" style="margin-top: 20px" @click="handleSyncProductSkuStock">재고 동기화
         </el-button>
       </el-form-item>
-      <el-form-item label="属性图片：" v-if="hasAttrPic">
+      <el-form-item label="속성 이미지:" v-if="hasAttrPic">
         <el-card shadow="never" class="cardBg">
           <div v-for="(item, index) in state.selectProductAttrPics" :key="'productAttrPic' + index">
             <span>{{ item.name }}:</span>
@@ -558,7 +558,7 @@ const handleNext = () => {
           </div>
         </el-card>
       </el-form-item>
-      <el-form-item label="商品参数：">
+      <el-form-item label="상품 파라미터:">
         <el-card shadow="never" class="cardBg">
           <div v-for="(item, index) in state.selectProductParam" :class="{ littleMarginTop: index !== 0 }"
             :key="'productParam' + index">
@@ -571,23 +571,23 @@ const handleNext = () => {
           </div>
         </el-card>
       </el-form-item>
-      <el-form-item label="商品相册：">
+      <el-form-item label="상품 앨범:">
         <multi-upload v-model="selectProductPics"></multi-upload>
       </el-form-item>
-      <el-form-item label="商品详情：">
+      <el-form-item label="상품 상세:">
         <el-tabs v-model="state.activeHtmlName" type="card" style="width: 100%;">
-          <el-tab-pane label="电脑端详情" name="pc">
+          <el-tab-pane label="PC 상세" name="pc">
             <tinymce :height="720" v-model="compProductParam.detailHtml!" />
           </el-tab-pane>
-          <el-tab-pane label="移动端详情" name="mobile">
+          <el-tab-pane label="모바일 상세" name="mobile">
             <tinymce :height="720" v-model="compProductParam.detailMobileHtml!" />
           </el-tab-pane>
         </el-tabs>
       </el-form-item>
       <el-form-item>
         <div style="width: 100%; text-align: center;">
-          <el-button @click="handlePrev">上一步，填写商品促销</el-button>
-          <el-button type="primary" @click="handleNext">下一步，选择商品关联</el-button>
+          <el-button @click="handlePrev">이전 단계, 상품 프로모션 입력</el-button>
+          <el-button type="primary" @click="handleNext">다음 단계, 상품 연관 선택</el-button>
         </div>
       </el-form-item>
     </el-form>

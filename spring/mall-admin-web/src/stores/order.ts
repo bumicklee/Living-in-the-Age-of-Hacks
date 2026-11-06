@@ -3,10 +3,10 @@ import { ref } from 'vue'
 import type { OmsOrder } from '@/types/order'
 
 export const useOrderStore = defineStore('order', () => {
-  // 批量发货时临时存储的订单列表（用于页面间传递数据）
+  // 일괄 발송 시 임시 저장하는 주문 목록(페이지 간 데이터 전달용)
   const deliverOrderList = ref<OmsOrder[]>([])
 
-  // 设置需要传递的订单列表
+  // 전달할 주문 목록 설정
   const setDeliverOrderList = (list: OmsOrder[]) => {
     deliverOrderList.value = list
   }

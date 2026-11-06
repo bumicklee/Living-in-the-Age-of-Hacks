@@ -6,12 +6,12 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * 会员价格管理自定义Dao
+ * 회원 가격 관리 커스텀Dao
  * Created by macro on 2018/4/26.
  */
 public interface PmsMemberPriceDao {
     /**
-     * 批量创建
+     * 일괄 생성
      */
     int insertList(@Param("list") List<PmsMemberPrice> memberPriceList);
 }

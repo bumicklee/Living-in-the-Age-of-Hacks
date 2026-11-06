@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * 首页品牌管理Service实现类
+ * 홈 브랜드 관리 Service 구현 클래스
  * Created by macro on 2018/11/6.
  */
 @Service

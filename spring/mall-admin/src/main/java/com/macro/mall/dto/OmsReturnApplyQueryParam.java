@@ -5,22 +5,22 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 订单退货申请查询参数
+ * 주문 반품 신청 조회 파라미터
  * Created by macro on 2018/10/18.
  */
 @Getter
 @Setter
 public class OmsReturnApplyQueryParam {
-    @Schema(title = "服务单号")
+    @Schema(title = "서비스 요청 번호")
     private Long id;
-    @Schema(title =  "收货人姓名/号码")
+    @Schema(title =  "수령인 이름/번호")
     private String receiverKeyword;
-    @Schema(title =  "申请状态：0->待处理；1->退货中；2->已完成；3->已拒绝")
+    @Schema(title =  "신청 상태:0->처리 대기;1->반품 중;2->완료;3->거절됨")
     private Integer status;
-    @Schema(title =  "申请时间")
+    @Schema(title =  "신청 시간")
     private String createTime;
-    @Schema(title =  "处理人员")
+    @Schema(title =  "처리 담당자")
     private String handleMan;
-    @Schema(title =  "处理时间")
+    @Schema(title =  "처리 시간")
     private String handleTime;
 }

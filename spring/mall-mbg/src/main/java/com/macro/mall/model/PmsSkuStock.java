@@ -9,30 +9,30 @@ public class PmsSkuStock implements Serializable {
 
     private Long productId;
 
-    @Schema(title = "sku编码")
+    @Schema(title = "sku코드")
     private String skuCode;
 
     private BigDecimal price;
 
-    @Schema(title = "库存")
+    @Schema(title = "재고")
     private Integer stock;
 
-    @Schema(title = "预警库存")
+    @Schema(title = "재고 경고")
     private Integer lowStock;
 
-    @Schema(title = "展示图片")
+    @Schema(title = "표시 이미지")
     private String pic;
 
-    @Schema(title = "销量")
+    @Schema(title = "판매량")
     private Integer sale;
 
-    @Schema(title = "单品促销价格")
+    @Schema(title = "단품 프로모션 가격")
     private BigDecimal promotionPrice;
 
-    @Schema(title = "锁定库存")
+    @Schema(title = "재고 잠금")
     private Integer lockStock;
 
-    @Schema(title = "商品销售属性，json格式")
+    @Schema(title = "상품 판매 속성, json 형식")
     private String spData;
 
     private static final long serialVersionUID = 1L;

@@ -3,7 +3,7 @@ import type { PmsProduct, PmsProductParam, ProductQueryParam } from '@/types/pro
 import http from '@/utils/http'
 
 /**
- * 查询商品
+ * 상품 조회
  */
 export function getProductListAPI(params: ProductQueryParam) {
   return http<CommonPage<PmsProduct>>({
@@ -14,7 +14,7 @@ export function getProductListAPI(params: ProductQueryParam) {
 }
 
 /**
- * 批量修改删除状态
+ * 삭제 상태 일괄 수정
  */
 export function productUpdateDeleteStatusAPI(params: { ids: string; deleteStatus: number }) {
   return http({
@@ -25,7 +25,7 @@ export function productUpdateDeleteStatusAPI(params: { ids: string; deleteStatus
 }
 
 /**
- * 批量设为新品
+ * 신상품으로 일괄 설정
  */
 export function productUpdateNewStatusAPI(params: { ids: string; newStatus: number }) {
   return http({
@@ -36,7 +36,7 @@ export function productUpdateNewStatusAPI(params: { ids: string; newStatus: numb
 }
 
 /**
- * 批量推荐商品
+ * 상품 일괄 추천
  */
 export function productUpdateRecommendStatusAPI(params: { ids: string; recommendStatus: number }) {
   return http({
@@ -47,7 +47,7 @@ export function productUpdateRecommendStatusAPI(params: { ids: string; recommend
 }
 
 /**
- * 批量上下架商品
+ * 상품 일괄 판매 시작/중지
  */
 export function productUpdatePublishStatusAPI(params: { ids: string; publishStatus: number }) {
   return http({
@@ -58,7 +58,7 @@ export function productUpdatePublishStatusAPI(params: { ids: string; publishStat
 }
 
 /**
- * 创建商品
+ * 상품 생성
  */
 export function productCreateAPI(data: PmsProductParam) {
   return http({
@@ -69,7 +69,7 @@ export function productCreateAPI(data: PmsProductParam) {
 }
 
 /**
- * 根据ID修改商品信息
+ * ID로 상품 정보 수정
  */
 export function productUpdateByIdAPI(id: number, data: PmsProductParam) {
   return http({
@@ -80,7 +80,7 @@ export function productUpdateByIdAPI(id: number, data: PmsProductParam) {
 }
 
 /**
- * 根据商品id获取商品编辑信息
+ * 상품 id로 상품 편집 정보 조회
  */
 export function getPruductUpdateInfoAPI(id: number) {
   return http<PmsProductParam>({

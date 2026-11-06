@@ -8,27 +8,27 @@ import com.macro.mall.model.OmsOrderReturnApply;
 import java.util.List;
 
 /**
- * 退货申请管理Service
+ * 반품 신청 관리Service
  * Created by macro on 2018/10/18.
  */
 public interface OmsOrderReturnApplyService {
     /**
-     * 分页查询申请
+     * 신청 페이지 조회
      */
     List<OmsOrderReturnApply> list(OmsReturnApplyQueryParam queryParam, Integer pageSize, Integer pageNum);
 
     /**
-     * 批量删除申请
+     * 신청 일괄 삭제
      */
     int delete(List<Long> ids);
 
     /**
-     * 修改指定申请状态
+     * 지정한 신청 상태 수정
      */
     int updateStatus(Long id, OmsUpdateStatusParam statusParam);
 
     /**
-     * 获取指定申请详情
+     * 지정한 신청 상세 조회
      */
     OmsOrderReturnApplyResult getItem(Long id);
 }

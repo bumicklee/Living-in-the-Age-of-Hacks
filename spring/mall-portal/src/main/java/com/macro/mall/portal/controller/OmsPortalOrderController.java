@@ -19,17 +19,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 订单管理Controller
+ * 주문 관리Controller
  * Created by macro on 2018/8/30.
  */
 @Controller
-@Tag(name = "OmsPortalOrderController", description = "订单管理")
+@Tag(name = "OmsPortalOrderController", description = "주문 관리")
 @RequestMapping("/order")
 public class OmsPortalOrderController {
     @Autowired
     private OmsPortalOrderService portalOrderService;
 
-    @Operation(summary = "根据购物车信息生成确认单")
+    @Operation(summary = "장바구니 정보로 주문 확인서 생성")
     @RequestMapping(value = "/generateConfirmOrder", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult<ConfirmOrderResult> generateConfirmOrder(@RequestBody List<Long> cartIds) {
@@ -37,23 +37,23 @@ public class OmsPortalOrderController {
         return CommonResult.success(confirmOrderResult);
     }
 
-    @Operation(summary = "根据购物车信息生成订单")
+    @Operation(summary = "장바구니 정보로 주문 생성")
     @RequestMapping(value = "/generateOrder", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult generateOrder(@RequestBody OrderParam orderParam) {
         Map<String, Object> result = portalOrderService.generateOrder(orderParam);
-        return CommonResult.success(result, "下单成功");
+        return CommonResult.success(result, "주문 성공");
     }
 
-    @Operation(summary = "用户支付成功的回调")
+    @Operation(summary = "사용자 결제 성공 콜백")
     @RequestMapping(value = "/paySuccess", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult paySuccess(@RequestParam Long orderId,@RequestParam Integer payType) {
         Integer count = portalOrderService.paySuccess(orderId,payType);
-        return CommonResult.success(count, "支付成功");
+        return CommonResult.success(count, "결제 성공");
     }
 
-    @Operation(summary = "自动取消超时订单")
+    @Operation(summary = "만료된 주문 자동 취소")
     @RequestMapping(value = "/cancelTimeOutOrder", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult cancelTimeOutOrder() {
@@ -61,7 +61,7 @@ public class OmsPortalOrderController {
         return CommonResult.success(null);
     }
 
-    @Operation(summary = "取消单个超时订单")
+    @Operation(summary = "기한 초과 주문 단건 취소")
     @RequestMapping(value = "/cancelOrder", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult cancelOrder(Long orderId) {
@@ -69,8 +69,8 @@ public class OmsPortalOrderController {
         return CommonResult.success(null);
     }
 
-    @Operation(summary = "按状态分页获取用户订单列表")
-    @Parameter(name = "status", description = "订单状态：-1->全部；0->待付款；1->待发货；2->已发货；3->已完成；4->已关闭",
+    @Operation(summary = "상태별로 사용자 주문 목록을 페이지 단위로 조회")
+    @Parameter(name = "status", description = "주문 상태:-1->전체;0->결제 대기;1->배송 대기;2->발송됨;3->완료;4->닫힘",
             in = ParameterIn.QUERY, schema = @Schema(type = "integer",defaultValue = "-1",allowableValues = {"-1","0","1","2","3","4"}))
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
@@ -81,7 +81,7 @@ public class OmsPortalOrderController {
         return CommonResult.success(orderPage);
     }
 
-    @Operation(summary = "根据ID获取订单详情")
+    @Operation(summary = "ID로 주문 상세 조회")
     @RequestMapping(value = "/detail/{orderId}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<OmsOrderDetail> detail(@PathVariable Long orderId) {
@@ -89,7 +89,7 @@ public class OmsPortalOrderController {
         return CommonResult.success(orderDetail);
     }
 
-    @Operation(summary = "用户取消订单")
+    @Operation(summary = "사용자 주문 취소")
     @RequestMapping(value = "/cancelUserOrder", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult cancelUserOrder(Long orderId) {
@@ -97,7 +97,7 @@ public class OmsPortalOrderController {
         return CommonResult.success(null);
     }
 
-    @Operation(summary = "用户确认收货")
+    @Operation(summary = "사용자 수취 확인")
     @RequestMapping(value = "/confirmReceiveOrder", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult confirmReceiveOrder(Long orderId) {
@@ -105,7 +105,7 @@ public class OmsPortalOrderController {
         return CommonResult.success(null);
     }
 
-    @Operation(summary = "用户删除订单")
+    @Operation(summary = "사용자 주문 삭제")
     @RequestMapping(value = "/deleteOrder", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult deleteOrder(Long orderId) {

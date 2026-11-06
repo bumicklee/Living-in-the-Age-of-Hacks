@@ -7,26 +7,26 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 /**
- * 确认收货请求参数
+ * 수취 확인 요청 파라미터
  * Created by macro on 2018/10/18.
  */
 @Getter
 @Setter
 public class OmsUpdateStatusParam {
-    @Schema(title = "服务单号")
+    @Schema(title = "서비스 요청 번호")
     private Long id;
-    @Schema(title = "收货地址关联id")
+    @Schema(title = "배송지 연관id")
     private Long companyAddressId;
-    @Schema(title = "确认退款金额")
+    @Schema(title = "환불 금액 확인")
     private BigDecimal returnAmount;
-    @Schema(title = "处理备注")
+    @Schema(title = "메모 처리")
     private String handleNote;
-    @Schema(title = "处理人")
+    @Schema(title = "처리자")
     private String handleMan;
-    @Schema(title = "收货备注")
+    @Schema(title = "배송 메모")
     private String receiveNote;
-    @Schema(title = "收货人")
+    @Schema(title = "수령인")
     private String receiveMan;
-    @Schema(title = "申请状态：1->退货中；2->已完成；3->已拒绝")
+    @Schema(title = "신청 상태:1->반품 중;2->완료;3->거절됨")
     private Integer status;
 }

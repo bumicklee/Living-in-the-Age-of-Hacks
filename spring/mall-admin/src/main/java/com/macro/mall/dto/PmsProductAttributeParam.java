@@ -8,40 +8,40 @@ import lombok.EqualsAndHashCode;
 import jakarta.validation.constraints.NotEmpty;
 
 /**
- * 商品属性参数
+ * 상품 속성 파라미터
  * Created by macro on 2018/4/26.
  */
 @Data
 @EqualsAndHashCode
 public class PmsProductAttributeParam {
     @NotEmpty
-    @Schema(title = "属性分类ID")
+    @Schema(title = "속성 카테고리ID")
     private Long productAttributeCategoryId;
     @NotEmpty
-    @Schema(title = "属性名称")
+    @Schema(title = "속성명")
     private String name;
     @FlagValidator({"0","1","2"})
-    @Schema(title = "属性选择类型：0->唯一；1->单选；2->多选")
+    @Schema(title = "속성 선택 유형:0->고유;1->단일 선택;2->다중 선택")
     private Integer selectType;
     @FlagValidator({"0","1"})
-    @Schema(title = "属性录入方式：0->手工录入；1->从列表中选取")
+    @Schema(title = "속성 입력 방식:0->직접 입력;1->목록에서 선택")
     private Integer inputType;
-    @Schema(title = "可选值列表，以逗号隔开")
+    @Schema(title = "선택값 목록, 쉼표로 구분")
     private String inputList;
     private Integer sort;
-    @Schema(title = "分类筛选样式：0->普通；1->颜色")
+    @Schema(title = "카테고리 필터 스타일:0->일반;1->색상")
     @FlagValidator({"0","1"})
     private Integer filterType;
-    @Schema(title = "检索类型；0->不需要进行检索；1->关键字检索；2->范围检索")
+    @Schema(title = "검색 유형;0->검색 불필요;1->키워드 검색;2->범위 검색")
     @FlagValidator({"0","1","2"})
     private Integer searchType;
-    @Schema(title = "相同属性产品是否关联；0->不关联；1->关联")
+    @Schema(title = "속성이 같은 상품 연관 여부;0->연관 안 함;1->연관")
     @FlagValidator({"0","1"})
     private Integer relatedStatus;
-    @Schema(title = "是否支持手动新增；0->不支持；1->支持")
+    @Schema(title = "직접 추가 지원 여부;0->지원 안 함;1->지원")
     @FlagValidator({"0","1"})
     private Integer handAddStatus;
-    @Schema(title = "属性的类型；0->规格；1->参数")
+    @Schema(title = "속성 유형;0->규격;1->파라미터")
     @FlagValidator({"0","1"})
     private Integer type;
 }

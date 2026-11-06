@@ -15,7 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
- * 会员收藏Service实现类
+ * 회원 찜 Service 구현 클래스
  * Created by macro on 2018/8/2.
  */
 @Service

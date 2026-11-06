@@ -12,24 +12,24 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 商品SKU库存管理Controller
+ * 상품 SKU 재고 관리Controller
  * Created by macro on 2018/4/27.
  */
 @Controller
-@Tag(name = "PmsSkuStockController", description = "sku商品库存管理")
+@Tag(name = "PmsSkuStockController", description = "sku상품 재고 관리")
 @RequestMapping("/sku")
 public class PmsSkuStockController {
     @Autowired
     private PmsSkuStockService skuStockService;
 
-    @Operation(summary = "根据商品ID及sku编码模糊搜索sku库存")
+    @Operation(summary = "상품 ID 및 sku 코드로 sku 재고 모호 검색")
     @RequestMapping(value = "/{pid}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<List<PmsSkuStock>> getList(@PathVariable Long pid, @RequestParam(value = "keyword",required = false) String keyword) {
         List<PmsSkuStock> skuStockList = skuStockService.getList(pid, keyword);
         return CommonResult.success(skuStockList);
     }
-    @Operation(summary = "批量更新sku库存信息")
+    @Operation(summary = "sku 재고 정보 일괄 업데이트")
     @RequestMapping(value ="/update/{pid}",method = RequestMethod.POST)
     @ResponseBody
     public CommonResult update(@PathVariable Long pid,@RequestBody List<PmsSkuStock> skuStockList){

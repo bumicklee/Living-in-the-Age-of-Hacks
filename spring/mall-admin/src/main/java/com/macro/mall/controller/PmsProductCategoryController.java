@@ -16,17 +16,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 商品分类管理Controller
+ * 상품 카테고리 관리Controller
  * Created by macro on 2018/4/26.
  */
 @Controller
-@Tag(name = "PmsProductCategoryController", description = "商品分类管理")
+@Tag(name = "PmsProductCategoryController", description = "상품 카테고리 관리")
 @RequestMapping("/productCategory")
 public class PmsProductCategoryController {
     @Autowired
     private PmsProductCategoryService productCategoryService;
 
-    @Operation(summary = "添加商品分类")
+    @Operation(summary = "상품 카테고리 추가")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult create(@Validated @RequestBody PmsProductCategoryParam productCategoryParam) {
@@ -38,7 +38,7 @@ public class PmsProductCategoryController {
         }
     }
 
-    @Operation(summary = "修改商品分类")
+    @Operation(summary = "상품 카테고리 수정")
     @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult update(@PathVariable Long id,
@@ -52,7 +52,7 @@ public class PmsProductCategoryController {
         }
     }
 
-    @Operation(summary = "分页查询商品分类")
+    @Operation(summary = "상품 카테고리 페이지 조회")
     @RequestMapping(value = "/list/{parentId}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<PmsProductCategory>> getList(@PathVariable Long parentId,
@@ -62,7 +62,7 @@ public class PmsProductCategoryController {
         return CommonResult.success(CommonPage.restPage(productCategoryList));
     }
 
-    @Operation(summary = "根据id获取商品分类")
+    @Operation(summary = "id로 상품 카테고리 조회")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<PmsProductCategory> getItem(@PathVariable Long id) {
@@ -70,7 +70,7 @@ public class PmsProductCategoryController {
         return CommonResult.success(productCategory);
     }
 
-    @Operation(summary = "删除商品分类")
+    @Operation(summary = "상품 카테고리 삭제")
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(@PathVariable Long id) {
@@ -82,7 +82,7 @@ public class PmsProductCategoryController {
         }
     }
 
-    @Operation(summary = "修改导航栏显示状态")
+    @Operation(summary = "내비게이션 바 표시 상태 수정")
     @RequestMapping(value = "/update/navStatus", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult updateNavStatus(@RequestParam("ids") List<Long> ids, @RequestParam("navStatus") Integer navStatus) {
@@ -94,7 +94,7 @@ public class PmsProductCategoryController {
         }
     }
 
-    @Operation(summary = "修改显示状态")
+    @Operation(summary = "표시 상태 수정")
     @RequestMapping(value = "/update/showStatus", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult updateShowStatus(@RequestParam("ids") List<Long> ids, @RequestParam("showStatus") Integer showStatus) {
@@ -106,7 +106,7 @@ public class PmsProductCategoryController {
         }
     }
 
-    @Operation(summary = "查询所有一级分类及子分类")
+    @Operation(summary = "모든 1차 카테고리 및 하위 카테고리 조회")
     @RequestMapping(value = "/list/withChildren", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<List<PmsProductCategoryWithChildrenItem>> listWithChildren() {

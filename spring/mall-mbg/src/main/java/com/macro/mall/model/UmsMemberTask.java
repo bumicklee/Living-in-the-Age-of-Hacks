@@ -8,13 +8,13 @@ public class UmsMemberTask implements Serializable {
 
     private String name;
 
-    @Schema(title = "赠送成长值")
+    @Schema(title = "성장 포인트 지급")
     private Integer growth;
 
-    @Schema(title = "赠送积分")
+    @Schema(title = "포인트 지급")
     private Integer intergration;
 
-    @Schema(title = "任务类型：0->新手任务；1->日常任务")
+    @Schema(title = "미션 유형:0->신규 가입 미션;1->일일 미션")
     private Integer type;
 
     private static final long serialVersionUID = 1L;

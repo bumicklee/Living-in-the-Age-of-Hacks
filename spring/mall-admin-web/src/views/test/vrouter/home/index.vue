@@ -6,7 +6,7 @@ defineOptions({
 
 <template>
   <div>
-    我是Home页面
+    저는 Home 페이지입니다
   </div>
 </template>
 

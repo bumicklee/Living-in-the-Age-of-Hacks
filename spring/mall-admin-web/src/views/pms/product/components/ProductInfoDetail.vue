@@ -6,7 +6,7 @@ import { getBrandListAPI } from '@/apis/brand'
 import type { PmsProductParam } from '@/types/product'
 import type { ElCascaderDataVo, ElSelectDataVo } from '@/types/common'
 
-// 定义属性
+// 속성 정의
 const props = defineProps({
   isEdit: {
     type: Boolean,
@@ -14,17 +14,17 @@ const props = defineProps({
   }
 })
 
-// 定义事件
+// 이벤트 정의
 const emit = defineEmits(['next-step'])
 
-// 获取跨层传递的数据
+// 계층 간 전달 데이터 조회
 const compProductParam = inject('product-key') as Ref<PmsProductParam>
 
-// 级联选择器中当前选中的商品分类，结构为：[父分类ID,分类ID]
+// 캐스케이더에서 현재 선택된 상품 카테고리, 구조: [상위 카테고리 ID, 카테고리ID]
 const selectProductCateValue = ref<number[]>([])
-// 级联选择器中的商品分类数据
+// 캐스케이더의 상품 카테고리 데이터
 const productCateOptions = ref<ElCascaderDataVo[]>([])
-// 获取商品分类列表数据
+// 상품 카테고리 목록 데이터 조회
 const getProductCateList = async () => {
   const res = await getProductCategoryListWithChildrenAPI()
   const list = res.data
@@ -34,15 +34,15 @@ const getProductCateList = async () => {
     children: item.children?.map(it => ({ label: it.name, value: it.id! }))
   }))
 }
-// 选择器中的品牌数据
+// 선택기의 브랜드 데이터
 const brandOptions = ref<ElSelectDataVo[]>([])
-// 获取品牌列表数据
+// 브랜드 목록 데이터 조회
 const getBrandList = async () => {
   const res = await getBrandListAPI({ pageNum: 1, pageSize: 100 })
   brandOptions.value = res.data.list.map(item => ({ label: item.name, value: item.id! }))
 }
 
-// 初始化数据
+// 데이터 초기화
 onMounted(async () => {
   await getProductCateList()
   await getBrandList()
@@ -51,25 +51,25 @@ onMounted(async () => {
   }
 })
 
-// 编辑状态初始化标记位
+// 편집 상태 초기화 플래그
 const hasEditCreated = ref(false)
 
-// 表单引用
+// 폼 참조
 const productInfoForm = ref<FormInstance>()
-// 表单验证规则
+// 폼 검증 규칙
 const rules = {
   name: [
-    { required: true, message: '请输入商品名称', trigger: 'blur' },
-    { min: 2, max: 140, message: '长度在 2 到 140 个字符', trigger: 'blur' }
+    { required: true, message: '상품 이름을 입력하세요', trigger: 'blur' },
+    { min: 2, max: 140, message: '길이는 2~140자', trigger: 'blur' }
   ],
-  subTitle: [{ required: true, message: '请输入商品副标题', trigger: 'blur' }],
-  productCategoryId: [{ required: true, message: '请选择商品分类', trigger: 'blur' }],
-  brandId: [{ required: true, message: '请选择商品品牌', trigger: 'blur' }],
-  description: [{ required: true, message: '请输入商品介绍', trigger: 'blur' }],
-  requiredProp: [{ required: true, message: '该项为必填项', trigger: 'blur' }]
+  subTitle: [{ required: true, message: '상품 부제목을 입력하세요', trigger: 'blur' }],
+  productCategoryId: [{ required: true, message: '상품 카테고리를 선택하세요', trigger: 'blur' }],
+  brandId: [{ required: true, message: '상품 브랜드를 선택하세요', trigger: 'blur' }],
+  description: [{ required: true, message: '상품 소개를 입력하세요', trigger: 'blur' }],
+  requiredProp: [{ required: true, message: '필수 입력 항목입니다', trigger: 'blur' }]
 }
 
-// 监听选择分类变化
+// 카테고리 선택 변경 감시
 watch(selectProductCateValue, (newValue) => {
   if (newValue && newValue.length === 2) {
     compProductParam.value.productCategoryId = newValue[1]
@@ -81,7 +81,7 @@ watch(selectProductCateValue, (newValue) => {
 })
 
 
-// 方法定义
+// 메서드 정의
 const handleEditCreated = () => {
   if (compProductParam.value.productCategoryId) {
     selectProductCateValue.value.push(compProductParam.value.cateParentId!)
@@ -90,7 +90,7 @@ const handleEditCreated = () => {
   hasEditCreated.value = true
 }
 
-// 根据分类ID获取分类名称
+// 카테고리 ID로 카테고리 이름 조회
 const getCateNameById = (id: number) => {
   for (const item of productCateOptions.value) {
     const child = item.children?.find(child => child.value === id)
@@ -101,7 +101,7 @@ const getCateNameById = (id: number) => {
   return undefined
 }
 
-// 下一步按钮出来事件
+// 다음 단계 버튼 이벤트
 const handleNext = async () => {
   if (productInfoForm.value) {
     try {
@@ -111,7 +111,7 @@ const handleNext = async () => {
       }
     } catch {
       ElMessage({
-        message: '验证失败',
+        message: '검증 실패',
         type: 'error',
         duration: 1000
       })
@@ -119,7 +119,7 @@ const handleNext = async () => {
   }
 }
 
-// 处理品牌变化
+// 브랜드 변경 처리
 const handleBrandChange = (val: number) => {
   const findBrand = brandOptions.value.find(item => item.value === val)
   compProductParam.value.brandName = findBrand?.label
@@ -130,51 +130,51 @@ const handleBrandChange = (val: number) => {
   <div style="margin-top: 50px">
     <el-form :model="compProductParam" :rules="rules" ref="productInfoForm" label-width="120px"
       class="form-inner-container">
-      <el-form-item label="商品分类：" prop="productCategoryId">
+      <el-form-item label="상품 카테고리:" prop="productCategoryId">
         <el-cascader v-model="selectProductCateValue" :options="productCateOptions">
         </el-cascader>
       </el-form-item>
-      <el-form-item label="商品名称：" prop="name">
+      <el-form-item label="상품명:" prop="name">
         <el-input v-model="compProductParam.name"></el-input>
       </el-form-item>
-      <el-form-item label="副标题：" prop="subTitle">
+      <el-form-item label="부제목:" prop="subTitle">
         <el-input v-model="compProductParam.subTitle"></el-input>
       </el-form-item>
-      <el-form-item label="商品品牌：" prop="brandId">
-        <el-select v-model="compProductParam.brandId" @change="handleBrandChange" placeholder="请选择品牌">
+      <el-form-item label="상품 브랜드:" prop="brandId">
+        <el-select v-model="compProductParam.brandId" @change="handleBrandChange" placeholder="브랜드를 선택하세요">
           <el-option v-for="item in brandOptions" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="商品介绍：">
+      <el-form-item label="상품 소개:">
         <el-input :autoSize="true" v-model="compProductParam.description" type="textarea"
-          placeholder="请输入内容"></el-input>
+          placeholder="내용을 입력하세요"></el-input>
       </el-form-item>
-      <el-form-item label="商品货号：">
+      <el-form-item label="상품 코드:">
         <el-input v-model="compProductParam.productSn"></el-input>
       </el-form-item>
-      <el-form-item label="商品售价：">
+      <el-form-item label="상품 판매가:">
         <el-input v-model="compProductParam.price"></el-input>
       </el-form-item>
-      <el-form-item label="市场价：">
+      <el-form-item label="시장가:">
         <el-input v-model="compProductParam.originalPrice"></el-input>
       </el-form-item>
-      <el-form-item label="商品库存：">
+      <el-form-item label="상품 재고:">
         <el-input v-model="compProductParam.stock"></el-input>
       </el-form-item>
-      <el-form-item label="计量单位：">
+      <el-form-item label="단위:">
         <el-input v-model="compProductParam.unit"></el-input>
       </el-form-item>
-      <el-form-item label="商品重量：">
+      <el-form-item label="상품 중량:">
         <el-input v-model="compProductParam.weight" style="width: 300px"></el-input>
-        <span style="margin-left: 20px">克</span>
+        <span style="margin-left: 20px">g</span>
       </el-form-item>
-      <el-form-item label="排序">
+      <el-form-item label="정렬">
         <el-input v-model="compProductParam.sort"></el-input>
       </el-form-item>
       <el-form-item>
         <div style="width: 100%;text-align: center;">
-          <el-button type="primary" @click="handleNext()">下一步，填写商品促销</el-button>
+          <el-button type="primary" @click="handleNext()">다음 단계, 상품 프로모션 입력</el-button>
         </div>
       </el-form-item>
     </el-form>

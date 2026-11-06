@@ -5,11 +5,11 @@ import { Tickets } from '@element-plus/icons-vue'
 import { resourceCategoryListAllAPI, resourceCategoryCreateAPI, resourceCategoryUpdateAPI, resourceCategoryDeleteByIdAPI } from '@/apis/resourceCategory'
 import type { UmsResourceCategory } from '@/types/resource'
 
-// 资源分类列表数据
+// 리소스 카테고리 목록 데이터
 const list = ref<UmsResourceCategory[]>([])
-// 加载状态
+// 로딩 상태
 const listLoading = ref(false)
-// 获取列表数据
+// 목록 데이터 조회
 const getList = async () => {
   listLoading.value = true
   try {
@@ -18,87 +18,87 @@ const getList = async () => {
     list.value = res.data
   } catch (error) {
     listLoading.value = false
-    console.error('获取资源分类列表失败:', error)
+    console.error('리소스 카테고리 목록 조회 실패:', error)
   }
 }
 
-// 组件挂载时获取数据
+// 컴포넌트 마운트 시 데이터 조회
 onMounted(() => {
   getList()
 })
 
-// 默认资源分类对象
+// 기본 리소스 카테고리 객체
 const defaultResourceCategory: UmsResourceCategory = {
   name: '',
   sort: 0
 }
-// 当前操作的资源分类
+// 현재 작업 중인 리소스 분류
 const resourceCategory = ref(Object.assign({}, defaultResourceCategory))
-// 编辑框是否可见
+// 편집창 표시 여부
 const dialogVisible = ref(false)
-// 编辑状态
+// 편집 상태
 const isEdit = ref(false)
 
-// 添加资源分类
+// 리소스 카테고리 추가
 const handleAdd = () => {
   dialogVisible.value = true
   isEdit.value = false
   resourceCategory.value = Object.assign({}, defaultResourceCategory)
 }
 
-// 更新资源分类
+// 리소스 분류 업데이트
 const handleUpdate = (index: number, row: UmsResourceCategory) => {
   dialogVisible.value = true
   isEdit.value = true
   resourceCategory.value = Object.assign({}, row)
 }
 
-// 删除资源分类
+// 리소스 카테고리 삭제
 const handleDelete = async (index: number, row: UmsResourceCategory) => {
-  await ElMessageBox.confirm('是否要删除该分类?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('이 카테고리를 삭제할까요??', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning',
   })
   try {
     await resourceCategoryDeleteByIdAPI(row.id!)
-    ElMessage.success('删除成功!')
+    ElMessage.success('삭제 성공!')
     getList()
   } catch (error) {
-    console.error('删除资源分类失败:', error)
+    console.error('리소스 카테고리 삭제 실패:', error)
   }
 }
 
-// 处理对话框确认
+// 대화 상자 확인 처리
 const handleDialogConfirm = async () => {
-  await ElMessageBox.confirm('是否要确认?', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  await ElMessageBox.confirm('확인할까요??', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning',
   })
   if (isEdit.value) {
     try {
       await resourceCategoryUpdateAPI(resourceCategory.value.id!, resourceCategory.value)
-      ElMessage.success('修改成功！')
+      ElMessage.success('수정 성공!')
       dialogVisible.value = false
       getList()
     } catch (error) {
-      console.error('更新资源分类失败:', error)
+      console.error('리소스 분류 업데이트 실패:', error)
     }
   } else {
     try {
       await resourceCategoryCreateAPI(resourceCategory.value)
-      ElMessage.success('添加成功！')
+      ElMessage.success('추가 성공!')
       dialogVisible.value = false
       getList()
     } catch (error) {
-      console.error('创建资源分类失败:', error)
+      console.error('리소스 카테고리 생성 실패:', error)
     }
   }
 
 }
 
-// 日期格式化过滤器函数
+// 날짜 포맷 필터 함수
 const formatDateTime = (time: string) => {
   if (!time) {
     return 'N/A'
@@ -113,46 +113,46 @@ const formatDateTime = (time: string) => {
       <el-icon class="el-icon-middle">
         <tickets />
       </el-icon>
-      <span>数据列表</span>
-      <el-button class="btn-add" @click="handleAdd()">添加</el-button>
+      <span>데이터 목록</span>
+      <el-button class="btn-add" @click="handleAdd()">추가</el-button>
     </el-card>
     <div class="table-container">
       <el-table ref="resourceCategoryTable" :data="list" style="width: 100%;" v-loading="listLoading" border>
-        <el-table-column label="编号" width="100" align="center">
+        <el-table-column label="번호" width="100" align="center">
           <template #default="scope">{{ scope.row.id }}</template>
         </el-table-column>
-        <el-table-column label="名称" align="center">
+        <el-table-column label="이름" align="center">
           <template #default="scope">{{ scope.row.name }}</template>
         </el-table-column>
-        <el-table-column label="创建时间" align="center">
+        <el-table-column label="생성 시간" align="center">
           <template #default="scope">{{ formatDateTime(scope.row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="排序" align="center">
+        <el-table-column label="정렬" align="center">
           <template #default="scope">{{ scope.row.sort }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="180" align="center">
+        <el-table-column label="작업" width="180" align="center">
           <template #default="scope">
-            <el-button size="small" type="primary" link @click="handleUpdate(scope.$index, scope.row)">编辑
+            <el-button size="small" type="primary" link @click="handleUpdate(scope.$index, scope.row)">편집
             </el-button>
-            <el-button size="small" type="primary" link @click="handleDelete(scope.$index, scope.row)">删除
+            <el-button size="small" type="primary" link @click="handleDelete(scope.$index, scope.row)">삭제
             </el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
-    <el-dialog title="添加分类" v-model="dialogVisible" width="40%">
+    <el-dialog title="카테고리 추가" v-model="dialogVisible" width="40%">
       <el-form :model="resourceCategory" ref="resourceCategoryForm" label-width="150px" size="small">
-        <el-form-item label="名称：">
+        <el-form-item label="이름:">
           <el-input v-model="resourceCategory.name" style="width: 250px"></el-input>
         </el-form-item>
-        <el-form-item label="排序：">
+        <el-form-item label="정렬:">
           <el-input v-model="resourceCategory.sort" style="width: 250px"></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="handleDialogConfirm()">确 定</el-button>
+          <el-button @click="dialogVisible = false">취 소</el-button>
+          <el-button type="primary" @click="handleDialogConfirm()">확 인</el-button>
         </span>
       </template>
     </el-dialog>

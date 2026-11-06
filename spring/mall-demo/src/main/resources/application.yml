@@ -13,7 +13,7 @@ spring:
     encoding: utf-8
     servlet:
       content-type: text/html
-    cache: false #开发时关闭缓存,不然没法看到实时页面
+    cache: false #개발 중에는 캐시를 끔, 그렇지 않으면 실시간 페이지를 볼 수 없음
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -34,16 +34,16 @@ host:
 
 springdoc:
   swagger-ui:
-    # 修改Swagger UI路径
+    # Swagger UI 경로 변경
     path: /swagger-ui.html
-    # 开启Swagger UI界面
+    # Swagger UI 화면 활성화
     enabled: true
-    # 用于配置tag和operation的展开方式，这里配置为都不展开
+    # tag와 operation의 펼침 방식 설정용, 여기서는 모두 펼치지 않도록 설정
     doc-expansion: 'none'
   api-docs:
-    # 修改api-docs路径
+    # api-docs 경로 변경
     path: /v3/api-docs
-    # 开启api-docs
+    # 켜기api-docs
     enabled: true
   group-configs:
     - group: 'mall-demo'

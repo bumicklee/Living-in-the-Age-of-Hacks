@@ -13,17 +13,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 首页人气推荐管理Controller
+ * 홈 인기 추천 관리Controller
  * Created by macro on 2018/11/6.
  */
 @Controller
-@Tag(name = "SmsHomeRecommendProductController", description = "首页人气推荐管理")
+@Tag(name = "SmsHomeRecommendProductController", description = "홈 인기 추천 관리")
 @RequestMapping("/home/recommendProduct")
 public class SmsHomeRecommendProductController {
     @Autowired
     private SmsHomeRecommendProductService recommendProductService;
 
-    @Operation(summary = "添加首页推荐")
+    @Operation(summary = "홈 추천 추가")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult create(@RequestBody List<SmsHomeRecommendProduct> homeRecommendProductList) {
@@ -34,7 +34,7 @@ public class SmsHomeRecommendProductController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "修改推荐排序")
+    @Operation(summary = "추천 정렬 수정")
     @RequestMapping(value = "/update/sort/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult updateSort(@PathVariable Long id, Integer sort) {
@@ -45,7 +45,7 @@ public class SmsHomeRecommendProductController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "批量删除推荐")
+    @Operation(summary = "추천 일괄 삭제")
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(@RequestParam("ids") List<Long> ids) {
@@ -56,7 +56,7 @@ public class SmsHomeRecommendProductController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "批量修改推荐状态")
+    @Operation(summary = "추천 상태 일괄 수정")
     @RequestMapping(value = "/update/recommendStatus", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult updateRecommendStatus(@RequestParam("ids") List<Long> ids, @RequestParam Integer recommendStatus) {
@@ -67,7 +67,7 @@ public class SmsHomeRecommendProductController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "分页查询推荐")
+    @Operation(summary = "추천 페이지 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<SmsHomeRecommendProduct>> list(@RequestParam(value = "productName", required = false) String productName,

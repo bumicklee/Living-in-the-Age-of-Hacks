@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 前台订单管理Service实现类
+ * 프런트 주문 관리 Service 구현 클래스
  * Created by macro on 2020/4/6.
  */
 @Service
@@ -57,7 +57,7 @@ public class PmsPortalProductServiceImpl implements PmsPortalProductService {
         if (productCategoryId != null) {
             criteria.andProductCategoryIdEqualTo(productCategoryId);
         }
-        //1->按新品；2->按销量；3->价格从低到高；4->价格从高到低
+        //1->신상품순;2->판매량순;3->가격 낮은 순;4->가격 높은 순
         if (sort == 1) {
             example.setOrderByClause("id desc");
         } else if (sort == 2) {
@@ -84,18 +84,18 @@ public class PmsPortalProductServiceImpl implements PmsPortalProductService {
     @Override
     public PmsPortalProductDetail detail(Long id) {
         PmsPortalProductDetail result = new PmsPortalProductDetail();
-        //获取商品信息
+        //상품 정보 조회
         PmsProduct product = productMapper.selectByPrimaryKey(id);
         result.setProduct(product);
-        //获取品牌信息
+        //브랜드 정보 조회
         PmsBrand brand = brandMapper.selectByPrimaryKey(product.getBrandId());
         result.setBrand(brand);
-        //获取商品属性信息
+        //상품 속성 정보 조회
         PmsProductAttributeExample attributeExample = new PmsProductAttributeExample();
         attributeExample.createCriteria().andProductAttributeCategoryIdEqualTo(product.getProductAttributeCategoryId());
         List<PmsProductAttribute> productAttributeList = productAttributeMapper.selectByExample(attributeExample);
         result.setProductAttributeList(productAttributeList);
-        //获取商品属性值信息
+        //상품 속성 값 정보 조회
         if(CollUtil.isNotEmpty(productAttributeList)){
             List<Long> attributeIds = productAttributeList.stream().map(PmsProductAttribute::getId).collect(Collectors.toList());
             PmsProductAttributeValueExample attributeValueExample = new PmsProductAttributeValueExample();
@@ -104,33 +104,33 @@ public class PmsPortalProductServiceImpl implements PmsPortalProductService {
             List<PmsProductAttributeValue> productAttributeValueList = productAttributeValueMapper.selectByExample(attributeValueExample);
             result.setProductAttributeValueList(productAttributeValueList);
         }
-        //获取商品SKU库存信息
+        //상품 SKU 재고 정보 조회
         PmsSkuStockExample skuExample = new PmsSkuStockExample();
         skuExample.createCriteria().andProductIdEqualTo(product.getId());
         List<PmsSkuStock> skuStockList = skuStockMapper.selectByExample(skuExample);
         result.setSkuStockList(skuStockList);
-        //商品阶梯价格设置
+        //상품 수량별 가격 설정
         if(product.getPromotionType()==3){
             PmsProductLadderExample ladderExample = new PmsProductLadderExample();
             ladderExample.createCriteria().andProductIdEqualTo(product.getId());
             List<PmsProductLadder> productLadderList = productLadderMapper.selectByExample(ladderExample);
             result.setProductLadderList(productLadderList);
         }
-        //商品满减价格设置
+        //상품 금액 할인 가격 설정
         if(product.getPromotionType()==4){
             PmsProductFullReductionExample fullReductionExample = new PmsProductFullReductionExample();
             fullReductionExample.createCriteria().andProductIdEqualTo(product.getId());
             List<PmsProductFullReduction> productFullReductionList = productFullReductionMapper.selectByExample(fullReductionExample);
             result.setProductFullReductionList(productFullReductionList);
         }
-        //商品可用优惠券
+        //상품 사용 가능 쿠폰
         result.setCouponList(portalProductDao.getAvailableCouponList(product.getId(),product.getProductCategoryId()));
         return result;
     }
 
 
     /**
-     * 初始对象转化为节点对象
+     * 초기 객체를 노드 객체로 변환
      */
     private PmsProductCategoryNode covert(PmsProductCategory item, List<PmsProductCategory> allList) {
         PmsProductCategoryNode node = new PmsProductCategoryNode();

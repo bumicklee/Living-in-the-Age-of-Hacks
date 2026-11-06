@@ -7,24 +7,24 @@ import { Search, Tickets } from '@element-plus/icons-vue'
 import type { PmsBrand } from '@/types/brand'
 import type { PageParam } from '@/types/common'
 
-// 获取路由对象
+// 라우트 객체 조회
 const router = useRouter()
 
-// 品牌列表查询参数
+// 브랜드 목록 조회 파라미터
 const listQuery = ref<PageParam>({
   keyword: '',
   pageNum: 1,
   pageSize: 10
 })
-// 品牌列表数据
+// 브랜드 목록 데이터
 const list = ref<PmsBrand[]>([])
-// 表格中被选中的行
+// 테이블에서 선택된 행
 const multipleSelection = ref<PmsBrand[]>([])
-// 表格数据加载进度条
+// 테이블 데이터 로딩 진행 표시줄
 const listLoading = ref(true)
-// 分页组件参数
+// 페이지네이션 컴포넌트 파라미터
 const total = ref(0)
-// 获取品牌列表数据
+// 브랜드 목록 데이터 조회
 const getList = async () => {
   listLoading.value = true
   try {
@@ -34,63 +34,63 @@ const getList = async () => {
     total.value = res.data.total
   } catch (error) {
     listLoading.value = false
-    console.error('获取品牌列表失败:', error)
+    console.error('브랜드 목록 조회 실패:', error)
   }
 }
 
-// 组件挂载后初始化列表信息
+// 컴포넌트 마운트 후 목록 정보 초기화
 onMounted(() => {
   getList()
 })
 
-// 处理品牌搜索
+// 브랜드 검색 처리
 const handleSearchBrand = () => {
   listQuery.value.pageNum = 1
   getList()
 }
 
-// 处理添加品牌
+// 브랜드 추가 처리
 const handleAddBrand = () => {
   router.push({ path: '/pms/addBrand' })
 }
 
-// 处理编辑品牌操作
+// 브랜드 편집 작업 처리
 const handleUpdateBrand = (index: number, row: PmsBrand) => {
   router.push({ path: '/pms/updateBrand', query: { id: row.id } })
 }
 
-// 处理删除品牌操作
+// 브랜드 삭제 작업 처리
 const handleDeleteBrand = async (index: number, row: PmsBrand) => {
-  ElMessageBox.confirm('是否要删除该品牌', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  ElMessageBox.confirm('이 브랜드를 삭제할까요?', '안내', {
+    confirmButtonText: '확인',
+    cancelButtonText: '취소',
     type: 'warning',
     callback: async (action: Action) => {
       if (action === 'confirm') {
         await brandDeleteByIdAPI(row.id!)
-        ElMessage.success('删除成功')
+        ElMessage.success('삭제 성공')
         getList()
       }
     },
   })
 }
 
-// 处理表格选中状态变化
+// 테이블 선택 상태 변경 처리
 const handleSelectionChange = (val: PmsBrand[]) => {
   multipleSelection.value = val
 }
 
-// 获取产品列表
+// 상품 목록 조회
 const getProductList = (index: number, row: PmsBrand) => {
   console.log(index, row)
 }
 
-// 获取产品评论列表
+// 상품 리뷰 목록 조회
 const getProductCommentList = (index: number, row: PmsBrand) => {
   console.log(index, row)
 }
 
-// 处理厂商状态变化
+// 제조사 상태 변경 처리
 const handleFactoryStatusChange = async (index: number, row: PmsBrand) => {
 
   try {
@@ -98,61 +98,61 @@ const handleFactoryStatusChange = async (index: number, row: PmsBrand) => {
       ids: row.id!.toString(),
       factoryStatus: row.factoryStatus
     })
-    ElMessage.success('修改成功')
+    ElMessage.success('수정 성공')
   } catch (error) {
-    // 如果更新失败，回滚状态
+    // 갱신에 실패하면 상태를 롤백
     row.factoryStatus = row.factoryStatus === 0 ? 1 : 0
-    console.error('更新厂商状态失败:', error)
+    console.error('제조사 상태 업데이트 실패:', error)
   }
 }
 
-// 处理显示状态变化
+// 표시 상태 변경 처리
 const handleShowStatusChange = async (index: number, row: PmsBrand) => {
   try {
     await brandUpdateShowStatusAPI({
       ids: row.id!.toString(),
       showStatus: row.showStatus
     })
-    ElMessage.success('修改成功')
+    ElMessage.success('수정 성공')
   } catch (error) {
-    // 如果更新失败，回滚状态
+    // 갱신에 실패하면 상태를 롤백
     row.showStatus = row.showStatus === 0 ? 1 : 0
-    console.error('更新显示状态失败:', error)
+    console.error('표시 상태 업데이트 실패:', error)
   }
 }
 
-// 处理每页条数变化
+// 페이지당 건수 변경 처리
 const handleSizeChange = (val: number) => {
   listQuery.value.pageNum = 1
   listQuery.value.pageSize = val
   getList()
 }
 
-// 处理当前页变化
+// 현재 페이지 변경 처리
 const handleCurrentChange = (val: number) => {
   listQuery.value.pageNum = val
   getList()
 }
 
-// 批量操作类型
+// 일괄 작업 유형
 const operates = ref([
   {
-    label: "显示品牌",
+    label: "브랜드 표시",
     value: "showBrand"
   },
   {
-    label: "隐藏品牌",
+    label: "브랜드 숨기기",
     value: "hideBrand"
   }
 ])
 
-// 底部多选批量操作类型
+// 하단 다중 선택 일괄 작업 유형
 const operateType = ref<string | null>()
 
-// 处理批量操作
+// 일괄 작업 처리
 const handleBatchOperate = async () => {
   if (!multipleSelection.value || multipleSelection.value.length < 1) {
-    ElMessage.warning('请选择一条记录')
+    ElMessage.warning('레코드를 하나 선택하세요')
     return
   }
   let showStatus = 0
@@ -161,7 +161,7 @@ const handleBatchOperate = async () => {
   } else if (operateType.value === 'hideBrand') {
     showStatus = 0
   } else {
-    ElMessage.warning('请选择批量操作类型')
+    ElMessage.warning('일괄 작업 유형을 선택하세요')
     return
   }
   const idsArr = multipleSelection.value.map(item => item.id)
@@ -171,9 +171,9 @@ const handleBatchOperate = async () => {
       showStatus: showStatus
     })
     getList()
-    ElMessage.success('修改成功')
+    ElMessage.success('수정 성공')
   } catch (error) {
-    console.error('批量操作失败:', error)
+    console.error('일괄 작업 실패:', error)
   }
 }
 </script>
@@ -185,15 +185,15 @@ const handleBatchOperate = async () => {
         <el-icon class="el-icon-middle">
           <Search />
         </el-icon>
-        <span>筛选搜索</span>
+        <span>필터 검색</span>
         <el-button style="float: right" @click="handleSearchBrand()" type="primary">
-          查询结果
+          조회 결과
         </el-button>
       </div>
       <div style="margin-top: 15px">
         <el-form :inline="true" :model="listQuery" label-width="140px">
-          <el-form-item label="输入搜索：">
-            <el-input style="width: 203px" v-model="listQuery.keyword" placeholder="品牌名称/关键字"></el-input>
+          <el-form-item label="검색어 입력:">
+            <el-input style="width: 203px" v-model="listQuery.keyword" placeholder="브랜드명/키워드"></el-input>
           </el-form-item>
         </el-form>
       </div>
@@ -202,68 +202,68 @@ const handleBatchOperate = async () => {
       <el-icon class="el-icon-middle">
         <Tickets />
       </el-icon>
-      <span>数据列表</span>
+      <span>데이터 목록</span>
       <el-button class="btn-add" @click="handleAddBrand()">
-        添加
+        추가
       </el-button>
     </el-card>
     <div class="table-container">
       <el-table ref="brandTable" :data="list" style="width: 100%" @selection-change="handleSelectionChange"
         v-loading="listLoading" border>
         <el-table-column type="selection" width="60" align="center"></el-table-column>
-        <el-table-column label="编号" width="100" align="center">
+        <el-table-column label="번호" width="100" align="center">
           <template #default="scope">{{ scope.row.id }}</template>
         </el-table-column>
-        <el-table-column label="品牌名称" align="center">
+        <el-table-column label="브랜드명" align="center">
           <template #default="scope">{{ scope.row.name }}</template>
         </el-table-column>
-        <el-table-column label="品牌首字母" width="100" align="center">
+        <el-table-column label="브랜드 첫 글자" width="100" align="center">
           <template #default="scope">{{ scope.row.firstLetter }}</template>
         </el-table-column>
-        <el-table-column label="排序" width="100" align="center">
+        <el-table-column label="정렬" width="100" align="center">
           <template #default="scope">{{ scope.row.sort }}</template>
         </el-table-column>
-        <el-table-column label="品牌制造商" width="100" align="center">
+        <el-table-column label="브랜드 제조사" width="100" align="center">
           <template #default="scope">
             <el-switch @change="handleFactoryStatusChange(scope.$index, scope.row)" :active-value="1"
               :inactive-value="0" v-model="scope.row.factoryStatus">
             </el-switch>
           </template>
         </el-table-column>
-        <el-table-column label="是否显示" width="100" align="center">
+        <el-table-column label="표시 여부" width="100" align="center">
           <template #default="scope">
             <el-switch @change="handleShowStatusChange(scope.$index, scope.row)" :active-value="1" :inactive-value="0"
               v-model="scope.row.showStatus">
             </el-switch>
           </template>
         </el-table-column>
-        <el-table-column label="相关" width="220" align="center">
+        <el-table-column label="관련" width="220" align="center">
           <template #default="scope">
-            <span>商品：</span>
+            <span>상품:</span>
             <el-button size="small" type="primary" link @click="getProductList(scope.$index, scope.row)">100
             </el-button>
-            <span>评价：</span>
+            <span>리뷰:</span>
             <el-button size="small" type="primary" link @click="getProductCommentList(scope.$index, scope.row)">1000
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" align="center">
+        <el-table-column label="작업" width="200" align="center">
           <template #default="scope">
-            <el-button size="small" @click="handleUpdateBrand(scope.$index, scope.row)">编辑
+            <el-button size="small" @click="handleUpdateBrand(scope.$index, scope.row)">편집
             </el-button>
-            <el-button size="small" type="danger" @click="handleDeleteBrand(scope.$index, scope.row)">删除
+            <el-button size="small" type="danger" @click="handleDeleteBrand(scope.$index, scope.row)">삭제
             </el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
     <div class="batch-operate-container">
-      <el-select v-model="operateType" placeholder="批量操作">
+      <el-select v-model="operateType" placeholder="일괄 작업">
         <el-option v-for="item in operates" :key="item.value" :label="item.label" :value="item.value">
         </el-option>
       </el-select>
       <el-button style="margin-left: 20px" class="search-button" @click="handleBatchOperate()" type="primary">
-        确定
+        확인
       </el-button>
     </div>
     <div class="pagination-container">

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-// 定义组件名称
+// 컴포넌트 이름 정의
 defineOptions({
   name: 'AppMain'
 })

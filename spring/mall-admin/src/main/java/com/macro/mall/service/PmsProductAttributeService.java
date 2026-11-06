@@ -8,41 +8,41 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 商品属性管理Service
+ * 상품 속성 관리Service
  * Created by macro on 2018/4/26.
  */
 public interface PmsProductAttributeService {
     /**
-     * 根据分类ID和类型分页获取商品属性
-     * @param cid 分类id
-     * @param type 0->规格；1->参数
+     * 카테고리 ID와 유형으로 상품 속성 페이징 조회
+     * @param cid 카테고리id
+     * @param type 0->규격;1->파라미터
      */
     List<PmsProductAttribute> getList(Long cid, Integer type, Integer pageSize, Integer pageNum);
 
     /**
-     * 添加商品属性
+     * 상품 속성 추가
      */
     @Transactional
     int create(PmsProductAttributeParam pmsProductAttributeParam);
 
     /**
-     * 修改商品属性
+     * 상품 속성 수정
      */
     int update(Long id, PmsProductAttributeParam productAttributeParam);
 
     /**
-     * 获取单个商品属性信息
+     * 단일 상품 속성 정보 조회
      */
     PmsProductAttribute getItem(Long id);
 
     /**
-     * 批量删除商品属性
+     * 상품 속성 일괄 삭제
      */
     @Transactional
     int delete(List<Long> ids);
 
     /**
-     * 获取商品分类对应属性列表
+     * 상품 카테고리에 해당하는 속성 목록 조회
      */
     List<ProductAttrInfo> getProductAttrInfo(Long productCategoryId);
 }

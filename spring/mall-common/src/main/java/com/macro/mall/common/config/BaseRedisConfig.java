@@ -20,7 +20,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.time.Duration;
 
 /**
- * Redis基础配置
+ * Redis기본 설정
  * Created by macro on 2020/6/19.
  */
 public class BaseRedisConfig {
@@ -41,16 +41,16 @@ public class BaseRedisConfig {
     public RedisSerializer<Object> redisSerializer() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        //必须设置，否则无法将JSON转化为对象，会转化成Map类型
+        //반드시 설정해야 함. 설정하지 않으면 JSON을 객체로 변환할 수 없고 Map 타입으로 변환됨
         objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance,ObjectMapper.DefaultTyping.NON_FINAL);
-        //创建JSON序列化器
+        //JSON 직렬화기 생성
         return new Jackson2JsonRedisSerializer<>(objectMapper,Object.class);
     }
 
     @Bean
     public RedisCacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
         RedisCacheWriter redisCacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(redisConnectionFactory);
-        //设置Redis缓存有效期为1天
+        //Redis 캐시 유효 기간을 1일로 설정
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer())).entryTtl(Duration.ofDays(1));
         return new RedisCacheManager(redisCacheWriter, redisCacheConfiguration);

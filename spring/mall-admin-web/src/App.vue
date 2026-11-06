@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ElConfigProvider } from 'element-plus'
-import zhCn from 'element-plus/es/locale/lang/zh-cn'
+import ko from 'element-plus/es/locale/lang/ko'
 </script>
 
 <template>
-  <!-- 通过ConfigProvider全局设置国际化 -->
-  <el-config-provider :locale="zhCn">
+  <!-- ConfigProvider로 국제화를 전역 설정 -->
+  <el-config-provider :locale="ko">
     <div id="app">
       <router-view />
     </div>

@@ -17,7 +17,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 首页内容管理Service实现类
+ * 홈 콘텐츠 관리 Service 구현 클래스
  * Created by macro on 2019/1/28.
  */
 @Service
@@ -40,24 +40,24 @@ public class HomeServiceImpl implements HomeService {
     @Override
     public HomeContentResult content() {
         HomeContentResult result = new HomeContentResult();
-        //获取首页广告
+        //홈 광고 조회
         result.setAdvertiseList(getHomeAdvertiseList());
-        //获取推荐品牌
+        //추천 브랜드 조회
         result.setBrandList(homeDao.getRecommendBrandList(0,6));
-        //获取秒杀信息
+        //타임 세일 정보 조회
         result.setHomeFlashPromotion(getHomeFlashPromotion());
-        //获取新品推荐
+        //신상품 추천 조회
         result.setNewProductList(homeDao.getNewProductList(0,4));
-        //获取人气推荐
+        //인기 추천 조회
         result.setHotProductList(homeDao.getHotProductList(0,4));
-        //获取推荐专题
+        //추천 기획전 조회
         result.setSubjectList(homeDao.getRecommendSubjectList(0,4));
         return result;
     }
 
     @Override
     public List<PmsProduct> recommendProductList(Integer pageSize, Integer pageNum) {
-        // TODO: 2019/1/29 暂时默认推荐所有商品
+        // TODO: 2019/1/29 임시로 모든 상품을 기본 추천
         PageHelper.startPage(pageNum,pageSize);
         PmsProductExample example = new PmsProductExample();
         example.createCriteria()
@@ -102,22 +102,22 @@ public class HomeServiceImpl implements HomeService {
 
     private HomeFlashPromotion getHomeFlashPromotion() {
         HomeFlashPromotion homeFlashPromotion = new HomeFlashPromotion();
-        //获取当前秒杀活动
+        //현재 타임 세일 행사 조회
         Date now = new Date();
         SmsFlashPromotion flashPromotion = getFlashPromotion(now);
         if (flashPromotion != null) {
-            //获取当前秒杀场次
+            //현재 타임 세일 회차 조회
             SmsFlashPromotionSession flashPromotionSession = getFlashPromotionSession(now);
             if (flashPromotionSession != null) {
                 homeFlashPromotion.setStartTime(flashPromotionSession.getStartTime());
                 homeFlashPromotion.setEndTime(flashPromotionSession.getEndTime());
-                //获取下一个秒杀场次
+                //다음 타임 세일 회차 조회
                 SmsFlashPromotionSession nextSession = getNextFlashPromotionSession(homeFlashPromotion.getStartTime());
                 if(nextSession!=null){
                     homeFlashPromotion.setNextStartTime(nextSession.getStartTime());
                     homeFlashPromotion.setNextEndTime(nextSession.getEndTime());
                 }
-                //获取秒杀商品
+                //타임 세일 상품 조회
                 List<FlashPromotionProduct> flashProductList = homeDao.getFlashProductList(flashPromotion.getId(), flashPromotionSession.getId());
                 homeFlashPromotion.setProductList(flashProductList);
             }
@@ -125,7 +125,7 @@ public class HomeServiceImpl implements HomeService {
         return homeFlashPromotion;
     }
 
-    //获取下一个场次信息
+    //다음 회차 정보 조회
     private SmsFlashPromotionSession getNextFlashPromotionSession(Date date) {
         SmsFlashPromotionSessionExample sessionExample = new SmsFlashPromotionSessionExample();
         sessionExample.createCriteria()
@@ -145,7 +145,7 @@ public class HomeServiceImpl implements HomeService {
         return advertiseMapper.selectByExample(example);
     }
 
-    //根据时间获取秒杀活动
+    //시간으로 타임 세일 이벤트 조회
     private SmsFlashPromotion getFlashPromotion(Date date) {
         Date currDate = DateUtil.getDate(date);
         SmsFlashPromotionExample example = new SmsFlashPromotionExample();
@@ -160,7 +160,7 @@ public class HomeServiceImpl implements HomeService {
         return null;
     }
 
-    //根据时间获取秒杀场次
+    //시간으로 타임 세일 회차 조회
     private SmsFlashPromotionSession getFlashPromotionSession(Date date) {
         Date currTime = DateUtil.getTime(date);
         SmsFlashPromotionSessionExample sessionExample = new SmsFlashPromotionSessionExample();

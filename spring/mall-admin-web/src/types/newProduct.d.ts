@@ -1,23 +1,23 @@
 import type { PageParam } from './common'
 
-/** 首页新品推荐实体 */
+/** 홈 신상품 추천 엔티티 */
 export type SmsHomeNewProduct = {
   /** ID */
   id?: number
-  /** 商品ID */
+  /** 상품ID */
   productId: number
-  /** 商品名称 */
+  /** 상품명 */
   productName: string
-  /** 推荐状态：0->未推荐；1->推荐中 */
+  /** 추천 상태:0->미추천;1->추천 중 */
   recommendStatus?: number
-  /** 排序 */
+  /** 정렬 */
   sort?: number
 }
 
-/** 首页新品推荐列表查询参数 */
+/** 홈 신상품 추천 목록 조회 파라미터 */
 export type NewProductQueryParam = PageParam & {
-  /** 商品名称 */
+  /** 상품명 */
   productName?: string
-  /** 推荐状态：0->未推荐；1->推荐中 */
+  /** 추천 상태:0->미추천;1->추천 중 */
   recommendStatus?: number
 }

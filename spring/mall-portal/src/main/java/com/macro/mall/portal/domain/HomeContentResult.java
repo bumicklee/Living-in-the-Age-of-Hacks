@@ -11,22 +11,22 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * 首页内容返回信息封装
+ * 홈 콘텐츠 반환 정보 래퍼
  * Created by macro on 2019/1/28.
  */
 @Getter
 @Setter
 public class HomeContentResult {
-    @Schema(title = "轮播广告")
+    @Schema(title = "배너 광고")
     private List<SmsHomeAdvertise> advertiseList;
-    @Schema(title = "推荐品牌")
+    @Schema(title = "추천 브랜드")
     private List<PmsBrand> brandList;
-    @Schema(title = "当前秒杀场次")
+    @Schema(title = "현재 타임 세일 회차")
     private HomeFlashPromotion homeFlashPromotion;
-    @Schema(title = "新品推荐")
+    @Schema(title = "신상품 추천")
     private List<PmsProduct> newProductList;
-    @Schema(title = "人气推荐")
+    @Schema(title = "인기 추천")
     private List<PmsProduct> hotProductList;
-    @Schema(title = "推荐专题")
+    @Schema(title = "추천 기획전")
     private List<CmsSubject> subjectList;
 }

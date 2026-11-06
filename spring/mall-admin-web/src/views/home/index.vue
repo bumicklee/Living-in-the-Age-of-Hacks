@@ -15,24 +15,24 @@ import {
   TitleComponent
 } from 'echarts/components'
 
-// 通过use()方法按需注入ECharts的模块
+// use() 메서드로 필요한 ECharts 모듈만 주입
 use([
-  CanvasRenderer, // 画布渲染器
-  LineChart, // 折线图的绘制功能
-  GridComponent, // 直角坐标系网格组件
-  TooltipComponent, // 鼠标悬停时显示数据详情
-  LegendComponent,  // 图例组件
-  TitleComponent // 显示图表标题
+  CanvasRenderer, // 캔버스 렌더러
+  LineChart, // 꺾은선 그래프 그리기 기능
+  GridComponent, // 직교 좌표계 그리드 컴포넌트
+  TooltipComponent, // 마우스를 올리면 데이터 상세 표시
+  LegendComponent,  // 범례 컴포넌트
+  TitleComponent // 차트 제목 표시
 ])
 
-// 折线图数据类型
+// 꺾은선 그래프 데이터 타입
 type LineChartDataItem = {
-  date: string, // 交易日期
-  orderCount: number, // 订单数量
-  orderAmount: number // 订单金额
+  date: string, // 거래 일자
+  orderCount: number, // 주문 수
+  orderAmount: number // 주문 금액
 }
 
-// 默认图表数据
+// 기본 차트 데이터
 const defaultLineChartData: LineChartDataItem[] = [
   { date: '2026-01-01', orderCount: 10, orderAmount: 1093 },
   { date: '2026-01-02', orderCount: 20, orderAmount: 2230 },
@@ -51,28 +51,28 @@ const defaultLineChartData: LineChartDataItem[] = [
   { date: '2026-01-15', orderCount: 40, orderAmount: 4293 }
 ]
 
-// 默认起始日期
+// 기본 시작 날짜
 const defaultStartDate = new Date(2026, 0, 1)
 
-// 日期选择器日期范围[start,end]
+// 날짜 선택기 날짜 범위[start,end]
 const datePickerRange = ref<Date[]>([])
-// 初始化日期选择器数据
+// 날짜 선택기 데이터 초기화
 const initDatePickerRange = () => {
   const start = defaultStartDate
   const end = new Date(start.getTime() + 1000 * 60 * 60 * 24 * 7)
   datePickerRange.value = [start, end] as Date[]
 }
-// 图表数据
+// 차트 데이터
 const lineChartData = ref<LineChartDataItem[]>([])
-// 图表数据加载状态
+// 차트 데이터 로딩 상태
 const loading = ref(false)
-// 获取图表数据
+// 차트 데이터 조회
 const getLineChartData = () => {
   loading.value = true
   setTimeout(() => {
     const start = datePickerRange.value[0]
     const end = datePickerRange.value[1]
-    // 获取在当前区间范围内的数据
+    // 현재 구간 범위 내 데이터 조회
     lineChartData.value = defaultLineChartData.filter(item => {
       const currDate = str2Date(item.date)
       return currDate!.getTime() >= start!.getTime() && currDate!.getTime() <= end!.getTime()
@@ -81,16 +81,16 @@ const getLineChartData = () => {
   }, 1000)
 }
 
-// 组件挂载成功初始化数据
+// 컴포넌트 마운트 성공 시 데이터 초기화
 onMounted(() => {
   initDatePickerRange()
   getLineChartData()
 })
 
-// 日期选择器选项
+// 날짜 선택기 옵션
 const shortcuts = [
   {
-    text: '最近一周',
+    text: '최근 일주일',
     value: () => {
       const start = defaultStartDate
       const end = new Date(start.getTime() + 1000 * 60 * 60 * 24 * 7)
@@ -98,7 +98,7 @@ const shortcuts = [
     }
   },
   {
-    text: '最近一月',
+    text: '최근 한 달',
     value: () => {
       const start = defaultStartDate
       const end = new Date(start.getTime() + 1000 * 60 * 60 * 24 * 30)
@@ -106,18 +106,18 @@ const shortcuts = [
     }
   }
 ]
-// 处理日期范围变化
+// 날짜 범위 변경 처리
 const handleDatePickerRangeChange = () => {
   getLineChartData()
 }
 
-// X 轴：日期（2026-01-01 到 2026-01-15）
-// 左 Y 轴：订单数量（0-100）
-// 右 Y 轴：订单金额（0-10000+）
-// 蓝色曲线：订单数量趋势（带填充）
-// 绿色曲线：订单金额趋势（带填充）
-// 鼠标悬停：显示交叉线和详细数据
-// vue-charts中的选项
+// X 축: 날짜(2026-01-01 ~ 2026-01-15)
+// 왼쪽 Y축: 주문 수량(0-100)
+// 오른쪽 Y축: 주문 금액(0-10000+)
+// 파란색 곡선: 주문 수 추이(영역 채움)
+// 초록색 곡선: 주문 금액 추이(영역 채움 포함)
+// 마우스 오버: 교차선과 상세 데이터 표시
+// vue-charts의 옵션
 const chartOption = computed(() => {
   const dates = lineChartData.value.map(item => item.date)
   const orderCounts = lineChartData.value.map(item => item.orderCount)
@@ -147,7 +147,7 @@ const chartOption = computed(() => {
     yAxis: [
       {
         type: 'value',
-        name: '订单数量',
+        name: '주문 수',
         position: 'left',
         axisLabel: {
           formatter: '{value}'
@@ -155,7 +155,7 @@ const chartOption = computed(() => {
       },
       {
         type: 'value',
-        name: '订单金额',
+        name: '주문 금액',
         position: 'right',
         axisLabel: {
           formatter: '{value}'
@@ -164,7 +164,7 @@ const chartOption = computed(() => {
     ],
     series: [
       {
-        name: '订单数量',
+        name: '주문 수',
         type: 'line',
         areaStyle: {},
         data: orderCounts,
@@ -174,7 +174,7 @@ const chartOption = computed(() => {
         }
       },
       {
-        name: '订单金额',
+        name: '주문 금액',
         type: 'line',
         yAxisIndex: 1,
         areaStyle: {},
@@ -195,25 +195,25 @@ const chartOption = computed(() => {
       <el-row :gutter="20">
         <el-col :span="6">
           <div class="out-border">
-            <div class="layout-title">Spring Boot项目学习</div>
+            <div class="layout-title">Spring Boot프로젝트 학습</div>
             <div class="color-main address-content">
-              <a href="https://www.macrozheng.com" target="_blank">mall学习教程</a>
+              <a href="https://www.macrozheng.com" target="_blank">mall학습 튜토리얼</a>
             </div>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="out-border">
-            <div class="layout-title">Spring Cloud项目学习</div>
+            <div class="layout-title">Spring Cloud프로젝트 학습</div>
             <div class="color-main address-content">
-              <a href="https://cloud.macrozheng.com" target="_blank">mall-swarm学习教程</a>
+              <a href="https://cloud.macrozheng.com" target="_blank">mall-swarm학습 튜토리얼</a>
             </div>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="out-border">
-            <div class="layout-title">点Star支持项目</div>
+            <div class="layout-title">Star를 눌러 프로젝트를 응원해 주세요</div>
             <div class="color-main address-content">
-              <a href="https://github.com/macrozheng/mall" target="_blank">mall项目</a>
+              <a href="https://github.com/macrozheng/mall" target="_blank">mall프로젝트</a>
             </div>
           </div>
         </el-col>
@@ -224,22 +224,22 @@ const chartOption = computed(() => {
         <el-col :span="6">
           <div class="total-frame">
             <img :src="img_home_order" class="total-icon">
-            <div class="total-title">今日订单总数</div>
+            <div class="total-title">오늘 총 주문 수</div>
             <div class="total-value">200</div>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="total-frame">
             <img :src="img_home_today_amount" class="total-icon">
-            <div class="total-title">今日销售总额</div>
-            <div class="total-value">￥5000.00</div>
+            <div class="total-title">오늘 총 매출액</div>
+            <div class="total-value">₩5000.00</div>
           </div>
         </el-col>
         <el-col :span="6">
           <div class="total-frame">
             <img :src="img_home_yesterday_amount" class="total-icon">
-            <div class="total-title">昨日销售总额</div>
-            <div class="total-value">￥5000.00</div>
+            <div class="total-title">어제 매출 합계</div>
+            <div class="total-value">₩5000.00</div>
           </div>
         </el-col>
       </el-row>
@@ -249,48 +249,28 @@ const chartOption = computed(() => {
         <img width="140px" height="140px"
           src="http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/banner/qrcode_for_macrozheng_258.jpg">
       </div>
-      <div style="text-align: center">扫码关注作者<span class="color-main">公众号</span></div>
-      <div style="text-align: center;margin-top: 5px">获取更多技术干货</div>
+      <div style="text-align: center">QR 코드를 스캔해 저자 팔로우<span class="color-main">공식 계정</span></div>
+      <div style="text-align: center;margin-top: 5px">더 많은 기술 노하우 보기</div>
     </el-card>
     <div class="un-handle-layout">
-      <div class="layout-title">待处理事务</div>
+      <div class="layout-title">처리 대기 업무</div>
       <div class="un-handle-content">
         <el-row :gutter="20">
           <el-col :span="8">
             <div class="un-handle-item">
-              <span class="font-medium">待付款订单</span>
+              <span class="font-medium">결제 대기 주문</span>
               <span style="float: right" class="color-danger">(10)</span>
             </div>
           </el-col>
           <el-col :span="8">
             <div class="un-handle-item">
-              <span class="font-medium">已完成订单</span>
+              <span class="font-medium">완료된 주문</span>
               <span style="float: right" class="color-danger">(10)</span>
             </div>
           </el-col>
           <el-col :span="8">
             <div class="un-handle-item">
-              <span class="font-medium">待确认收货订单</span>
-              <span style="float: right" class="color-danger">(10)</span>
-            </div>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <div class="un-handle-item">
-              <span class="font-medium">待发货订单</span>
-              <span style="float: right" class="color-danger">(10)</span>
-            </div>
-          </el-col>
-          <el-col :span="8">
-            <div class="un-handle-item">
-              <span class="font-medium">新缺货登记</span>
-              <span style="float: right" class="color-danger">(10)</span>
-            </div>
-          </el-col>
-          <el-col :span="8">
-            <div class="un-handle-item">
-              <span class="font-medium">待处理退款申请</span>
+              <span class="font-medium">수령 확인 대기 주문</span>
               <span style="float: right" class="color-danger">(10)</span>
             </div>
           </el-col>
@@ -298,19 +278,39 @@ const chartOption = computed(() => {
         <el-row :gutter="20">
           <el-col :span="8">
             <div class="un-handle-item">
-              <span class="font-medium">已发货订单</span>
+              <span class="font-medium">배송 대기 주문</span>
               <span style="float: right" class="color-danger">(10)</span>
             </div>
           </el-col>
           <el-col :span="8">
             <div class="un-handle-item">
-              <span class="font-medium">待处理退货订单</span>
+              <span class="font-medium">신규 재입고 알림 신청</span>
               <span style="float: right" class="color-danger">(10)</span>
             </div>
           </el-col>
           <el-col :span="8">
             <div class="un-handle-item">
-              <span class="font-medium">广告位即将到期</span>
+              <span class="font-medium">처리 대기 환불 신청</span>
+              <span style="float: right" class="color-danger">(10)</span>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <div class="un-handle-item">
+              <span class="font-medium">발송 완료 주문</span>
+              <span style="float: right" class="color-danger">(10)</span>
+            </div>
+          </el-col>
+          <el-col :span="8">
+            <div class="un-handle-item">
+              <span class="font-medium">처리 대기 반품 주문</span>
+              <span style="float: right" class="color-danger">(10)</span>
+            </div>
+          </el-col>
+          <el-col :span="8">
+            <div class="un-handle-item">
+              <span class="font-medium">광고 위치 곧 만료</span>
               <span style="float: right" class="color-danger">(10)</span>
             </div>
           </el-col>
@@ -321,7 +321,7 @@ const chartOption = computed(() => {
       <el-row :gutter="20">
         <el-col :span="12">
           <div class="out-border">
-            <div class="layout-title">商品总览</div>
+            <div class="layout-title">상품 종합 현황</div>
             <div style="padding: 40px">
               <el-row>
                 <el-col :span="6" class="color-danger overview-item-value">100</el-col>
@@ -330,17 +330,17 @@ const chartOption = computed(() => {
                 <el-col :span="6" class="color-danger overview-item-value">500</el-col>
               </el-row>
               <el-row class="font-medium">
-                <el-col :span="6" class="overview-item-title">已下架</el-col>
-                <el-col :span="6" class="overview-item-title">已上架</el-col>
-                <el-col :span="6" class="overview-item-title">库存紧张</el-col>
-                <el-col :span="6" class="overview-item-title">全部商品</el-col>
+                <el-col :span="6" class="overview-item-title">판매 중지</el-col>
+                <el-col :span="6" class="overview-item-title">판매 중</el-col>
+                <el-col :span="6" class="overview-item-title">재고 부족 임박</el-col>
+                <el-col :span="6" class="overview-item-title">전체 상품</el-col>
               </el-row>
             </div>
           </div>
         </el-col>
         <el-col :span="12">
           <div class="out-border">
-            <div class="layout-title">用户总览</div>
+            <div class="layout-title">사용자 현황</div>
             <div style="padding: 40px">
               <el-row>
                 <el-col :span="6" class="color-danger overview-item-value">100</el-col>
@@ -349,10 +349,10 @@ const chartOption = computed(() => {
                 <el-col :span="6" class="color-danger overview-item-value">5000</el-col>
               </el-row>
               <el-row class="font-medium">
-                <el-col :span="6" class="overview-item-title">今日新增</el-col>
-                <el-col :span="6" class="overview-item-title">昨日新增</el-col>
-                <el-col :span="6" class="overview-item-title">本月新增</el-col>
-                <el-col :span="6" class="overview-item-title">会员总数</el-col>
+                <el-col :span="6" class="overview-item-title">오늘 신규</el-col>
+                <el-col :span="6" class="overview-item-title">어제 신규</el-col>
+                <el-col :span="6" class="overview-item-title">이번 달 신규</el-col>
+                <el-col :span="6" class="overview-item-title">전체 회원 수</el-col>
               </el-row>
             </div>
           </div>
@@ -360,40 +360,40 @@ const chartOption = computed(() => {
       </el-row>
     </div>
     <div class="statistics-layout">
-      <div class="layout-title">订单统计</div>
+      <div class="layout-title">주문 통계</div>
       <el-row>
         <el-col :span="4">
           <div style="padding: 20px">
             <div>
-              <div style="color: #909399;font-size: 14px">本月订单总数</div>
+              <div style="color: #909399;font-size: 14px">이번 달 주문 총수</div>
               <div style="color: #606266;font-size: 24px;padding: 10px 0">10000</div>
               <div>
                 <span class="color-success" style="font-size: 14px">+10%</span>
-                <span style="color: #C0C4CC;font-size: 14px">同比上月</span>
+                <span style="color: #C0C4CC;font-size: 14px">전월 대비</span>
               </div>
             </div>
             <div style="margin-top: 20px;">
-              <div style="color: #909399;font-size: 14px">本周订单总数</div>
+              <div style="color: #909399;font-size: 14px">이번 주 주문 총수</div>
               <div style="color: #606266;font-size: 24px;padding: 10px 0">1000</div>
               <div>
                 <span class="color-danger" style="font-size: 14px">-10%</span>
-                <span style="color: #C0C4CC;font-size: 14px">同比上周</span>
+                <span style="color: #C0C4CC;font-size: 14px">전주 대비</span>
               </div>
             </div>
             <div style="margin-top: 20px;">
-              <div style="color: #909399;font-size: 14px">本月销售总额</div>
+              <div style="color: #909399;font-size: 14px">이번 달 매출 합계</div>
               <div style="color: #606266;font-size: 24px;padding: 10px 0">100000</div>
               <div>
                 <span class="color-success" style="font-size: 14px">+10%</span>
-                <span style="color: #C0C4CC;font-size: 14px">同比上月</span>
+                <span style="color: #C0C4CC;font-size: 14px">전월 대비</span>
               </div>
             </div>
             <div style="margin-top: 20px;">
-              <div style="color: #909399;font-size: 14px">本周销售总额</div>
+              <div style="color: #909399;font-size: 14px">이번 주 매출 합계</div>
               <div style="color: #606266;font-size: 24px;padding: 10px 0">50000</div>
               <div>
                 <span class="color-danger" style="font-size: 14px">-10%</span>
-                <span style="color: #C0C4CC;font-size: 14px">同比上周</span>
+                <span style="color: #C0C4CC;font-size: 14px">전주 대비</span>
               </div>
             </div>
           </div>
@@ -401,7 +401,7 @@ const chartOption = computed(() => {
         <el-col :span="20">
           <div style="padding: 10px;border-left:1px solid #DCDFE6">
             <el-date-picker style="float: right;z-index: 1" size="small" v-model="datePickerRange" type="daterange"
-              align="right" unlink-panels range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期"
+              align="right" unlink-panels range-separator="~" start-placeholder="시작일" end-placeholder="종료 날짜"
               :shortcuts="shortcuts" @change="handleDatePickerRangeChange">
             </el-date-picker>
             <div style="height: 400px;">

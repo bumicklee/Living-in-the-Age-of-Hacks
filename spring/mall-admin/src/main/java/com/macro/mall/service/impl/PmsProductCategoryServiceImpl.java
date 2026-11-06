@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 商品分类管理Service实现类
+ * 상품 카테고리 관리 Service 구현 클래스
  * Created by macro on 2018/4/26.
  */
 @Service
@@ -39,10 +39,10 @@ public class PmsProductCategoryServiceImpl implements PmsProductCategoryService 
         PmsProductCategory productCategory = new PmsProductCategory();
         productCategory.setProductCount(0);
         BeanUtils.copyProperties(pmsProductCategoryParam, productCategory);
-        //没有父分类时为一级分类
+        //상위 카테고리가 없으면 1차 카테고리
         setCategoryLevel(productCategory);
         int count = productCategoryMapper.insertSelective(productCategory);
-        //创建筛选属性关联
+        //필터 속성 연관 생성
         List<Long> productAttributeIdList = pmsProductCategoryParam.getProductAttributeIdList();
         if(!CollUtil.isEmpty(productAttributeIdList)){
             insertRelationList(productCategory.getId(), productAttributeIdList);
@@ -51,9 +51,9 @@ public class PmsProductCategoryServiceImpl implements PmsProductCategoryService 
     }
 
     /**
-     * 批量插入商品分类与筛选属性关系表
-     * @param productCategoryId 商品分类id
-     * @param productAttributeIdList 相关商品筛选属性id集合
+     * 상품 카테고리와 필터 속성 관계 테이블 일괄 삽입
+     * @param productCategoryId 상품 카테고리id
+     * @param productAttributeIdList 관련 상품 필터 속성 id 집합
      */
     private void insertRelationList(Long productCategoryId, List<Long> productAttributeIdList) {
         List<PmsProductCategoryAttributeRelation> relationList = new ArrayList<>();
@@ -72,13 +72,13 @@ public class PmsProductCategoryServiceImpl implements PmsProductCategoryService 
         productCategory.setId(id);
         BeanUtils.copyProperties(pmsProductCategoryParam, productCategory);
         setCategoryLevel(productCategory);
-        //更新商品分类时要更新商品中的名称
+        //상품 카테고리를 업데이트할 때 상품의 이름도 함께 업데이트해야 함
         PmsProduct product = new PmsProduct();
         product.setProductCategoryName(productCategory.getName());
         PmsProductExample example = new PmsProductExample();
         example.createCriteria().andProductCategoryIdEqualTo(id);
         productMapper.updateByExampleSelective(product,example);
-        //同时更新筛选属性的信息
+        //필터 속성 정보도 함께 갱신
         if(!CollUtil.isEmpty(pmsProductCategoryParam.getProductAttributeIdList())){
             PmsProductCategoryAttributeRelationExample relationExample = new PmsProductCategoryAttributeRelationExample();
             relationExample.createCriteria().andProductCategoryIdEqualTo(id);
@@ -135,14 +135,14 @@ public class PmsProductCategoryServiceImpl implements PmsProductCategoryService 
     }
 
     /**
-     * 根据分类的parentId设置分类的level
+     * 카테고리의 parentId 기준으로 카테고리 설정level
      */
     private void setCategoryLevel(PmsProductCategory productCategory) {
-        //没有父分类时为一级分类
+        //상위 카테고리가 없으면 1차 카테고리
         if (productCategory.getParentId() == 0) {
             productCategory.setLevel(0);
         } else {
-            //有父分类时选择根据父分类level设置
+            //상위 카테고리가 있으면 상위 카테고리 level 기준으로 설정
             PmsProductCategory parentCategory = productCategoryMapper.selectByPrimaryKey(productCategory.getParentId());
             if (parentCategory != null) {
                 productCategory.setLevel(parentCategory.getLevel() + 1);

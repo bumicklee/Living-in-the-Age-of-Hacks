@@ -16,17 +16,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 订单退货申请管理Controller
+ * 주문 반품 신청 관리Controller
  * Created by macro on 2018/10/18.
  */
 @Controller
-@Tag(name = "OmsOrderReturnApplyController", description = "订单退货申请管理")
+@Tag(name = "OmsOrderReturnApplyController", description = "주문 반품 신청 관리")
 @RequestMapping("/returnApply")
 public class OmsOrderReturnApplyController {
     @Autowired
     private OmsOrderReturnApplyService returnApplyService;
 
-    @Operation(summary = "分页查询退货申请")
+    @Operation(summary = "반품 신청 페이지 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<OmsOrderReturnApply>> list(OmsReturnApplyQueryParam queryParam,
@@ -36,7 +36,7 @@ public class OmsOrderReturnApplyController {
         return CommonResult.success(CommonPage.restPage(returnApplyList));
     }
 
-    @Operation(summary = "批量删除退货申请")
+    @Operation(summary = "반품 신청 일괄 삭제")
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(@RequestParam("ids") List<Long> ids) {
@@ -47,7 +47,7 @@ public class OmsOrderReturnApplyController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "获取退货申请详情")
+    @Operation(summary = "반품 신청 상세 조회")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult getItem(@PathVariable Long id) {
@@ -55,7 +55,7 @@ public class OmsOrderReturnApplyController {
         return CommonResult.success(result);
     }
 
-    @Operation(summary = "修改退货申请状态")
+    @Operation(summary = "반품 신청 상태 수정")
     @RequestMapping(value = "/update/status/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult updateStatus(@PathVariable Long id, @RequestBody OmsUpdateStatusParam statusParam) {

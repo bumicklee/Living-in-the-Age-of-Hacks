@@ -11,88 +11,88 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 后台用户管理Service
+ * 관리자 사용자 관리Service
  * Created by macro on 2018/4/26.
  */
 public interface UmsAdminService {
     /**
-     * 根据用户名获取后台管理员
+     * 사용자 이름으로 관리자 조회
      */
     UmsAdmin getAdminByUsername(String username);
 
     /**
-     * 注册功能
+     * 회원가입 기능
      */
     UmsAdmin register(UmsAdminParam umsAdminParam);
 
     /**
-     * 登录功能
-     * @param username 用户名
-     * @param password 密码
-     * @return 生成的JWT的token
+     * 로그인 기능
+     * @param username 사용자 이름
+     * @param password 비밀번호
+     * @return 생성된 JWT의token
      */
     String login(String username,String password);
 
     /**
-     * 刷新token的功能
-     * @param oldToken 旧的token
+     * token 갱신 기능
+     * @param oldToken 기존token
      */
     String refreshToken(String oldToken);
 
     /**
-     * 根据用户id获取用户
+     * 사용자 id로 사용자 조회
      */
     UmsAdmin getItem(Long id);
 
     /**
-     * 根据用户名或昵称分页查询用户
+     * 사용자 이름 또는 닉네임으로 사용자 페이징 조회
      */
     List<UmsAdmin> list(String keyword, Integer pageSize, Integer pageNum);
 
     /**
-     * 修改指定用户信息
+     * 지정한 사용자 정보 수정
      */
     int update(Long id, UmsAdmin admin);
 
     /**
-     * 删除指定用户
+     * 지정한 사용자 삭제
      */
     int delete(Long id);
 
     /**
-     * 修改用户角色关系
+     * 사용자 역할 관계 수정
      */
     @Transactional
     int updateRole(Long adminId, List<Long> roleIds);
 
     /**
-     * 获取用户对应角色
+     * 사용자에 해당하는 역할 조회
      */
     List<UmsRole> getRoleList(Long adminId);
 
     /**
-     * 获取指定用户的可访问资源
+     * 지정한 사용자가 접근 가능한 리소스 조회
      */
     List<UmsResource> getResourceList(Long adminId);
 
     /**
-     * 修改密码
+     * 비밀번호 변경
      */
     int updatePassword(UpdateAdminPasswordParam updatePasswordParam);
 
     /**
-     * 获取用户信息
+     * 사용자 정보 조회
      */
     UserDetails loadUserByUsername(String username);
 
     /**
-     * 获取缓存服务
+     * 캐시 서비스 조회
      */
     UmsAdminCacheService getCacheService();
 
     /**
-     * 登出功能
-     * @param username 用户名
+     * 로그아웃 기능
+     * @param username 사용자 이름
      */
     void logout(String username);
 }

@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * 自定义未登录或者token失效时的返回结果
+ * 미로그인 또는 token 만료 시 사용자 정의 반환 결과
  * Created by macro on 2018/5/14.
  */
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {

@@ -8,12 +8,12 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * 后台菜单节点封装
+ * 관리자 메뉴 노드 래핑
  * Created by macro on 2020/2/4.
  */
 @Getter
 @Setter
 public class UmsMenuNode extends UmsMenu {
-    @Schema(title =  "子级菜单")
+    @Schema(title =  "하위 메뉴")
     private List<UmsMenuNode> children;
 }

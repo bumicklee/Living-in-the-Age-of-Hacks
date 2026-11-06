@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * 优惠券领取记录管理Service实现类
+ * 쿠폰 수령 기록 관리 Service 구현 클래스
  * Created by macro on 2018/11/6.
  */
 @Service

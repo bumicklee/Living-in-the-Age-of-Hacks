@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Date;
 
 /**
- * 会员品牌关注
+ * 회원 브랜드 팔로우
  * Created by macro on 2018/8/2.
  */
 @Getter

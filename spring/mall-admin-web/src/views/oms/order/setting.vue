@@ -5,7 +5,7 @@ import { getOrderSettingByIdAPI, orderSettingUpdateByIdAPI } from '@/apis/orderS
 import type { FormInstance, FormRules } from 'element-plus'
 import type { OmsOrderSetting } from '@/types/orderSetting'
 
-// 默认订单设置数据
+// 기본 주문 설정 데이터
 const defaultOrderSetting = {
   id: 1,
   flashOrderOvertime: 0,
@@ -14,33 +14,33 @@ const defaultOrderSetting = {
   finishOvertime: 0,
   commentOvertime: 0
 }
-// 订单设置数据
+// 주문 설정 데이터
 const orderSetting = ref<OmsOrderSetting>(Object.assign({}, defaultOrderSetting))
-// 获取详情
+// 상세 조회
 const getDetail = async () => {
   const response = await getOrderSettingByIdAPI(orderSetting.value.id)
   orderSetting.value = response.data
 }
 
-// 组件挂载后获取详情
+// 컴포넌트 마운트 후 상세 조회
 onMounted(() => {
   getDetail()
 })
 
-// 订单设置表单引用
+// 주문 설정 폼 참조
 const orderSettingForm = ref<FormInstance>()
-// 时间验证规则
+// 시간 검증 규칙
 const checkTime = (rule: unknown, value: string, callback: (error?: Error) => void) => {
   if (!value) {
-    return callback(new Error('时间不能为空'))
+    return callback(new Error('시간은 비워 둘 수 없습니다'))
   }
   const intValue = parseInt(value)
   if (!Number.isInteger(intValue)) {
-    return callback(new Error('请输入数字值'))
+    return callback(new Error('숫자 값을 입력하세요'))
   }
   callback()
 }
-// 表单验证规则
+// 폼 검증 규칙
 const rules = ref<FormRules>({
   flashOrderOvertime: { validator: checkTime, trigger: 'blur' },
   normalOrderOvertime: { validator: checkTime, trigger: 'blur' },
@@ -49,25 +49,25 @@ const rules = ref<FormRules>({
   commentOvertime: { validator: checkTime, trigger: 'blur' }
 })
 
-// 确认提交表单
+// 폼 제출 확인
 const confirm = async () => {
   if (!orderSettingForm.value) return
   const valid = await orderSettingForm.value.validate()
   if (valid) {
-    await ElMessageBox.confirm('是否要提交修改?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('수정 내용을 제출할까요??', '안내', {
+      confirmButtonText: '확인',
+      cancelButtonText: '취소',
       type: 'warning'
     })
     await orderSettingUpdateByIdAPI(1, orderSetting.value)
     ElMessage({
       type: 'success',
-      message: '提交成功!',
+      message: '제출 성공!',
       duration: 1000
     })
   } else {
     ElMessage({
-      message: '提交参数不合法',
+      message: '제출한 파라미터가 올바르지 않습니다',
       type: 'warning'
     })
     return false
@@ -78,38 +78,38 @@ const confirm = async () => {
 <template>
   <el-card class="form-container" shadow="never">
     <el-form :model="orderSetting" ref="orderSettingForm" :rules="rules" label-width="150px">
-      <el-form-item label="秒杀订单超过：" prop="flashOrderOvertime">
+      <el-form-item label="타임 세일 주문 초과:" prop="flashOrderOvertime">
         <el-input v-model="orderSetting.flashOrderOvertime" class="input-width">
-          <template #append>分</template>
+          <template #append>분</template>
         </el-input>
-        <span class="note-margin">未付款，订单自动关闭</span>
+        <span class="note-margin">미결제, 주문 자동 취소</span>
       </el-form-item>
-      <el-form-item label="正常订单超过：" prop="normalOrderOvertime">
+      <el-form-item label="정상 주문 초과:" prop="normalOrderOvertime">
         <el-input v-model="orderSetting.normalOrderOvertime" class="input-width">
-          <template #append>分</template>
+          <template #append>분</template>
         </el-input>
-        <span class="note-margin">未付款，订单自动关闭</span>
+        <span class="note-margin">미결제, 주문 자동 취소</span>
       </el-form-item>
-      <el-form-item label="发货超过：" prop="confirmOvertime">
+      <el-form-item label="발송 후 경과:" prop="confirmOvertime">
         <el-input v-model="orderSetting.confirmOvertime" class="input-width">
-          <template #append>天</template>
+          <template #append>일</template>
         </el-input>
-        <span class="note-margin">未收货，订单自动完成</span>
+        <span class="note-margin">미수령, 주문 자동 완료</span>
       </el-form-item>
-      <el-form-item label="订单完成超过：" prop="finishOvertime">
+      <el-form-item label="주문 완료 후 경과:" prop="finishOvertime">
         <el-input v-model="orderSetting.finishOvertime" class="input-width">
-          <template #append>天</template>
+          <template #append>일</template>
         </el-input>
-        <span class="note-margin">自动结束交易，不能申请售后</span>
+        <span class="note-margin">자동 거래 종료, A/S 신청 불가</span>
       </el-form-item>
-      <el-form-item label="订单完成超过：" prop="commentOvertime">
+      <el-form-item label="주문 완료 후 경과:" prop="commentOvertime">
         <el-input v-model="orderSetting.commentOvertime" class="input-width">
-          <template #append>天</template>
+          <template #append>일</template>
         </el-input>
-        <span class="note-margin">自动五星好评</span>
+        <span class="note-margin">자동 별 5개 리뷰</span>
       </el-form-item>
       <el-form-item>
-        <el-button @click="confirm()" type="primary">提交</el-button>
+        <el-button @click="confirm()" type="primary">제출</el-button>
       </el-form-item>
     </el-form>
   </el-card>

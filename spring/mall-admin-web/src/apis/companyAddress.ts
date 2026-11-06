@@ -2,7 +2,7 @@ import type { OmsCompanyAddress } from '@/types/companyAddress'
 import http from '@/utils/http'
 
 /**
- * 获取所有收货地址
+ * 전체 배송지 조회
  */
 export function getCompanyAddressListAPI() {
   return http<OmsCompanyAddress[]>({

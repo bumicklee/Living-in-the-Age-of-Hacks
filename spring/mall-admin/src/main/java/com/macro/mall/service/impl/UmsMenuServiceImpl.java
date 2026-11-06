@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 后台菜单管理Service实现类
+ * 관리자 메뉴 관리 Service 구현 클래스
  * Created by macro on 2020/2/2.
  */
 @Service
@@ -30,14 +30,14 @@ public class UmsMenuServiceImpl implements UmsMenuService {
     }
 
     /**
-     * 修改菜单层级
+     * 메뉴 계층 수정
      */
     private void updateLevel(UmsMenu umsMenu) {
         if (umsMenu.getParentId() == 0) {
-            //没有父菜单时为一级菜单
+            //상위 메뉴가 없으면 1차 메뉴
             umsMenu.setLevel(0);
         } else {
-            //有父菜单时选择根据父菜单level设置
+            //상위 메뉴가 있으면 상위 메뉴 level 기준으로 설정
             UmsMenu parentMenu = menuMapper.selectByPrimaryKey(umsMenu.getParentId());
             if (parentMenu != null) {
                 umsMenu.setLevel(parentMenu.getLevel() + 1);
@@ -92,7 +92,7 @@ public class UmsMenuServiceImpl implements UmsMenuService {
     }
 
     /**
-     * 将UmsMenu转化为UmsMenuNode并设置children属性
+     * UmsMenu를 UmsMenuNode로 변환하고 children 속성 설정
      */
     private UmsMenuNode covertMenuNode(UmsMenu menu, List<UmsMenu> menuList) {
         UmsMenuNode node = new UmsMenuNode();

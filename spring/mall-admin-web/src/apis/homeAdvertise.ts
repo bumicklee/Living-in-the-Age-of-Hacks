@@ -3,7 +3,7 @@ import type { HomeAdvertiseQueryParam, SmsHomeAdvertise } from '@/types/homeAdve
 import http from '@/utils/http'
 
 /**
- * 分页查询首页广告
+ * 홈 광고 페이지 조회
  */
 export function getHomeAdvertiseListAPI(params: HomeAdvertiseQueryParam) {
   return http<CommonPage<SmsHomeAdvertise>>({
@@ -14,7 +14,7 @@ export function getHomeAdvertiseListAPI(params: HomeAdvertiseQueryParam) {
 }
 
 /**
- * 修改上下线状态
+ * 판매/판매 중지 상태 수정
  */
 export function homeAdvertiseUpdateStatusAPI(params: { id: number; status: number }) {
   return http({
@@ -25,7 +25,7 @@ export function homeAdvertiseUpdateStatusAPI(params: { id: number; status: numbe
 }
 
 /**
- * 批量删除广告
+ * 광고 일괄 삭제
  */
 export function deleteHomeAdvertiseAPI(params: { ids: string }) {
   return http({
@@ -36,7 +36,7 @@ export function deleteHomeAdvertiseAPI(params: { ids: string }) {
 }
 
 /**
- * 添加广告
+ * 광고 추가
  */
 export function homeAdvertiseCreateAPI(data: SmsHomeAdvertise) {
   return http({
@@ -47,7 +47,7 @@ export function homeAdvertiseCreateAPI(data: SmsHomeAdvertise) {
 }
 
 /**
- * 根据ID获取广告详情
+ * ID로 광고 상세 조회
  */
 export function getHomeAdvertiseByIdAPI(id: number) {
   return http({
@@ -57,7 +57,7 @@ export function getHomeAdvertiseByIdAPI(id: number) {
 }
 
 /**
- * 根据ID修改广告
+ * ID로 광고 수정
  */
 export function homeAdvertiseUpdateAPI(id: number, data: SmsHomeAdvertise) {
   return http({

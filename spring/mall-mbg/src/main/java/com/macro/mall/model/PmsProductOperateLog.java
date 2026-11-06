@@ -18,7 +18,7 @@ public class PmsProductOperateLog implements Serializable {
 
     private BigDecimal salePriceNew;
 
-    @Schema(title = "赠送的积分")
+    @Schema(title = "지급된 포인트")
     private Integer giftPointOld;
 
     private Integer giftPointNew;
@@ -27,7 +27,7 @@ public class PmsProductOperateLog implements Serializable {
 
     private Integer usePointLimitNew;
 
-    @Schema(title = "操作人")
+    @Schema(title = "작업자")
     private String operateMan;
 
     private Date createTime;

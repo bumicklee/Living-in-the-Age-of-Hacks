@@ -1,102 +1,102 @@
 import type { PageParam } from './common'
 import type { OmsCompanyAddress } from './companyAddress'
 
-/** 订单退货申请 */
+/** 주문 반품 신청 */
 export type OmsOrderReturnApply = {
-  /** 主键ID */
+  /** 기본 키ID */
   id: number
-  /** 订单id */
+  /** 주문id */
   orderId: number
-  /** 收货地址表id */
+  /** 배송지 테이블id */
   companyAddressId: number
-  /** 退货商品id */
+  /** 반품 상품id */
   productId: number
-  /** 订单编号 */
+  /** 주문 번호 */
   orderSn: string
-  /** 申请时间 */
+  /** 신청 시간 */
   createTime: string
-  /** 会员用户名 */
+  /** 회원 사용자 이름 */
   memberUsername: string
-  /** 退款金额 */
+  /** 환불 금액 */
   returnAmount: number
-  /** 退货人姓名 */
+  /** 반품인 이름 */
   returnName: string
-  /** 退货人电话 */
+  /** 반품인 전화번호 */
   returnPhone: string
-  /** 申请状态：0->待处理；1->退货中；2->已完成；3->已拒绝 */
+  /** 신청 상태:0->처리 대기;1->반품 중;2->완료;3->거절됨 */
   status: number
-  /** 处理时间 */
+  /** 처리 시간 */
   handleTime: string
-  /** 商品图片 */
+  /** 상품 이미지 */
   productPic: string
-  /** 商品名称 */
+  /** 상품명 */
   productName: string
-  /** 商品品牌 */
+  /** 상품 브랜드 */
   productBrand: string
-  /** 商品销售属性：颜色：红色；尺码：xl; */
+  /** 상품 판매 속성: 색상: 레드; 사이즈:xl; */
   productAttr: string
-  /** 退货数量 */
+  /** 반품 수량 */
   productCount: number
-  /** 商品单价 */
+  /** 상품 단가 */
   productPrice: number
-  /** 商品实际支付单价 */
+  /** 상품 실결제 단가 */
   productRealPrice: number
-  /** 原因 */
+  /** 사유 */
   reason: string
-  /** 描述 */
+  /** 설명 */
   description: string
-  /** 凭证图片，以逗号隔开 */
+  /** 증빙 이미지, 쉼표로 구분 */
   proofPics: string
-  /** 处理备注 */
+  /** 메모 처리 */
   handleNote: string
-  /** 处理人员 */
+  /** 처리 담당자 */
   handleMan: string
-  /** 收货人 */
+  /** 수령인 */
   receiveMan: string
-  /** 收货时间 */
+  /** 수령 시간 */
   receiveTime: string
-  /** 收货备注 */
+  /** 배송 메모 */
   receiveNote: string
 }
 
-/** 退货申请查询参数 */
+/** 반품 신청 조회 파라미터 */
 export type ReturnApplyQueryParam = PageParam & {
-  /** 服务单号 */
+  /** 서비스 요청 번호 */
   id?: number
-  /** 收货人姓名/号码 */
+  /** 수령인 이름/번호 */
   receiverKeyword?: string
-  /** 申请状态：0->待处理；1->退货中；2->已完成；3->已拒绝 */
+  /** 신청 상태:0->처리 대기;1->반품 중;2->완료;3->거절됨 */
   status?: number
-  /** 申请时间 */
+  /** 신청 시간 */
   createTime?: string
-  /** 处理人员 */
+  /** 처리 담당자 */
   handleMan?: string
-  /** 处理时间 */
+  /** 처리 시간 */
   handleTime?: string
 }
 
-/** 订单退货申请结果封装 */
+/** 주문 반품 신청 결과 래퍼 */
 export type OmsOrderReturnApplyResult = OmsOrderReturnApply & {
-  /** 公司收货地址 */
+  /** 회사 수령지 */
   companyAddress: OmsCompanyAddress
 }
 
-/** 退货申请状态更新参数 */
+/** 반품 신청 상태 업데이트 파라미터 */
 export type OmsUpdateStatusParam = {
-  /** 服务单号 */
+  /** 서비스 요청 번호 */
   id: number
-  /** 收货地址关联id */
+  /** 배송지 연관id */
   companyAddressId: number
-  /** 确认退款金额 */
+  /** 환불 금액 확인 */
   returnAmount: number
-  /** 处理备注 */
+  /** 메모 처리 */
   handleNote: string
-  /** 处理人 */
+  /** 처리자 */
   handleMan: string
-  /** 收货备注 */
+  /** 배송 메모 */
   receiveNote: string
-  /** 收货人 */
+  /** 수령인 */
   receiveMan: string
-  /** 申请状态：1->退货中；2->已完成；3->已拒绝 */
+  /** 신청 상태:1->반품 중;2->완료;3->거절됨 */
   status: number
 }

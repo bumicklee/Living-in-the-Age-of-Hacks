@@ -10,10 +10,10 @@ public class SmsCouponProductCategoryRelation implements Serializable {
 
     private Long productCategoryId;
 
-    @Schema(title = "产品分类名称")
+    @Schema(title = "제품 카테고리 이름")
     private String productCategoryName;
 
-    @Schema(title = "父分类名称")
+    @Schema(title = "상위 카테고리 이름")
     private String parentCategoryName;
 
     private static final long serialVersionUID = 1L;

@@ -4,7 +4,7 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 /**
- * 状态约束校验器
+ * 상태 제약 검증기
  * Created by macro on 2018/4/26.
  */
 public class FlagValidatorClass implements ConstraintValidator<FlagValidator,Integer> {
@@ -18,7 +18,7 @@ public class FlagValidatorClass implements ConstraintValidator<FlagValidator,Int
     public boolean isValid(Integer value, ConstraintValidatorContext constraintValidatorContext) {
         boolean isValid = false;
         if(value==null){
-            //当状态为空时使用默认值
+            //상태가 비어 있으면 기본값 사용
             return true;
         }
         for(int i=0;i<values.length;i++){

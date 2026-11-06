@@ -14,7 +14,7 @@ public class CmsPrefrenceArea implements Serializable {
 
     private Integer showStatus;
 
-    @Schema(title = "展示图片")
+    @Schema(title = "표시 이미지")
     private byte[] pic;
 
     private static final long serialVersionUID = 1L;

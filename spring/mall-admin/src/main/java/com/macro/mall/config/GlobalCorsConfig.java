@@ -7,25 +7,25 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 /**
- * 全局跨域配置
+ * 전역 교차 출처 설정
  * Created by macro on 2019/7/27.
  */
 @Configuration
 public class GlobalCorsConfig {
 
     /**
-     * 允许跨域调用的过滤器
+     * 교차 출처 호출을 허용하는 필터
      */
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        //允许所有域名进行跨域调用
+        //모든 도메인의 교차 출처 호출 허용
         config.addAllowedOriginPattern("*");
-        //允许跨越发送cookie
+        //교차 출처 전송 허용cookie
         config.setAllowCredentials(true);
-        //放行全部原始头信息
+        //모든 원본 헤더 정보 통과
         config.addAllowedHeader("*");
-        //允许所有请求方法跨域调用
+        //모든 요청 메서드의 교차 출처 호출 허용
         config.addAllowedMethod("*");
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

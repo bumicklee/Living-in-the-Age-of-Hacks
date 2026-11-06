@@ -5,22 +5,22 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class SmsFlashPromotionSession implements Serializable {
-    @Schema(title = "编号")
+    @Schema(title = "번호")
     private Long id;
 
-    @Schema(title = "场次名称")
+    @Schema(title = "회차명")
     private String name;
 
-    @Schema(title = "每日开始时间")
+    @Schema(title = "일일 시작 시간")
     private Date startTime;
 
-    @Schema(title = "每日结束时间")
+    @Schema(title = "일일 종료 시간")
     private Date endTime;
 
-    @Schema(title = "启用状态：0->不启用；1->启用")
+    @Schema(title = "사용 상태:0->사용 안 함;1->사용")
     private Integer status;
 
-    @Schema(title = "创建时间")
+    @Schema(title = "생성 시간")
     private Date createTime;
 
     private static final long serialVersionUID = 1L;

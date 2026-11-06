@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * RestTemplate相关配置
+ * RestTemplate관련 설정
  * Created by macro on 2018/4/26.
  */
 @Configuration

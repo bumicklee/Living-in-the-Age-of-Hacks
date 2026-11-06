@@ -14,17 +14,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 限时购和商品关系管理Controller
+ * 타임 세일-상품 관계 관리Controller
  * Created by macro on 2018/11/16.
  */
 @Controller
-@Tag(name = "SmsFlashPromotionProductRelationController", description = "限时购和商品关系管理")
+@Tag(name = "SmsFlashPromotionProductRelationController", description = "타임 세일-상품 관계 관리")
 @RequestMapping("/flashProductRelation")
 public class SmsFlashPromotionProductRelationController {
     @Autowired
     private SmsFlashPromotionProductRelationService relationService;
 
-    @Operation(summary = "批量选择商品添加关联")
+    @Operation(summary = "상품을 일괄 선택해 연관 상품 추가")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult create(@RequestBody List<SmsFlashPromotionProductRelation> relationList) {
@@ -35,7 +35,7 @@ public class SmsFlashPromotionProductRelationController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "修改关联信息")
+    @Operation(summary = "연관 정보 수정")
     @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult update(@PathVariable Long id, @RequestBody SmsFlashPromotionProductRelation relation) {
@@ -46,7 +46,7 @@ public class SmsFlashPromotionProductRelationController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "删除关联")
+    @Operation(summary = "연관 삭제")
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.POST)
     @ResponseBody
     public CommonResult delete(@PathVariable Long id) {
@@ -57,7 +57,7 @@ public class SmsFlashPromotionProductRelationController {
         return CommonResult.failed();
     }
 
-    @Operation(summary = "获取关联商品促销信息")
+    @Operation(summary = "연관 상품 프로모션 정보 조회")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<SmsFlashPromotionProductRelation> getItem(@PathVariable Long id) {
@@ -65,7 +65,7 @@ public class SmsFlashPromotionProductRelationController {
         return CommonResult.success(relation);
     }
 
-    @Operation(summary = "分页查询不同场次关联及商品信息")
+    @Operation(summary = "회차별 연관 및 상품 정보 페이지 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult<CommonPage<SmsFlashPromotionProduct>> list(@RequestParam(value = "flashPromotionId") Long flashPromotionId,

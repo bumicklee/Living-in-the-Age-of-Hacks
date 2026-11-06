@@ -9,7 +9,7 @@
 import { ref, watch } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
 
-// minio上传路径
+// minio업로드 경로
 const minioUploadUrl = import.meta.env.VITE_BASE_SERVER_URL + import.meta.env.VITE_MINIO_UPLOAD_URL
 
 interface Props {
@@ -55,7 +55,7 @@ const emit = defineEmits<Emits>()
 
 const contentValue = ref(props.modelValue)
 
-// 监听外部值变化
+// 외부 값 변경 감시
 watch(
   () => props.modelValue,
   (newValue) => {
@@ -65,23 +65,21 @@ watch(
   }
 )
 
-// 监听内部值变化
+// 내부 값 변경 감시
 watch(contentValue, (newValue) => {
   emit('update:modelValue', newValue)
 })
 
 const initOptions = {
-  language: 'zh_CN',
-  language_url: './tinymce6.8.6/langs/zh_CN.js',
   selector: '#mytextarea',
   height: props.height,
   menubar: false,
   plugins: props.plugins,
   toolbar: props.toolbar,
   placeholder: props.placeholder,
-  branding: false, // 隐藏 tinyMCE 品牌标识
-  resize: true, // 允许调整大小
-  elementpath: false, // 隐藏底部元素路径
+  branding: false, // tinyMCE 브랜드 로고 숨기기
+  resize: true, // 크기 조절 허용
+  elementpath: false, // 하단 요소 경로 숨기기
   content_style: `
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -91,14 +89,14 @@ const initOptions = {
     }
   `,
   images_upload_handler: (blobInfo: BlobInfo, progress: UploadProgressCallback) => new Promise((resolve, reject) => {
-    // 发起请求上传图片（目前仅支持minio上传）
+    // 이미지 업로드 요청(현재 minio 업로드만 지원)
     const xhr = new XMLHttpRequest()
     xhr.open('POST', minioUploadUrl)
-    // 上传进度回调
+    // 업로드 진행률 콜백
     xhr.upload.onprogress = (e) => {
       progress(e.loaded / e.total * 100)
     }
-    // 上传完成回调
+    // 업로드 완료 콜백
     xhr.onload = () => {
       if (xhr.status === 403) {
         reject('HTTP Error: ' + xhr.status)
@@ -111,12 +109,12 @@ const initOptions = {
       const json = JSON.parse(xhr.responseText)
       console.log('images_upload:', json)
       if (!json || json.code !== 200) {
-        reject('上传失败！')
+        reject('업로드 실패!')
         return
       }
       resolve(json.data.url)
     }
-    // 上传失败回调
+    // 업로드 실패 콜백
     xhr.onerror = () => {
       reject('Image upload failed due to a XHR Transport error. Code: ' + xhr.status)
     }

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * DemoService实现类
+ * DemoService구현 클래스
  * Created by macro on 2019/4/8.
  */
 @Service

@@ -1,17 +1,17 @@
 package com.macro.mall.common.api;
 
 /**
- * API返回码接口
+ * API반환 코드 인터페이스
  * Created by macro on 2019/4/19.
  */
 public interface IErrorCode {
     /**
-     * 返回码
+     * 반환 코드
      */
     long getCode();
 
     /**
-     * 返回信息
+     * 반환 정보
      */
     String getMessage();
 }

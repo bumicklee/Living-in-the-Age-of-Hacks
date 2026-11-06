@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Redis操作Service实现类
+ * Redis작업 Service 구현 클래스
  * Created by macro on 2020/3/3.
  */
 public class RedisServiceImpl implements RedisService {
