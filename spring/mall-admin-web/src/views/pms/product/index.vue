@@ -378,7 +378,7 @@ const verifyStatusFilter = (value: number) => {
           <Search />
         </el-icon>
         <span>필터 검색</span>
-        <el-button style="float: right" @click="handleSearchList()" type="primary">
+        <el-button data-testid="product-search" style="float: right" @click="handleSearchList()" type="primary">
           조회 결과
         </el-button>
         <el-button style="float: right;margin-right: 15px" @click="handleResetSearch()">
@@ -388,10 +388,10 @@ const verifyStatusFilter = (value: number) => {
       <div style="margin-top: 20px">
         <el-form :inline="true" :model="listQuery" label-width="140px">
           <el-form-item label="검색어 입력:">
-            <el-input style="width: 203px" v-model="listQuery.keyword" placeholder="상품명"></el-input>
+            <el-input data-testid="product-search-keyword" style="width: 203px" v-model="listQuery.keyword" placeholder="상품명"></el-input>
           </el-form-item>
           <el-form-item label="상품 코드:">
-            <el-input style="width: 203px" v-model="listQuery.productSn" placeholder="상품 코드"></el-input>
+            <el-input data-testid="product-search-sn" style="width: 203px" v-model="listQuery.productSn" placeholder="상품 코드"></el-input>
           </el-form-item>
           <el-form-item label="상품 카테고리:">
             <el-cascader clearable v-model="selectProductCateValue" :options="productCateOptions">
@@ -423,12 +423,12 @@ const verifyStatusFilter = (value: number) => {
         <Tickets />
       </el-icon>
       <span>데이터 목록</span>
-      <el-button class="btn-add" @click="handleAddProduct()">
+      <el-button data-testid="product-add" class="btn-add" @click="handleAddProduct()">
         추가
       </el-button>
     </el-card>
     <div class="table-container">
-      <el-table ref="productTable" :data="list" style="width: 100%" @selection-change="handleSelectionChange"
+      <el-table data-testid="product-table" ref="productTable" :data="list" style="width: 100%" @selection-change="handleSelectionChange"
         v-loading="listLoading" border>
         <el-table-column type="selection" width="60" align="center"></el-table-column>
         <el-table-column label="번호" width="100" align="center">
@@ -492,15 +492,15 @@ const verifyStatusFilter = (value: number) => {
         <el-table-column label="작업" width="160" align="center">
           <template #default="scope">
             <p>
-              <el-button size="small" @click="handleShowProduct(scope.$index, scope.row)">보기
+              <el-button :data-testid="'product-view-' + scope.row.id" size="small" @click="handleShowProduct(scope.$index, scope.row)">보기
               </el-button>
-              <el-button size="small" @click="handleUpdateProduct(scope.$index, scope.row)">편집
+              <el-button :data-testid="'product-edit-' + scope.row.id" size="small" @click="handleUpdateProduct(scope.$index, scope.row)">편집
               </el-button>
             </p>
             <p>
               <el-button size="small" @click="handleShowLog(scope.$index, scope.row)">로그
               </el-button>
-              <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">삭제
+              <el-button :data-testid="'product-delete-' + scope.row.id" size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">삭제
               </el-button>
             </p>
           </template>
@@ -517,7 +517,7 @@ const verifyStatusFilter = (value: number) => {
       </el-button>
     </div>
     <div class="pagination-container">
-      <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      <el-pagination data-testid="product-pagination" background @size-change="handleSizeChange" @current-change="handleCurrentChange"
         layout="total, sizes,prev, pager, next,jumper" :page-size="listQuery.pageSize" :page-sizes="[5, 10, 15]"
         v-model:current-page="listQuery.pageNum" :total="total">
       </el-pagination>

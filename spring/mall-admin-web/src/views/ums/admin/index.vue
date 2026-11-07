@@ -220,7 +220,7 @@ const formatDateTime = (time: string) => {
           <Search />
         </el-icon>
         <span>필터 검색</span>
-        <el-button style="float: right" @click="handleSearchList()" type="primary" size="default">
+        <el-button data-testid="member-search" style="float: right" @click="handleSearchList()" type="primary" size="default">
           조회 검색
         </el-button>
         <el-button style="float: right; margin-right: 15px" @click="handleResetSearch()" size="default">
@@ -230,7 +230,7 @@ const formatDateTime = (time: string) => {
       <div style="margin-top: 15px">
         <el-form :inline="true" :model="listQuery" size="default" label-width="140px">
           <el-form-item label="검색어 입력:">
-            <el-input v-model="listQuery.keyword" class="input-width" placeholder="계정/이름" clearable></el-input>
+            <el-input data-testid="member-search-keyword" v-model="listQuery.keyword" class="input-width" placeholder="계정/이름" clearable></el-input>
           </el-form-item>
         </el-form>
       </div>
@@ -240,12 +240,12 @@ const formatDateTime = (time: string) => {
         <Tickets />
       </el-icon>
       <span>데이터 목록</span>
-      <el-button class="btn-add" @click="handleAdd()">
+      <el-button data-testid="member-add" class="btn-add" @click="handleAdd()">
         추가
       </el-button>
     </el-card>
     <div class="table-container">
-      <el-table ref="adminTable" :data="list" style="width: 100%;" v-loading="listLoading" border>
+      <el-table data-testid="member-table" ref="adminTable" :data="list" style="width: 100%;" v-loading="listLoading" border>
         <el-table-column label="번호" width="100" align="center">
           <template #default="scope">{{ scope.row.id }}</template>
         </el-table-column>
@@ -273,19 +273,19 @@ const formatDateTime = (time: string) => {
         </el-table-column>
         <el-table-column label="작업" width="180" align="center">
           <template #default="scope">
-            <el-button size="small" type="primary" link @click="handleSelectRole(scope.$index, scope.row)">역할 할당
+            <el-button :data-testid="'member-role-' + scope.row.id" size="small" type="primary" link @click="handleSelectRole(scope.$index, scope.row)">역할 할당
             </el-button>
-            <el-button size="small" type="primary" link @click="handleUpdate(scope.$index, scope.row)">
+            <el-button :data-testid="'member-edit-' + scope.row.id" size="small" type="primary" link @click="handleUpdate(scope.$index, scope.row)">
               편집
             </el-button>
-            <el-button size="small" type="primary" link @click="handleDelete(scope.$index, scope.row)">삭제
+            <el-button :data-testid="'member-delete-' + scope.row.id" size="small" type="primary" link @click="handleDelete(scope.$index, scope.row)">삭제
             </el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
     <div class="pagination-container">
-      <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      <el-pagination data-testid="member-pagination" background @size-change="handleSizeChange" @current-change="handleCurrentChange"
         layout="total, sizes,prev, pager, next,jumper" v-model:current-page="listQuery.pageNum"
         :page-size="listQuery.pageSize" :page-sizes="[5, 10, 15]" :total="total">
       </el-pagination>

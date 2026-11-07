@@ -90,7 +90,7 @@ const handleLogin = () => {
         </div>
         <h2 class="login-title color-main">mall-admin-web</h2>
         <el-form-item prop="username">
-          <el-input name="username" type="text" v-model="loginForm.username" autoComplete="on" placeholder="사용자 이름을 입력하세요">
+          <el-input data-testid="login-username" name="username" type="text" v-model="loginForm.username" autoComplete="on" placeholder="사용자 이름을 입력하세요">
             <template #prefix>
               <span>
                 <svg-icon icon-class="user" class="color-main"></svg-icon>
@@ -99,7 +99,7 @@ const handleLogin = () => {
           </el-input>
         </el-form-item>
         <el-form-item prop="password">
-          <el-input name="password" @keyup.enter="handleLogin" v-model="loginForm.password" autoComplete="on"
+          <el-input data-testid="login-password" name="password" @keyup.enter="handleLogin" v-model="loginForm.password" autoComplete="on"
             show-password placeholder="비밀번호를 입력하세요">
             <template #prefix>
               <span>
@@ -109,7 +109,7 @@ const handleLogin = () => {
           </el-input>
         </el-form-item>
         <el-form-item style="margin-bottom: 60px;text-align: center">
-          <el-button style="width: 45%" type="primary" :loading="loading" @click="handleLogin">
+          <el-button data-testid="login-submit" style="width: 45%" type="primary" :loading="loading" @click="handleLogin">
             로그인
           </el-button>
           <el-button style="width: 45%" type="primary" @click="dialogVisible = true">

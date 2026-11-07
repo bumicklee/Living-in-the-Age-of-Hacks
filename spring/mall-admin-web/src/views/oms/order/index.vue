@@ -302,20 +302,20 @@ const deleteOrderFn = async (ids: number[]) => {
           <Search />
         </el-icon>
         <span>필터 검색</span>
-        <el-button style="float:right" type="primary" @click="handleSearchList()">
+        <el-button data-testid="order-search" style="float:right" type="primary" @click="handleSearchList()">
           조회 검색
         </el-button>
-        <el-button style="float:right;margin-right: 15px" @click="handleResetSearch()">
+        <el-button data-testid="order-search-reset" style="float:right;margin-right: 15px" @click="handleResetSearch()">
           초기화
         </el-button>
       </div>
       <div style="margin-top: 20px">
         <el-form :inline="true" :model="listQuery" label-width="140px">
           <el-form-item label="검색어 입력:">
-            <el-input v-model="listQuery.orderSn" class="input-width" placeholder="주문 번호"></el-input>
+            <el-input data-testid="order-search-sn" v-model="listQuery.orderSn" class="input-width" placeholder="주문 번호"></el-input>
           </el-form-item>
           <el-form-item label="수령인:">
-            <el-input v-model="listQuery.receiverKeyword" class="input-width" placeholder="수령인 이름/휴대폰 번호"></el-input>
+            <el-input data-testid="order-search-receiver" v-model="listQuery.receiverKeyword" class="input-width" placeholder="수령인 이름/휴대폰 번호"></el-input>
           </el-form-item>
           <el-form-item label="제출 시간:">
             <el-date-picker class="input-width" v-model="listQuery.createTime" value-format="yyyy-MM-dd" type="date"
@@ -350,7 +350,7 @@ const deleteOrderFn = async (ids: number[]) => {
       <span>데이터 목록</span>
     </el-card>
     <div class="table-container">
-      <el-table ref="orderTable" :data="list" style="width: 100%;" @selection-change="handleSelectionChange"
+      <el-table data-testid="order-table" ref="orderTable" :data="list" style="width: 100%;" @selection-change="handleSelectionChange"
         v-loading="listLoading" border>
         <el-table-column type="selection" width="60" align="center"></el-table-column>
         <el-table-column label="번호" width="80" align="center">
@@ -379,14 +379,14 @@ const deleteOrderFn = async (ids: number[]) => {
         </el-table-column>
         <el-table-column label="작업" width="200" align="center">
           <template #default="scope">
-            <el-button size="small" @click="handleViewOrder(scope.$index, scope.row)">주문 보기</el-button>
-            <el-button size="small" @click="handleCloseOrder(scope.$index, scope.row)"
+            <el-button :data-testid="'order-view-' + scope.row.id" size="small" @click="handleViewOrder(scope.$index, scope.row)">주문 보기</el-button>
+            <el-button :data-testid="'order-close-' + scope.row.id" size="small" @click="handleCloseOrder(scope.$index, scope.row)"
               v-show="scope.row.status === 0">주문 종료</el-button>
-            <el-button size="small" @click="handleDeliveryOrder(scope.$index, scope.row)"
+            <el-button :data-testid="'order-deliver-' + scope.row.id" size="small" @click="handleDeliveryOrder(scope.$index, scope.row)"
               v-show="scope.row.status === 1">주문 발송</el-button>
             <el-button size="small" @click="handleViewLogistics(scope.$index, scope.row)"
               v-show="scope.row.status === 2 || scope.row.status === 3">주문 추적</el-button>
-            <el-button size="small" type="danger" @click="handleDeleteOrder(scope.$index, scope.row)"
+            <el-button :data-testid="'order-delete-' + scope.row.id" size="small" type="danger" @click="handleDeleteOrder(scope.$index, scope.row)"
               v-show="scope.row.status === 4">주문 삭제</el-button>
           </template>
         </el-table-column>
@@ -402,7 +402,7 @@ const deleteOrderFn = async (ids: number[]) => {
       </el-button>
     </div>
     <div class="pagination-container">
-      <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      <el-pagination data-testid="order-pagination" background @size-change="handleSizeChange" @current-change="handleCurrentChange"
         layout="total, sizes,prev, pager, next,jumper" v-model:current-page="listQuery.pageNum"
         :page-size="listQuery.pageSize" :page-sizes="[5, 10, 15]" :total="total">
       </el-pagination>

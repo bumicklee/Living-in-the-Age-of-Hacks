@@ -364,7 +364,7 @@ const showLogisticsDialog = () => {
 </script>
 
 <template>
-  <div class="detail-container">
+  <div class="detail-container" data-testid="order-detail">
     <div>
       <el-steps :active="formatStepStatus(order.status)" finish-status="success" align-center>
         <el-step title="주문 제출" :description="order.createTime ? formatDateTime(order.createTime) : ''"></el-step>
@@ -419,9 +419,9 @@ const showLogisticsDialog = () => {
           <el-col :span="4" class="table-cell-title">주문 유형</el-col>
         </el-row>
         <el-row>
-          <el-col :span="4" class="table-cell">{{ order.orderSn }}</el-col>
+          <el-col :span="4" class="table-cell" data-testid="order-detail-sn">{{ order.orderSn }}</el-col>
           <el-col :span="4" class="table-cell">없음</el-col>
-          <el-col :span="4" class="table-cell">{{ order.memberUsername }}</el-col>
+          <el-col :span="4" class="table-cell" data-testid="order-detail-member">{{ order.memberUsername }}</el-col>
           <el-col :span="4" class="table-cell">{{ formatPayType(order.payType) }}</el-col>
           <el-col :span="4" class="table-cell">{{ formatSourceType(order.sourceType) }}</el-col>
           <el-col :span="4" class="table-cell">{{ formatOrderType(order.orderType) }}</el-col>
@@ -461,10 +461,10 @@ const showLogisticsDialog = () => {
           <el-col :span="6" class="table-cell-title">배송지</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell">{{ order.receiverName }}</el-col>
-          <el-col :span="6" class="table-cell">{{ order.receiverPhone }}</el-col>
+          <el-col :span="6" class="table-cell" data-testid="order-detail-receiver-name">{{ order.receiverName }}</el-col>
+          <el-col :span="6" class="table-cell" data-testid="order-detail-receiver-phone">{{ order.receiverPhone }}</el-col>
           <el-col :span="6" class="table-cell">{{ order.receiverPostCode }}</el-col>
-          <el-col :span="6" class="table-cell">{{ formatAddress(order) }}</el-col>
+          <el-col :span="6" class="table-cell" data-testid="order-detail-receiver-address">{{ formatAddress(order) }}</el-col>
         </el-row>
       </div>
       <div style="margin-top: 20px">
