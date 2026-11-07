@@ -11,7 +11,7 @@ v0.1 · 2026-11-07 · 기준: `../../../교육용-소스-설계.md` 4절. **출�
 
 | T | 취약점 | 수업 | 출처 | 재연 | 상태(2026-11-07) |
 |---|---|---|---|---|---|
-| T01 | 주문 상세 조회에 소유자 확인 없음(IDOR) | 2-1·2-2 | **[원본 확인됨] 후보**: mall `OmsPortalOrderServiceImpl.detail()`이 `selectByPrimaryKey`만 하고 회원을 확인하지 않는다(같은 파일의 `deleteOrder`·`cancelUserOrder` 등은 확인한다). 원본 커밋 `dcaa93b` | `replay/t01_order_idor.py` | Spring 레드 확인, 2-2 정답 적용 시 그린. **제보 여부 결정 필요** |
+| T01 | 주문 상세 조회에 소유자 확인 없음(IDOR) | 2-1·2-2 | **[원본 확인됨] 후보**: mall `OmsPortalOrderServiceImpl.detail()`이 `selectByPrimaryKey`만 하고 회원을 확인하지 않는다(같은 파일의 `deleteOrder`·`cancelUserOrder` 등은 확인한다). 원본 커밋 `dcaa93b` | `replay/t01_order_idor.py` | Spring 레드 확인, 2-2 정답 적용 시 그린. **작성자 결정(2026-11-07): 원작자에게 제보하지 않음.** 강의에서는 원본을 지목하지 않고 「흔한 패턴」으로 다룬다 |
 | T02 | 관리자 기능이 역할 확인 없이 열림 | 2-3 | 점검 후 결정 | — | |
 | T03 | 회원정보 수정으로 등급·포인트 변경(대량 할당) | 2-4 | 교육용 추가 | — | |
 | T04 | 상품 이미지 URL 가져오기 SSRF | 2-5 | 교육용 추가 | — | |
