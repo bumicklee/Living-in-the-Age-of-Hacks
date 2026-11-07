@@ -29,5 +29,13 @@
 알려 둘 점:
 - 번역은 기계 번역 뒤 일부만 사람이 고쳤습니다. 강의에 나오는 화면과 메시지는 촬영 전에 다시 읽습니다.
 - 금액 단위는 원본 데이터 그대로입니다(원래 위안화 금액에 「원」만 붙였습니다). 한국어 시드로 바꾸는 일은 `seed/`에서 합니다.
-- 원본 `docker-compose-env.yml`의 `mysql:5.7`은 Apple Silicon(arm64) 이미지가 없습니다. 강의의 compose는 `mysql:8.0`을 씁니다.
+- 원본 `docker-compose-env.yml`의 `mysql:5.7`은 Apple Silicon(arm64) 이미지가 없습니다. 강의의 compose(`../infra/compose.yml`)는 `mysql:8.4.13`을 씁니다(8.0은 2026-04 지원 종료). 앱은 원본 `application-prod.yml`을 그대로 쓰고, 랩에서 달라야 하는 값(DB 주소의 `allowPublicKeyRetrieval=true`, MinIO 주소)만 환경 변수로 덮습니다.
 - 원본 `pom.xml`의 docker-maven-plugin은 원작자 서버(192.168.3.101)에 이미지를 만들려고 합니다. 빌드할 때 `-Ddocker.skip=true`를 붙입니다.
+
+## 바꾼 내용 2: 수업 표시 (2026-11-07)
+
+수강생이 고칠 자리에 `// ✏️ N-M: …(다온마켓 교육용 표시)` 주석을 넣었습니다. 동작은 바꾸지 않습니다. 각 수업의 고친 모습은 `../solutions/<수업>/spring/...`에 있습니다(이 파일들도 Apache-2.0, "다온마켓 2-2" 같은 주석으로 바꾼 곳을 표시).
+
+| 파일 | 표시 | 수업 |
+|---|---|---|
+| `mall-portal/src/main/java/com/macro/mall/portal/service/impl/OmsPortalOrderServiceImpl.java` | `detail()`에 ✏️ 2-2 | 2-2(T01) |

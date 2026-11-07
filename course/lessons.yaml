@@ -1,0 +1,20 @@
+# 수업 목록. 커리큘럼-상세.md에서 옮긴다(지금은 섹션 1~2). id는 sN-MM, 화면에는 N-M으로 보인다.
+- section: 1
+  title: '시작하기: 쇼핑몰 하나, 사고 22건, 위험 30가지'
+  lessons:
+  - {id: s1-01, 'no': 1-1, title: '강의 소개: 쇼핑몰 하나를 처음부터 끝까지 지킨다', free: true}
+  - {id: s1-02, 'no': 1-2, title: '2025~2026 사고 지도: 국내 10건·해외 12건이 무너진 곳', free: true}
+  - {id: s1-03, 'no': 1-3, title: 'OWASP Top 10:2025 한 장, 그리고 목록 밖 20가지', free: true}
+  - {id: s1-04, 'no': 1-4, title: '다온마켓 소스 둘러보기: 오픈소스를 회사 코드로'}
+  - {id: s1-05, 'no': 1-5, title: '랩 설치: docker compose 한 번으로 내 PC에 쇼핑몰', arch: A0}
+  - {id: s1-06, 'no': 1-6, title: '공격자처럼 보기: 위협 모델링과 공격 표면 지도'}
+- section: 2
+  title: '남의 것이 보인다: 접근 제어'
+  lessons:
+  - {id: s2-01, 'no': 2-1, title: '주문 번호 하나만 바꾸면 남의 주문이 보인다', free: true, replay: [T01]}
+  - {id: s2-02, 'no': 2-2, title: '소유권 검사를 어디에 둘까: 컨트롤러·서비스·쿼리', replay: [T01]}
+  - {id: s2-03, 'no': 2-3, title: '관리자 기능이 열려 있다: 역할 검사 다시 짜기', replay: [T02]}
+  - {id: s2-04, 'no': 2-4, title: '회원정보 수정으로 등급과 포인트가 바뀐다(대량 할당)', replay: [T03]}
+  - {id: s2-05, 'no': 2-5, title: '이미지 URL 가져오기가 내부망을 연다(SSRF)', arch: A2, replay: [T04]}
+  - {id: s2-06, 'no': 2-6, title: 'DNS 리바인딩: 허용한 이름이 내부를 가리킨다', replay: [T05]}
+  - {id: s2-07, 'no': 2-7, title: '미션: 배송지·반품 신청에 같은 검사 붙이기', mission: true}

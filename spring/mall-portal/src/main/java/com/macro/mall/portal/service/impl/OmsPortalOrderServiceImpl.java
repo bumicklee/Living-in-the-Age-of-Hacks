@@ -394,6 +394,7 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
 
     @Override
     public OmsOrderDetail detail(Long orderId) {
+        // ✏️ 2-2: 이 주문이 로그인한 회원의 것인지 조회 조건에서 확인한다(다온마켓 교육용 표시)
         OmsOrder omsOrder = orderMapper.selectByPrimaryKey(orderId);
         OmsOrderItemExample example = new OmsOrderItemExample();
         example.createCriteria().andOrderIdEqualTo(orderId);

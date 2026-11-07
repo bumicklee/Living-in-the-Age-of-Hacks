@@ -1,0 +1,6 @@
+**/target
+**/node_modules
+mall-admin-web
+document
+**/*.iml
+.idea
