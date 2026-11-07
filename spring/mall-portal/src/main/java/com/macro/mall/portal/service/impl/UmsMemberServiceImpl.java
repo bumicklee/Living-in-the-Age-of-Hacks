@@ -154,6 +154,15 @@ public class UmsMemberServiceImpl implements UmsMemberService {
     }
 
     @Override
+    public void updateInfo(UmsMember member) {
+        UmsMember current = getCurrentMember();
+        // ✏️ 2-4: 받은 회원 엔티티를 그대로 저장한다. 본문에 들어온 항목이 모두 DB까지 간다(다온마켓 교육용 표시)
+        member.setId(current.getId());
+        memberCacheService.delMember(current.getId());
+        memberMapper.updateByPrimaryKeySelective(member);
+    }
+
+    @Override
     public UserDetails loadUserByUsername(String username) {
         UmsMember member = getByUsername(username);
         if(member!=null){

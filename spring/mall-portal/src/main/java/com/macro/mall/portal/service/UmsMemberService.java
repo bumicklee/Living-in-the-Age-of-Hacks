@@ -48,6 +48,12 @@ public interface UmsMemberService {
 
 
     /**
+     * [교육용 추가] 로그인한 회원의 정보 수정
+     * ✏️ 2-4: 무엇을 받는지 정한다(다온마켓 교육용 표시)
+     */
+    void updateInfo(UmsMember member);
+
+    /**
      * 사용자 정보 조회
      */
     UserDetails loadUserByUsername(String username);

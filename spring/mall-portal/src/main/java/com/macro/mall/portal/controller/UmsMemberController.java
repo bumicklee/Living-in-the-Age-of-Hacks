@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -68,6 +69,20 @@ public class UmsMemberController {
         }
         UmsMember member = memberService.getCurrentMember();
         return CommonResult.success(member);
+    }
+
+    // [교육용 추가] 다온마켓 회원정보 수정(닉네임·성별·생일·도시·직업·소개)
+    @Operation(summary = "회원정보 수정")
+    @RequestMapping(value = "/updateInfo", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult updateInfo(Principal principal,
+                                   // ✏️ 2-4: 요청 본문을 회원 엔티티(UmsMember)로 그대로 받는다(다온마켓 교육용 표시)
+                                   @RequestBody UmsMember member) {
+        if (principal == null) {
+            return CommonResult.unauthorized(null);
+        }
+        memberService.updateInfo(member);
+        return CommonResult.success(null, "회원정보 수정 성공");
     }
 
     @Operation(summary = "인증 코드 발급")

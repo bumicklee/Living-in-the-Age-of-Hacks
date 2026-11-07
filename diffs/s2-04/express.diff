@@ -1,0 +1,58 @@
+# 2-4 Express(EverShop)에서 고칠 곳: 고객 프로필 수정 PATCH /api/customers/me (updateProfile.ts)
+# - EverShop은 본문 전체를 받고 보호 필드(그룹·상태 등)만 빼는 방식(denylist)이다. 원본도 등급·상태는 막지만, 새 컬럼이 생기면 바로 열린다.
+# - 고침: 받을 항목만 고르는 목록(allowlist, Spring의 요청 전용 DTO와 같은 역할) + ⑤ 탐지 input.unexpected_fields.
+# - 먼저 diffs/common/express-security-event.diff를 넣는다. 적용: cd express && git apply ../diffs/s2-04/express.diff
+
+diff --git a/packages/evershop/src/modules/customer/api/updateCustomerProfile/payloadSchema.json b/packages/evershop/src/modules/customer/api/updateCustomerProfile/payloadSchema.json
+index 7395a85..bbdc3fa 100644
+--- a/packages/evershop/src/modules/customer/api/updateCustomerProfile/payloadSchema.json
++++ b/packages/evershop/src/modules/customer/api/updateCustomerProfile/payloadSchema.json
+@@ -18,5 +18,6 @@
+       }
+     }
+   },
+-  "additionalProperties": true
++  "additionalProperties": true,
++  "$comment": "다온마켓 2-4: 검증은 열어 두고(확장 호환) 저장할 항목은 updateProfile.ts의 ALLOWED가 고른다"
+ }
+diff --git a/packages/evershop/src/modules/customer/api/updateCustomerProfile/updateProfile.ts b/packages/evershop/src/modules/customer/api/updateCustomerProfile/updateProfile.ts
+index 82c3e3c..f07a541 100644
+--- a/packages/evershop/src/modules/customer/api/updateCustomerProfile/updateProfile.ts
++++ b/packages/evershop/src/modules/customer/api/updateCustomerProfile/updateProfile.ts
+@@ -1,5 +1,6 @@
+ import { select } from '@evershop/postgres-query-builder';
+ import { translate } from '../../../../lib/locale/translate/translate.js';
++import { securityEvent } from '../../../../lib/log/securityEvent.js';
+ import { pool } from '../../../../lib/postgres/connection.js';
+ import { buildUrl } from '../../../../lib/router/buildUrl.js';
+ import {
+@@ -45,10 +46,26 @@ export default async (
+       });
+     }
+ 
+-    // Take the whole body (so extension fields flow through) but strip the
+-    // sensitive fields a customer must not be able to set on themselves.
++    // 다온마켓 2-4: 막을 항목을 고르는 목록(denylist) 대신 받을 항목만 고르는 목록(allowlist).
++    // 새 컬럼이 생겨도 이 목록에 넣기 전에는 고객이 바꿀 수 없다. 확장 필드가 필요하면 여기에 이름을 더한다
++    const ALLOWED = ['full_name', 'email'];
++    const body = { ...(request.body || {}) };
++    const picked: Record<string, unknown> = {};
++    for (const key of ALLOWED) {
++      if (key in body) picked[key] = body[key];
++    }
++    const ignored = Object.keys(body).filter((k) => !ALLOWED.includes(k));
++    if (ignored.length) {
++      // ⑤ 탐지: 허용 밖 항목(그룹·상태 등)이 섞인 요청. 항목 이름만 남기고 값은 남기지 않는다
++      securityEvent.suspicious('input.unexpected_fields', '2-4', request, {
++        actor: `customer:${currentCustomer.uuid}`,
++        target: `customer:${currentCustomer.uuid}`,
++        reason: `허용 밖 항목 무시: ${ignored.slice(0, 20).join(',')}`
++      });
++    }
++    // 원본의 보호 필드 제거도 그대로 둔다(두 겹)
+     const data: Record<string, unknown> = await withoutProtectedCustomerFields(
+-      { ...request.body },
++      picked,
+       { routeId: request.currentRoute.id },
+       ['password']
+     );
