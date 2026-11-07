@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.core.Authentication;
@@ -57,6 +58,12 @@ public class DynamicAuthorizationManager implements AuthorizationManager<Request
                 .map(ConfigAttribute::getAttribute)
                 .collect(Collectors.toList());
         Authentication currentAuth = authentication.get();
+        // ✏️ 2-3: 권한표에 없는 주소를 어떻게 다룰지 정한다(다온마켓 교육용 표시)
+        // [교육용 추가] 원본은 권한표에 없는 주소도 거부한다. 다온마켓은 새 기능을 빨리 열려고 "로그인만 했으면 통과"로 바꿨다
+        if (needAuthorities.isEmpty()) {
+            return new AuthorizationDecision(currentAuth != null && currentAuth.isAuthenticated()
+                    && !(currentAuth instanceof AnonymousAuthenticationToken));
+        }
         //로그인 인증이 이미 구현되었는지 판단
         if(currentAuth.isAuthenticated()){
             Collection<? extends GrantedAuthority> grantedAuthorities = currentAuth.getAuthorities();

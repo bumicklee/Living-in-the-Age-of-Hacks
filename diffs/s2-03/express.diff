@@ -1,0 +1,60 @@
+# 2-3 Express(EverShop)에서 고칠 곳: 관리자 API 역할 검사([getCurrentUser]auth.ts)
+# - EverShop은 관리자 계정의 roles가 비어 있으면 '*'(전부 허용)로 본다. Spring 시작 지점의 「권한표에 없으면 통과」와 같은 모양이다.
+# - 고침: 기본 거부(역할이 비면 거부, 전부 허용은 '*'를 명시), 권한 없음은 403, ⑤ 탐지 access.denied.no_permission.
+# - 먼저 diffs/common/express-security-event.diff를 넣는다. 적용: cd express && git apply ../diffs/s2-03/express.diff
+# - 주의: 기존 관리자 계정 중 roles가 비어 있는 계정은 이 diff 뒤로 막힌다. 슈퍼 관리자에게 roles='*'를 먼저 준다.
+
+diff --git a/packages/evershop/src/modules/auth/api/global/[getCurrentUser]auth.ts b/packages/evershop/src/modules/auth/api/global/[getCurrentUser]auth.ts
+index 494faf9..6bcd75c 100644
+--- a/packages/evershop/src/modules/auth/api/global/[getCurrentUser]auth.ts
++++ b/packages/evershop/src/modules/auth/api/global/[getCurrentUser]auth.ts
+@@ -1,4 +1,5 @@
+-import { UNAUTHORIZED } from '../../../../lib/util/httpStatus.js';
++import { securityEvent } from '../../../../lib/log/securityEvent.js';
++import { FORBIDDEN, UNAUTHORIZED } from '../../../../lib/util/httpStatus.js';
+ import { EvershopRequest } from '../../../../types/request.js';
+ 
+ /**
+@@ -30,23 +31,27 @@ export default async (request: EvershopRequest, response, next) => {
+       }
+     });
+   } else {
+-    // Get user roles
+-    const userRoles = currentAdminUser.roles || '*';
+-    if (userRoles === '*') {
++    // 다온마켓 2-3: 기본 거부. 역할이 비어 있으면 '*'(전부 허용)로 보지 않는다.
++    // 전부 허용은 슈퍼 관리자에게 '*'를 명시해서 준다
++    const userRoles: string = currentAdminUser.roles || '';
++    const roles = userRoles.split(',').map((r) => r.trim()).filter(Boolean);
++    if (roles.includes('*') || roles.includes(currentRoute.id)) {
+       next();
+     } else {
+-      const roles = userRoles.split(',');
+-      if (roles.includes(currentRoute.id)) {
+-        next();
+-      } else {
+-        response.status(UNAUTHORIZED);
+-        response.json({
+-          error: {
+-            status: UNAUTHORIZED,
+-            message: 'Unauthorized'
+-          }
+-        });
+-      }
++      // ⑤ 탐지: 로그인한 관리자가 권한 밖 경로를 불렀다(ID만 남긴다)
++      securityEvent.denied('access.denied.no_permission', '2-3', request, {
++        actor: `admin:${currentAdminUser.uuid}`,
++        target: `route:${currentRoute.id}`,
++        reason: roles.length ? '역할에 이 경로 권한이 없음' : '역할이 없는 관리자(기본 거부)'
++      });
++      // 로그인은 됐지만 권한이 없으므로 401이 아니라 403
++      response.status(FORBIDDEN);
++      response.json({
++        error: {
++          status: FORBIDDEN,
++          message: 'Forbidden'
++        }
++      });
+     }
+   }
+ };

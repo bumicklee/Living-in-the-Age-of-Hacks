@@ -42,6 +42,7 @@ public class MallSecurityConfig {
                 for (UmsResource resource : resourceList) {
                     map.put(resource.getUrl(), new org.springframework.security.access.SecurityConfig(resource.getId() + ":" + resource.getName()));
                 }
+                // ✏️ 2-3: 다온마켓이 새로 만든 관리자 기능(/daon/customer/**)도 권한표에 올린다(다온마켓 교육용 표시)
                 return map;
             }
         };

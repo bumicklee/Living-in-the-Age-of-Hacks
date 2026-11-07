@@ -26,3 +26,11 @@ VALUES
   (90011, 9001, 'DAON202611010001', 26, '다온 무선 이어폰', '다온', 36000.00, 1, 36000.00),
   (90021, 9002, 'DAON202611020002', 27, '다온 텀블러', '다온', 12000.00, 1, 12000.00),
   (90031, 9003, 'DAON202611030003', 28, '다온 우산', '다온', 22000.00, 1, 22000.00);
+
+-- 다온마켓 직원 계정(관리자 앱, 2-3·2-5). 비밀번호는 위와 같은 daon-pass-1!
+-- 역할은 원본 데모의 역할을 쓴다: 1 = 상품 관리자, 2 = 주문 관리자(5 = 슈퍼 관리자는 원본 admin 계정)
+INSERT INTO ums_admin (id, username, password, nick_name, email, note, create_time, status)
+VALUES
+  (101, 'staff_goods', '$2a$10$u0wE8GEVqNE2AP6u02Lrw.MzzCBfWTdG51t.vJLpjX0hwkbwj7izu', '상품 담당', 'goods@daon.example', '다온마켓 상품 담당 직원', '2026-11-01 09:00:00', 1),
+  (102, 'staff_order', '$2a$10$u0wE8GEVqNE2AP6u02Lrw.MzzCBfWTdG51t.vJLpjX0hwkbwj7izu', '주문 담당', 'order@daon.example', '다온마켓 주문 담당 직원', '2026-11-01 09:00:00', 1);
+INSERT INTO ums_admin_role_relation (admin_id, role_id) VALUES (101, 1), (102, 2);
