@@ -8,7 +8,9 @@
 | `spring/` | mall 포크(Spring Boot 3.5, MyBatis): mall-admin(관리자 API)·mall-portal(고객 API)·mall-admin-web(관리자 화면) | Apache-2.0 |
 | `express/` | EverShop 포크(Express·TypeScript·PostgreSQL) | GPL-3.0 |
 | `infra/` | compose(아키텍처 A0부터), Dockerfile, 초기화 스크립트 | MIT |
-| `seed/` | 가짜 데이터(계정·주문) | MIT |
+| `seed/` | 가짜 데이터: 고객 40명·주문 300건, 두 스택 같은 번호(`seed/README.md`, `tools/gen_seed.py`) | MIT |
+| `web/` | 다온마켓 고객 웹(작은 상점 화면, 고객 API 사용) | MIT |
+| `stubs/` | 가짜 외부 서비스: 결제사·문자·택배·이미지 공급사, 메일은 Mailpit(`stubs/README.md`) | MIT |
 | `replay/` · `tests/` | 재연 스크립트와 시험(HTTP, 127.0.0.1만) | MIT |
 | `course/` · `lessons/` | 수업 시작 상태, 수업 카드 | MIT |
 
@@ -26,12 +28,17 @@ PC에 이미 MySQL(3306) 같은 프로그램이 있어 포트가 겹치면 `infr
 
 | 주소 | 무엇 | 계정(가짜) |
 |---|---|---|
+| http://127.0.0.1:8088 | 다온마켓 고객 웹(로그인·상품·장바구니·주문, 주문 상세 `/orders/9001`) | alice / bob, 비밀번호 `daon-pass-1!` (고객 103~140은 `daon103`~`daon140`) |
 | http://127.0.0.1:8085/swagger-ui.html | 고객 API(mall-portal) | alice / bob, 비밀번호 `daon-pass-1!` |
 | http://127.0.0.1:8080/swagger-ui.html | 관리자 API(mall-admin) | admin / macro123 (원본 데모 계정) |
 | 〃 | 관리자 API 직원 계정(2-3·2-5) | staff_goods(상품 관리자) / staff_order(주문 관리자), 비밀번호 `daon-pass-1!` |
 | http://127.0.0.1:8095/ops/health | 다온 운영 도구(교육용, 로그인 없음, 2-6) | — |
 | http://127.0.0.1:8090 | 관리자 화면 | 위와 같음 |
-| http://127.0.0.1:3000 · `/admin` | EverShop | admin@daon.example / `daon-admin-1!` |
+| http://127.0.0.1:3000 · `/admin` | EverShop | admin@daon.example / `daon-admin-1!` · 고객은 `alice@daon.example` 등(같은 비밀번호) |
+| http://127.0.0.1:8025 | 가짜 메일함(Mailpit, SMTP 1025) | — |
+| http://127.0.0.1:9101 · 9102 · 9103 | 가짜 결제사·문자·택배(`stubs/README.md`) | — |
+
+모든 화면 아래에 「교육용 랩 · 127.0.0.1 · 값은 가짜」 띠가 붙습니다.
 
 ## 수업 따라가기
 
@@ -41,7 +48,8 @@ make replay T=01         # 재연: [레드] 취약 / [그린] 막힘
 make check L=2-2         # 수업 확인. 소스가 바뀌었으면 앱을 다시 빌드한 뒤 시험
 make score               # 점수판: 취약 N개 / 36
 make mem                 # 컨테이너별 메모리
-make down                # 내리기(데이터 남김) · make wipe: 데이터까지 지우고 시드부터 다시
+make down                # 내리기(데이터 남김)
+make wipe                # 데이터를 시드 상태로(DB 스냅샷, Spring 약 3초 · Express 약 2초). HARD=1이면 볼륨째 지우고 처음부터
 ```
 
 - 수업이 진행되면 아키텍처도 바뀝니다. 켠 단계는 `infra/arch.txt`에 한 줄씩 적히고(2-5부터 `a02` = 이그레스 프록시), `make goto`·`make check`가 알아서 맞춥니다.
