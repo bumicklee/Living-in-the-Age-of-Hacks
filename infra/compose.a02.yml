@@ -1,0 +1,31 @@
+# 다온마켓 랩 · 아키텍처 A2 「나가는 길 통제」(수업 2-5)
+#
+#   infra/arch.txt에 a02 줄이 있으면 daon 명령이 compose.yml 위에 이 파일을 함께 쓴다.
+#
+# 바뀌는 것
+#   - egress(Squid 프록시)가 생긴다. 앱이 밖으로 나가는 길은 이 프록시 하나다.
+#   - mall-admin은 랩의 「인터넷」(internet 망)에서 빠진다. 프록시를 거치지 않고는 밖에 닿지 않는다.
+#   - 프록시는 허용한 이름(img.partner-cdn.example)만 통과시키고, 내부 주소(사설·루프백·링크 로컬)는 거부한다(infra/egress/squid.conf).
+#
+# 한계(수업에서 말한다): daon 망은 아직 보통 브리지라 진짜 인터넷으로는 나갈 수 있다. A1(6-4)의 망 분리에서 막는다.
+
+services:
+  egress:
+    profiles: [spring]
+    image: ubuntu/squid:6.6-24.04_edge
+    volumes: ["./egress/squid.conf:/etc/squid/squid.conf:ro"]
+    extra_hosts: ["img.partner-cdn.example:203.0.113.20"]
+    mem_limit: 64m
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/3128'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [daon, internet]
+
+  mall-admin:
+    environment:
+      DAON_EGRESS_PROXY: "egress:3128"     # Spring 설정 daon.egress.proxy
+    depends_on:
+      egress: { condition: service_healthy }
+    networks: !override [daon]

@@ -145,8 +145,15 @@ services:
       dockerfile: ../infra/docker/mall.Dockerfile
       target: mall-admin
     image: daon/mall-admin:dev
-    environment: *spring-app-env
-    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_ADMIN_API_PORT:-8080}:8080"]   # [회사 설정] 관리자 API가 고객 API와 같은 입구
+    environment:
+      <<: *spring-app-env
+      # [교육용 추가] 다온 운영 도구(8095)를 부를 때 쓰는 이름. 2-6에서 Host 허용 목록으로 쓴다
+      DAON_OPS_HOSTS: "127.0.0.1:${DAON_OPS_PORT:-8095},localhost:${DAON_OPS_PORT:-8095}"
+    ports:
+      - "${DAON_BIND:-127.0.0.1}:${DAON_ADMIN_API_PORT:-8080}:8080"   # [회사 설정] 관리자 API가 고객 API와 같은 입구
+      - "${DAON_BIND:-127.0.0.1}:${DAON_OPS_PORT:-8095}:8095"         # [교육용 추가] 다온 운영 도구(로그인 없음, 2-6)
+    # 랩 안의 「인터넷」에 있는 가짜 이미지 공급사 이름(공개 DNS 흉내)
+    extra_hosts: ["img.partner-cdn.example:203.0.113.20"]
     mem_limit: 768m
     depends_on:
       mysql: { condition: service_healthy }
@@ -158,7 +165,8 @@ services:
       timeout: 3s
       retries: 60
       start_period: 20s
-    networks: [daon]
+    # A0: 관리자 앱이 랩의 「인터넷」(internet 망)으로 바로 나간다. A2(2-5)에서 이그레스 프록시로만 나가게 바꾼다
+    networks: [daon, internet]
 
   mall-portal:
     profiles: [spring]
@@ -194,6 +202,15 @@ services:
     ports: ["${DAON_BIND:-127.0.0.1}:${DAON_ADMIN_WEB_PORT:-8090}:80"]
     mem_limit: 64m
     networks: [daon]
+
+  partner-cdn:
+    # 가짜 이미지 공급사(랩 안의 「인터넷」). 2-5의 정상 요청이 여기서 상품 이미지를 받는다
+    profiles: [spring]
+    image: nginx:1.30.6-alpine
+    volumes: ["../stubs/partner-cdn/html:/usr/share/nginx/html:ro"]
+    mem_limit: 32m
+    networks:
+      internet: { ipv4_address: 203.0.113.20 }
 
   # ───────────────────────── Express 스택(EverShop 포크) ─────────────────────────
   postgres:
@@ -242,6 +259,10 @@ services:
 
 networks:
   daon: {}
+  # 랩 안의 「인터넷」. 사설 대역이 아닌 문서용 주소(203.0.113.0/24, RFC 5737 TEST-NET-3)를 써서 「밖」처럼 보이게 한다
+  internet:
+    ipam:
+      config: [{ subnet: 203.0.113.0/24 }]
 
 volumes:
   mysql-data: {}

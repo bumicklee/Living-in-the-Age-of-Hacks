@@ -1,0 +1,64 @@
+# 2-5 Express(EverShop)에서 고칠 곳: 외부 이미지 가져오기(lib/util/secureFetch.ts, 이미지 프록시 /images?src=…가 쓴다)
+# - EverShop 원본은 이미 IMAGE_ALLOWED_HOSTS 허용 목록으로 호스트를 거르고, 리다이렉트 매 단계도 다시 검사한다. 코드 쪽 막기는 Spring 정답과 같은 수준이다.
+# - 이 diff가 더하는 것: ⑤ 탐지 egress.denied.not_allowed_host, A2 이그레스 프록시로만 나가기(DAON_EGRESS_PROXY=egress:3128).
+# - compose에서는 evershop 서비스에도 Spring과 같이 DAON_EGRESS_PROXY를 넣고 internet 망에서 뺀다(A2 덧붙임 파일에 같은 모양으로).
+# - 먼저 diffs/common/express-security-event.diff를 넣는다. 적용: cd express && git apply ../diffs/s2-05/express.diff
+
+diff --git a/packages/evershop/src/lib/util/secureFetch.ts b/packages/evershop/src/lib/util/secureFetch.ts
+index 83dca96..ff89596 100644
+--- a/packages/evershop/src/lib/util/secureFetch.ts
++++ b/packages/evershop/src/lib/util/secureFetch.ts
+@@ -1,4 +1,5 @@
+-import { Agent, buildConnector, fetch as undiciFetch } from 'undici';
++import { Agent, ProxyAgent, buildConnector, fetch as undiciFetch } from 'undici';
++import { securityEvent } from '../log/securityEvent.js';
+ 
+ const REQUEST_TIMEOUT_MS = 15000;
+ 
+@@ -76,6 +77,11 @@ const guardedConnector = (
+   callback: ConnectorCallback
+ ): void => {
+   if (!isAllowedHost(options.hostname)) {
++    // 다온마켓 2-5 ⑤ 탐지: 리다이렉트로 허용 밖 호스트에 가려 했다
++    securityEvent.denied('egress.denied.not_allowed_host', '2-5', undefined, {
++      target: `host:${options.hostname}`,
++      reason: '허용 목록 밖 호스트(리다이렉트 포함)'
++    });
+     callback(
+       new Error(
+         `Blocked image fetch from non-allowlisted host: ${options.hostname}`
+@@ -89,6 +95,11 @@ const guardedConnector = (
+ 
+ const guardedAgent = new Agent({ connect: guardedConnector });
+ 
++// 다온마켓 2-5(A2): 이그레스 프록시가 설정되면 밖으로 나가는 길은 프록시 하나다.
++// 프록시가 허용 목록·내부 주소 거부를 한 번 더 한다(infra/egress/squid.conf). 이때 리다이렉트는 따라가지 않는다
++const egressProxy = process.env.DAON_EGRESS_PROXY;
++const proxyAgent = egressProxy ? new ProxyAgent(`http://${egressProxy}`) : undefined;
++
+ /**
+  * Parse and validate an untrusted image URL: http/https only, and the host must
+  * be on the `IMAGE_ALLOWED_HOSTS` allowlist. Returns the parsed URL.
+@@ -105,6 +116,11 @@ export function assertAllowedUrl(rawUrl: string): URL {
+   }
+   const host = url.hostname.replace(/^\[/, '').replace(/\]$/, '');
+   if (!isAllowedHost(host)) {
++    // 다온마켓 2-5 ⑤ 탐지: 호스트 이름만 남긴다(경로·쿼리에는 값이 섞일 수 있다)
++    securityEvent.denied('egress.denied.not_allowed_host', '2-5', undefined, {
++      target: `host:${host}`,
++      reason: '허용 목록 밖 호스트'
++    });
+     throw new Error(
+       `Image host "${host}" is not allowed. Add it to the IMAGE_ALLOWED_HOSTS environment variable.`
+     );
+@@ -128,7 +144,9 @@ export async function secureFetch(
+     return await undiciFetch(url, {
+       ...init,
+       signal: controller.signal,
+-      dispatcher: guardedAgent
++      ...(proxyAgent
++        ? { dispatcher: proxyAgent, redirect: 'manual' as const }
++        : { dispatcher: guardedAgent })
+     });
+   } finally {
+     clearTimeout(timer);
