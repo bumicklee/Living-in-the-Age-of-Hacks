@@ -28,16 +28,20 @@ SKIP = {"__pycache__", ".DS_Store"}
 
 
 def norm(lesson: str) -> str:
-    """'2-2', '02-02', 's2-02' → 's2-02'"""
-    m = re.fullmatch(r"s?0*(\d+)-0*(\d+)", str(lesson).strip())
+    """'2-2', '02-02', 's2-02' → 's2-02' · 섹션 미션 노트: '2-mission', '2-m', '2-미션' → 's2-mission'"""
+    text = str(lesson).strip().lower()
+    m = re.fullmatch(r"s?0*(\d+)-(mission|m|미션)", text)
+    if m:
+        return f"s{int(m.group(1))}-mission"
+    m = re.fullmatch(r"s?0*(\d+)-0*(\d+)", text)
     if not m:
-        raise SystemExit(f"수업 번호는 2-2처럼 씁니다: {lesson}")
+        raise SystemExit(f"수업 번호는 2-2처럼 씁니다(섹션 미션은 2-mission): {lesson}")
     return f"s{int(m.group(1))}-{int(m.group(2)):02d}"
 
 
 def short(lid: str) -> str:
     sec, no = lid[1:].split("-")
-    return f"{int(sec)}-{int(no)}"
+    return f"{int(sec)}-{no}" if no == "mission" else f"{int(sec)}-{int(no)}"
 
 
 def sections() -> list[dict]:

@@ -13,6 +13,8 @@ from pathlib import Path
 from daon.config import DATA, ENV, INFRA, ROOT, STACKS
 
 COMPOSE = INFRA / "compose.yml"
+LAB = INFRA / "compose.lab.yml"   # 늘 겹치는 랩 도구: 고객 웹·스텁·띠·넉넉한 시드(단계와 무관)
+ARCH = INFRA / "arch.txt"          # 켠 아키텍처 단계(a02 …). 수업 이동이 관리한다(course/base, 정답)
 
 # 스택마다: 앱 서비스(소스가 바뀌면 다시 빌드), 소스 지문을 잴 곳, PC 쪽 포트(겹침 검사)
 APPS = {
@@ -26,10 +28,33 @@ SOURCES = {
 }
 PORTS = {
     "spring": ["DAON_MYSQL_PORT", "DAON_REDIS_PORT", "DAON_RABBIT_PORT", "DAON_RABBIT_UI_PORT", "DAON_MONGO_PORT",
-               "DAON_MINIO_PORT", "DAON_MINIO_UI_PORT", "DAON_ADMIN_API_PORT", "DAON_PORTAL_API_PORT", "DAON_ADMIN_WEB_PORT"],
+               "DAON_MINIO_PORT", "DAON_MINIO_UI_PORT", "DAON_ADMIN_API_PORT", "DAON_PORTAL_API_PORT", "DAON_ADMIN_WEB_PORT",
+               "DAON_OPS_PORT"],
     "express": ["DAON_PG_PORT", "DAON_EVERSHOP_PORT"],
 }
+# 랩 도구(compose.lab.yml): 고객 웹은 spring, 스텁·메일은 두 스택 모두
+LAB_PORTS = ["DAON_PAYMENT_PORT", "DAON_SMS_PORT", "DAON_COURIER_PORT", "DAON_MAILPIT_PORT", "DAON_SMTP_PORT"]
+PORTS["spring"] = PORTS["spring"] + ["DAON_WEB_PORT"] + LAB_PORTS
+PORTS["express"] = PORTS["express"] + LAB_PORTS
 SKIP_PARTS = {"target", "node_modules", "dist", ".git", "__pycache__"}
+# 인프라 지문: 이것이 바뀌면 앱만이 아니라 스택 전체를 다시 맞춘다(새 서비스·망·설정)
+INFRA_SOURCES = ["infra/compose.yml", "infra/compose.lab.yml", "infra/lab-banner", "infra/arch.txt", "infra/egress", "stubs"]
+
+
+def arch_layers() -> list[str]:
+    """infra/arch.txt에서 켠 단계(a02 …). 파일이 있는 덧붙임만 쓴다."""
+    if not ARCH.exists():
+        return []
+    out = []
+    for line in ARCH.read_text("utf-8").splitlines():
+        name = line.split("#", 1)[0].strip().lower()
+        if name and (INFRA / f"compose.{name}.yml").exists() and name not in out:
+            out.append(name)
+    return out
+
+
+def compose_files() -> list[Path]:
+    return [COMPOSE] + ([LAB] if LAB.exists() else []) + [INFRA / f"compose.{n}.yml" for n in arch_layers()]
 
 
 def compose(stack: str | None, *args: str, check: bool = True, capture: bool = False) -> subprocess.CompletedProcess:
@@ -38,7 +63,10 @@ def compose(stack: str | None, *args: str, check: bool = True, capture: bool = F
     profiles = []
     for s in ([stack] if stack else STACKS):
         profiles += ["--profile", s]
-    cmd = ["docker", "compose", "-f", str(COMPOSE), "--project-directory", str(INFRA), *profiles, *args]
+    files = []
+    for f in compose_files():
+        files += ["-f", str(f)]
+    cmd = ["docker", "compose", *files, "--project-directory", str(INFRA), *profiles, *args]
     return subprocess.run(cmd, check=check, text=True, capture_output=capture)
 
 
@@ -81,9 +109,22 @@ def check_ports(stack: str) -> None:
 
 
 def fingerprint(stack: str) -> str:
+    return _hash(SOURCES[stack])
+
+
+def infra_fingerprint(stack: str) -> str:
+    return _hash(INFRA_SOURCES + [f"infra/compose.{n}.yml" for n in arch_layers()] + [f"stack:{stack}"])
+
+
+def _hash(rels: list[str]) -> str:
     h = hashlib.sha256()
-    for rel in SOURCES[stack]:
+    for rel in rels:
+        if rel.startswith("stack:"):
+            h.update(rel.encode())
+            continue
         base = ROOT / rel
+        if not base.exists():
+            continue
         files = [base] if base.is_file() else sorted(p for p in base.rglob("*") if p.is_file())
         for f in files:
             if SKIP_PARTS & set(f.relative_to(ROOT).parts):
@@ -95,6 +136,10 @@ def fingerprint(stack: str) -> str:
 
 def _stamp_path(stack: str) -> Path:
     return DATA / f"build-{stack}.txt"
+
+
+def _infra_stamp(stack: str) -> Path:
+    return DATA / f"infra-{stack}.txt"
 
 
 def built_fingerprint(stack: str) -> str | None:
@@ -144,9 +189,10 @@ def up(stack: str, *, build: bool = False) -> None:
     args = ["up", "-d", "--remove-orphans"] + (["--build"] if need_build else [])
     compose(stack, *args)
     wait_healthy(stack)
+    DATA.mkdir(exist_ok=True)
     if need_build:
-        DATA.mkdir(exist_ok=True)
         _stamp_path(stack).write_text(fp)
+    _infra_stamp(stack).write_text(infra_fingerprint(stack))
     if stack == "express":
         setup_express()
 
@@ -154,13 +200,23 @@ def up(stack: str, *, build: bool = False) -> None:
 def ensure_fresh(stack: str) -> bool:
     """수업 이동 등으로 앱 소스가 바뀌었으면 앱 이미지만 다시 빌드해 띄운다. 다시 빌드했으면 True."""
     fp = fingerprint(stack)
-    if built_fingerprint(stack) == fp:
+    ifp = infra_fingerprint(stack)
+    p = _infra_stamp(stack)
+    app_changed = built_fingerprint(stack) != fp
+    infra_changed = (p.read_text().strip() if p.exists() else None) != ifp
+    if not app_changed and not infra_changed:
         return False
-    print(f"[{stack}] 소스가 바뀌어 앱을 다시 빌드합니다: {', '.join(APPS[stack])}")
-    compose(stack, "up", "-d", "--build", "--no-deps", *APPS[stack])
+    if infra_changed:
+        layers = ", ".join(arch_layers()) or "A0만"
+        print(f"[{stack}] 인프라 구성이 바뀌어 스택을 다시 맞춥니다(켠 단계: {layers})")
+        compose(stack, "up", "-d", "--remove-orphans", *(["--build"] if app_changed else []))
+    else:
+        print(f"[{stack}] 소스가 바뀌어 앱을 다시 빌드합니다: {', '.join(APPS[stack])}")
+        compose(stack, "up", "-d", "--build", "--no-deps", *APPS[stack])
     wait_healthy(stack)
     DATA.mkdir(exist_ok=True)
     _stamp_path(stack).write_text(fp)
+    p.write_text(ifp)
     return True
 
 
@@ -178,9 +234,25 @@ def setup_express() -> None:
     r = compose("express", *cli, "seed", "--all", check=False)
     if r.returncode != 0:
         print("데모 상품 넣기(evershop seed)가 실패했습니다. 상품 없이 계속합니다.", file=sys.stderr)
+    seed_express()
     DATA.mkdir(exist_ok=True)
     mark.write_text(a["email"])
     print(f"EverShop 관리자: {a['email']} / {a['password']}  (http://127.0.0.1:{ENV.get('DAON_EVERSHOP_PORT', 3000)}/admin)")
+
+
+def seed_express() -> None:
+    """다온마켓 가짜 시드(seed/express/*.sql, tools/gen_seed.py가 만든다)를 PostgreSQL에 넣는다. Spring과 같은 계정·번호."""
+    for f in sorted((ROOT / "seed" / "express").glob("*.sql")):
+        files = []
+        for c in ([COMPOSE] + ([LAB] if LAB.exists() else [])):
+            files += ["-f", str(c)]
+        cmd = ["docker", "compose", *files, "--project-directory", str(INFRA), "--profile", "express",
+               "exec", "-T", "postgres", "psql", "-q", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"]
+        with open(f, "rb") as fin:
+            r = subprocess.run(cmd, stdin=fin, capture_output=True)
+        if r.returncode != 0:
+            raise SystemExit(f"Express 시드({f.name})를 넣지 못했습니다:\n{r.stderr.decode('utf-8', 'replace')[-800:]}")
+        print(f"Express 시드를 넣었습니다: seed/express/{f.name}")
 
 
 def down(stack: str | None, *, wipe: bool = False) -> None:
@@ -188,6 +260,7 @@ def down(stack: str | None, *, wipe: bool = False) -> None:
     if wipe:
         for s in ([stack] if stack else STACKS):
             _stamp_path(s).unlink(missing_ok=True)
+            _infra_stamp(s).unlink(missing_ok=True)
             if s == "express":
                 (DATA / "express-setup.txt").unlink(missing_ok=True)
 
