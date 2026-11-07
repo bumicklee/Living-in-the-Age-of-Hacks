@@ -18,7 +18,7 @@
 
 ```bash
 make setup               # 도구용 가상환경(.venv)
-make up STACK=spring     # 처음엔 이미지 빌드로 15분쯤. 그다음부터는 30초 안
+make up STACK=spring     # 처음엔 이미지 빌드로 15분쯤(실측 약 13분). 그다음부터는 1분 안(실측 41초)
 make up STACK=express    # EverShop. 처음 한 번 관리자 계정과 데모 상품을 넣습니다
 ```
 
