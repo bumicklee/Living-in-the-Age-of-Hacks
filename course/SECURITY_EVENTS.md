@@ -1,6 +1,6 @@
 # SECURITY_EVENTS · 보안 이벤트 이름 목록
 
-v0.1 · 2026-11-07 · 기준: `../../../랩-설계.md` 10절. **수업에서 이벤트를 하나 새로 만들면 여기에 한 줄 더한다.**
+v0.2 · 2026-11-07 · 기준: `../../../랩-설계.md` 10절(형식)·11절(trace_id). **수업에서 이벤트를 하나 새로 만들면 여기에 한 줄 더한다.**
 
 ## 형식(두 스택 같음)
 
@@ -19,7 +19,7 @@ v0.1 · 2026-11-07 · 기준: `../../../랩-설계.md` 10절. **수업에서 이
 | `ip` · `ua` | 요청 주소, User-Agent(120자까지) |
 | `reason` | 사람이 읽는 이유(값이 아니라 설명) |
 | `count` | 같은 `event`·`actor`가 최근 10분 안에 몇 번째인지(앱 인스턴스 하나 기준) |
-| `ts` · `trace_id` | 시각(+09:00), 요청 추적 ID(`X-Request-Id` → `traceparent` → 새로 만듦) |
+| `ts` · `trace_id` | 시각(+09:00), 요청 추적 번호. 요청 맨 앞 필터가 정한 값(`X-Trace-Id` → `traceparent` → `X-Request-Id` → 새로 만듦, 모양이 이상하면 버림)으로 응답 헤더 `X-Trace-Id`·큐 메시지 헤더와 같다(랩-설계 11절) |
 
 넣지 않는 것: 개인정보 원문(이름·전화·주소), 토큰·비밀번호, 요청 본문 전체, 보낸 값(예: 포인트 999999). 로그 수준: 거부 WARN, 의심 INFO.
 
@@ -38,4 +38,6 @@ v0.1 · 2026-11-07 · 기준: `../../../랩-설계.md` 10절. **수업에서 이
 
 ## 확인
 
-수업마다 `make check`에 「재연 뒤 앱 로그에 그 event가 남았는지」 보는 시험이 하나 있다(`tests/test_s2_0N_*.py::test_*_logged`, `replay/_logs.py`). 이그레스 프록시는 따로 `make logs S=egress | grep TCP_DENIED`.
+수업마다 `make check`에 「재연 뒤 앱 로그에 그 event가 남았는지」 보는 시험이 하나 있다(`tests/test_s2_0N_*.py::test_*_logged`, `replay/_logs.py`). 요청 하나의 `X-Trace-Id`가 그 줄의 `trace_id`와 같은지는 `tests/test_s2_02_trace_id.py`가 본다. 화면으로는 `make lab`(랩 상황판, 최근 50건). 이그레스 프록시는 따로 `make logs S=egress | grep TCP_DENIED`.
+
+방어 스위치(`make switch`, 랩-설계 12절)를 끄면 그 보호가 막지 않으므로 위 이벤트도 남지 않는다. 스위치 자체는 SECURITY 이벤트가 아니고, 앱이 뜰 때 `DAON-LAB` 로거가 꺼진 스위치를 한 줄로 알린다.

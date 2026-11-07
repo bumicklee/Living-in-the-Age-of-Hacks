@@ -45,7 +45,7 @@ index 0000000..7f9bd40
 +    reason: f.reason ?? null,
 +    count: count(`${event}|${actor}`),
 +    ts: new Date().toISOString(),
-+    trace_id: (request?.get('x-request-id') || '').slice(0, 64) || randomUUID().replace(/-/g, '')
++    trace_id: (request as any)?.traceId || randomUUID().replace(/-/g, '')   // express-trace-id.diff가 정한 번호
 +  };
 +  // 로거 이름 SECURITY. Spring 로그와 같은 방식으로 " SECURITY " 뒤의 JSON을 읽는다
 +  const out = `${level} SECURITY ${JSON.stringify(line)}`;

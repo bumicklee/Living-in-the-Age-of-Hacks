@@ -20,6 +20,12 @@ ADMINS = {
 }
 
 
+def new_trace_id(tag: str) -> str:
+    """요청 추적 번호(X-Trace-Id, 랩-설계.md 11절). 재연이 보낸 번호로 앱 로그를 찾는다."""
+    import uuid
+    return f"replay-{tag}-{uuid.uuid4().hex[:12]}"
+
+
 def client(base: str) -> httpx.Client:
     return httpx.Client(base_url=base, timeout=10.0)
 

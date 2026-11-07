@@ -30,7 +30,7 @@ public class DaonOpsConfig {
     @Bean
     public FilterRegistrationBean<DaonOpsGuardFilter> daonOpsGuard(DaonOpsGuardFilter filter) {
         FilterRegistrationBean<DaonOpsGuardFilter> reg = new FilterRegistrationBean<>(filter);
-        reg.setOrder(Ordered.HIGHEST_PRECEDENCE);   // Spring Security보다 먼저
+        reg.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);   // Spring Security보다 먼저, 추적 번호 필터(TraceIdConfig)보다는 뒤
         reg.addUrlPatterns("/*");
         return reg;
     }

@@ -23,6 +23,8 @@ x-app-env: &spring-app-env
   MINIO_ENDPOINT: http://minio:9000
   LOGSTASH_HOST: 127.0.0.1
   TZ: Asia/Seoul
+  # [다온마켓 추가] 일반 로그 줄에도 요청 추적 번호를 [..]로 붙인다(TraceIdFilter가 MDC trace_id에 넣는다, 랩-설계.md 11절)
+  LOGGING_PATTERN_CORRELATION: "[%X{trace_id:-}] "
 
 services:
   # ───────────────────────── Spring 스택(mall 포크) ─────────────────────────

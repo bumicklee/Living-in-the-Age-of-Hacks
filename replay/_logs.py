@@ -29,11 +29,13 @@ def security_events(service: str, since: str, stack: str = "spring") -> list[dic
     return out
 
 
-def wait_event(service: str, since: str, event: str, lesson: str, stack: str = "spring", timeout: float = 5.0) -> dict | None:
+def wait_event(service: str, since: str, event: str, lesson: str, stack: str = "spring", timeout: float = 5.0,
+               **match) -> dict | None:
+    """match: 더 맞춰 볼 키(예: trace_id="lab-…"). 같은 시험 안의 다른 요청이 남긴 줄과 섞이지 않게."""
     t0 = time.time()
     while True:
         for e in security_events(service, since, stack):
-            if e.get("event") == event and e.get("lesson") == lesson:
+            if e.get("event") == event and e.get("lesson") == lesson and all(e.get(k) == v for k, v in match.items()):
                 return e
         if time.time() - t0 > timeout:
             return None

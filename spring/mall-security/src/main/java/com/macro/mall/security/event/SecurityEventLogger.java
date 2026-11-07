@@ -2,6 +2,7 @@ package com.macro.mall.security.event;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.macro.mall.security.trace.TraceId;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -145,15 +145,13 @@ public final class SecurityEventLogger {
         return auth.getName();
     }
 
+    /** 추적 번호: 요청 맨 앞 TraceIdFilter가 정한 값(MDC) → 요청 속성 → (필터 밖이면) 새로 만듦. 랩-설계.md 11절 */
     private static String traceId(HttpServletRequest req) {
-        String id = req == null ? null : req.getHeader("X-Request-Id");
-        if (id == null && req != null) {
-            String tp = req.getHeader("traceparent");   // W3C: 00-<trace-id>-<span-id>-<flags>
-            if (tp != null && tp.split("-").length >= 2) {
-                id = tp.split("-")[1];
-            }
+        String id = TraceId.current();
+        if (id == null && req != null && req.getAttribute(TraceId.ATTR) instanceof String s) {
+            id = s;
         }
-        return id != null ? cut(id, 64) : UUID.randomUUID().toString().replace("-", "");
+        return id != null ? id : TraceId.newId();
     }
 
     private static String cut(String s, int max) {
