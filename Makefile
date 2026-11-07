@@ -7,7 +7,7 @@ endif
 STACK ?= spring
 export STACK
 
-.PHONY: help setup up down wipe ps logs mem goto lesson status check check-all solution apply-solution replay score verify-course
+.PHONY: help setup up down wipe ps logs mem goto lesson status check check-all solution apply-solution replay score verify-course switch lab
 
 help:             ## 명령 목록
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -51,6 +51,10 @@ score: $(PY)      ## 점수판: 취약 N개 / 36
 	@$(PY) -m daon score --stack $(STACK)
 verify-course: $(PY) ## 강사용: 모든 수업이 시작=레드, 완료=그린인지(ONLY=2-2로 한 수업만)
 	@$(PY) -m daon verify-course --stack $(STACK) $(if $(ONLY),--only $(ONLY))
+switch: $(PY)     ## 방어 스위치(완료 지점 전용, 영상의 끄면 레드·켜면 그린): make switch K=ownership V=off (K 없으면 목록, K=all)
+	@$(PY) -m daon switch $(K) $(V) --stack $(STACK)
+lab: $(PY)        ## 랩 상황판 http://127.0.0.1:8099/lab (읽기 전용, Ctrl+C로 끝)
+	@$(PY) -m daon lab --stack $(STACK)
 
 $(PY):
 	@$(MAKE) --no-print-directory setup

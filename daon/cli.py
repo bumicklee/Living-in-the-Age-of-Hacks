@@ -90,6 +90,8 @@ def cmd_check(a):
     stack = a.stack or current_stack()
     st.ensure_fresh(stack)
     tests = course.tests_for(a.lesson) if a.lesson else sorted((ROOT / "tests").glob("test_*.py"))
+    from daon import lab
+    lab.warn_if_off()
     if not tests:
         print(f"{a.lesson} 수업은 시험이 없습니다(사고·원리 수업). make replay로 화면을 보세요.")
         return
@@ -170,6 +172,9 @@ def cmd_score(a):
 def cmd_verify_course(a):
     """강사용: 시험이 있는 수업마다 시작 지점=레드(핵심 시험 하나하나), 완료 지점=그린인지. 랩이 떠 있어야 한다."""
     stack = a.stack or current_stack()
+    from daon import lab
+    if lab.off_switches():
+        raise SystemExit(f"꺼진 방어 스위치가 있습니다({', '.join(lab.off_switches())}). make switch K=all V=on 뒤에 다시 실행하세요.")
     saved = course.position()
     targets = [l for l in course.lessons() if course.tests_for(l["id"])]
     if a.only:
@@ -261,5 +266,7 @@ def main(argv=None):
     add("replay", cmd_replay, (["t"], {"nargs": "?"}), stack_opt)
     add("score", cmd_score, stack_opt)
     add("verify-course", cmd_verify_course, stack_opt, (["--only"], {}))
+    from daon import lab                      # 방어 스위치(make switch)·랩 상황판(make lab)
+    lab.register(add, stack_opt)
     a = p.parse_args(argv)
     a.fn(a)

@@ -50,10 +50,13 @@ make score               # 점수판: 취약 N개 / 36
 make mem                 # 컨테이너별 메모리
 make down                # 내리기(데이터 남김)
 make wipe                # 데이터를 시드 상태로(DB 스냅샷, Spring 약 3초 · Express 약 2초). HARD=1이면 볼륨째 지우고 처음부터
+make switch K=ownership V=off   # 방어 스위치(완료 지점 전용, 영상의 끄면 레드·켜면 그린). K 없으면 목록
+make lab                 # 랩 상황판 http://127.0.0.1:8099/lab (지점·단계·스위치·점수판·최근 보안 이벤트)
 ```
 
 - 수업이 진행되면 아키텍처도 바뀝니다. 켠 단계는 `infra/arch.txt`에 한 줄씩 적히고(2-5부터 `a02` = 이그레스 프록시), `make goto`·`make check`가 알아서 맞춥니다.
 - 보안 이벤트(⑤ 탐지) 로그는 `make logs S=mall-portal | grep SECURITY`로 봅니다. 이름 목록은 `course/SECURITY_EVENTS.md`.
+- 모든 응답에는 요청 추적 번호 `X-Trace-Id`가 붙고, 같은 번호가 로그 줄 앞 `[…]`, 보안 이벤트의 `trace_id`, 큐 메시지 헤더에 남습니다(요청에 `X-Trace-Id`를 달아 보내면 그 값을 씁니다).
 - 섹션 미션은 영상 대신 수업 노트입니다: `make lesson L=2-mission`, `make check L=2-mission`.
 - Express(EverShop)에서 같은 곳을 고치는 법은 `diffs/<수업>/express.diff`(공통 도우미 `diffs/common/`).
 

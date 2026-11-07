@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>다온마켓 랩 상황판</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2330; --mute:#6b7280; --line:#e5e7eb; --red:#c62828; --green:#2e7d32; --amber:#a15c00; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif; background:var(--bg); color:var(--ink); }
+  .banner { background:#ffde59; color:#222; text-align:center; font-weight:700; padding:6px 12px; font-size:14px; letter-spacing:.02em; }
+  header { display:flex; align-items:baseline; gap:12px; padding:16px 20px 4px; flex-wrap:wrap; }
+  header h1 { font-size:20px; margin:0; }
+  header .at { color:var(--mute); font-size:13px; }
+  main { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:14px; padding:12px 20px 20px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+  section h2 { font-size:14px; color:var(--mute); margin:0 0 8px; font-weight:600; }
+  .big { font-size:22px; font-weight:700; }
+  .sub { color:var(--mute); font-size:13px; margin-top:4px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:5px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--mute); font-weight:600; }
+  td.on, td.off, td.idle, td.red, td.green, td.warn, td.nw { white-space:nowrap; }
+  .on { color:var(--green); font-weight:700; }
+  .off { color:var(--red); font-weight:700; }
+  .idle { color:var(--mute); }
+  .red { color:var(--red); font-weight:700; }
+  .green { color:var(--green); font-weight:700; }
+  .warn { color:var(--amber); font-weight:700; }
+  #events { grid-column: 1 / -1; }
+  .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size:12px; }
+  .empty { color:var(--mute); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="banner" data-testid="lab-banner" id="banner">교육용 랩 · 127.0.0.1 · 값은 가짜</div>
+<header>
+  <h1>다온마켓 랩 상황판</h1>
+  <span class="at" data-testid="lab-updated">불러오는 중…</span>
+  <span class="at">읽기 전용 · 스위치는 <span class="mono">make switch</span>로 바꿉니다</span>
+</header>
+<main>
+  <section data-testid="lab-lesson">
+    <h2>지금 수업 지점</h2>
+    <div class="big" data-testid="lesson-no">-</div>
+    <div class="sub" data-testid="lesson-title"></div>
+  </section>
+  <section data-testid="lab-arch">
+    <h2>아키텍처 단계 · 스택</h2>
+    <div class="big" data-testid="arch-level">-</div>
+    <div class="sub" data-testid="arch-layers"></div>
+  </section>
+  <section data-testid="lab-score">
+    <h2>점수판(마지막 make score)</h2>
+    <div class="big"><span data-testid="score-red">-</span></div>
+    <div class="sub" data-testid="score-made"></div>
+    <table data-testid="score-table"><tbody></tbody></table>
+  </section>
+  <section data-testid="lab-switches">
+    <h2>방어 스위치(secure-kit.*.enabled)</h2>
+    <table><thead><tr><th>이름</th><th>값</th><th>보호</th></tr></thead><tbody data-testid="switch-rows"></tbody></table>
+    <div class="sub">회색: 지금 지점에는 아직 이 코드가 없음(그 수업 완료 지점부터 읽음)</div>
+  </section>
+  <section id="events" data-testid="lab-events">
+    <h2>최근 보안 이벤트(SECURITY, 최근 50건)</h2>
+    <table>
+      <thead><tr><th>시각</th><th>앱</th><th>event</th><th>수업</th><th>actor</th><th>target</th><th>count</th><th>trace_id</th><th>reason</th></tr></thead>
+      <tbody data-testid="event-rows"></tbody>
+    </table>
+    <div class="empty" data-testid="events-empty" hidden>아직 보안 이벤트가 없습니다. make replay 뒤에 다시 보세요.</div>
+  </section>
+</main>
+<script>
+// 이벤트에는 공격자가 넣은 값(ua·target 등)이 섞일 수 있다. innerHTML을 쓰지 않고 textContent로만 넣는다.
+function el(tag, text, cls, testid) {
+  const e = document.createElement(tag);
+  if (text !== undefined && text !== null) e.textContent = String(text);
+  if (cls) e.className = cls;
+  if (testid) e.setAttribute('data-testid', testid);
+  return e;
+}
+function q(id) { return document.querySelector('[data-testid="' + id + '"]'); }
+function row(cells, testid) {
+  const tr = el('tr', null, null, testid);
+  cells.forEach(c => tr.appendChild(c instanceof Node ? c : el('td', c)));
+  return tr;
+}
+function tdc(text, cls) { return el('td', text, cls); }
+
+function render(s) {
+  q('lab-updated').textContent = '갱신 ' + s.at;
+  if (s.lesson) {
+    q('lesson-no').textContent = s.lesson.no + ' · ' + (s.lesson.done ? '완료 지점' : '시작 지점');
+    q('lesson-title').textContent = s.lesson.title;
+  } else {
+    q('lesson-no').textContent = '지점 없음';
+    q('lesson-title').textContent = 'make goto L=2-2 로 시작합니다';
+  }
+  q('arch-level').textContent = s.arch.level + ' · ' + s.stack;
+  q('arch-layers').textContent = s.arch.layers.length ? s.arch.layers.map(l => l.label).join(', ') : 'A0 시작 구조(덧붙인 단계 없음)';
+
+  const sb = q('score-table').querySelector('tbody');
+  sb.replaceChildren();
+  if (s.score) {
+    q('score-red').textContent = '취약 ' + s.score.red + ' / 재연 ' + s.score.made;
+    q('score-red').className = s.score.red ? 'red' : 'green';
+    q('score-made').textContent = '전체 목록 ' + s.score.total + '개 · ' + s.score.at + ' 기준';
+    (s.score.rows || []).forEach(r => {
+      const red = String(r.state).startsWith('레드');
+      sb.appendChild(row([tdc(r.T), tdc(r.state, red ? 'red' : (String(r.state).startsWith('그린') ? 'green' : 'warn')), tdc(r.title)], 'score-row-' + r.T));
+    });
+  } else {
+    q('score-red').textContent = '기록 없음';
+    q('score-red').className = '';
+    q('score-made').textContent = 'make score 를 한 번 돌리면 여기 나옵니다';
+  }
+
+  const sw = q('switch-rows');
+  sw.replaceChildren();
+  s.switches.forEach(x => {
+    const cls = !x.active ? 'idle' : (x.on ? 'on' : 'off');
+    const tr = row([tdc(x.key, 'mono'), tdc(x.on ? '켜짐' : '꺼짐', cls), tdc(x.title + ' · ' + x.replay, x.active ? null : 'idle')], 'switch-row-' + x.key);
+    tr.setAttribute('data-on', x.on ? 'true' : 'false');
+    sw.appendChild(tr);
+  });
+
+  const ev = q('event-rows');
+  ev.replaceChildren();
+  q('events-empty').hidden = s.events.length > 0;
+  if (s.events_error) { q('events-empty').hidden = false; q('events-empty').textContent = s.events_error; }
+  s.events.forEach(e => {
+    const t = String(e.ts || '').replace('T', ' ').slice(0, 19);
+    ev.appendChild(row([tdc(t, 'mono'), tdc(e.service), tdc(e.event, 'mono'), tdc(e.lesson, 'nw'), tdc(e.actor), tdc(e.target),
+                        tdc(e.count), tdc(e.trace_id, 'mono'), tdc(e.reason)], 'event-row'));
+  });
+}
+
+async function refresh() {
+  try {
+    const r = await fetch('/lab/state.json', { cache: 'no-store' });
+    render(await r.json());
+  } catch (err) {
+    q('lab-updated').textContent = '불러오지 못했습니다: ' + err;
+  }
+}
+refresh();
+setInterval(refresh, 5000);
+</script>
+</body>
+</html>
