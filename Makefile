@@ -22,8 +22,8 @@ up: $(PY)         ## 스택 띄우기: make up STACK=spring|express (BUILD=1이�
 	@$(PY) -m daon up --stack $(STACK) $(if $(BUILD),--build)
 down: $(PY)       ## 스택 내리기(데이터는 남김): make down [STACK=…]
 	@$(PY) -m daon down $(if $(filter command line,$(origin STACK)),--stack $(STACK))
-wipe: $(PY)       ## 내리고 데이터까지 지우기(시드부터 다시): make wipe [STACK=…]
-	@$(PY) -m daon down --wipe $(if $(filter command line,$(origin STACK)),--stack $(STACK))
+wipe: $(PY)       ## 데이터를 시드 상태로(스냅샷, 몇 초). HARD=1이면 볼륨까지 지우고 처음부터: make wipe [STACK=…]
+	@$(PY) -m daon down --wipe $(if $(HARD),--hard) $(if $(filter command line,$(origin STACK)),--stack $(STACK))
 ps: $(PY)         ## 컨테이너 상태
 	@$(PY) -m daon ps --stack $(STACK)
 logs: $(PY)       ## 로그: make logs S=mall-portal

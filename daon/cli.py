@@ -24,18 +24,30 @@ def _pytest(paths: list[Path], *extra: str, stack: str) -> int:
 
 # ── 띄우기 ──
 def cmd_up(a):
-    st.up(a.stack or current_stack(), build=a.build)
+    from daon import snapshot
     s = a.stack or current_stack()
+    snapshot.mark_if_new_volume(s)          # DB 볼륨을 새로 만들면 시드가 막 들어간 상태 → 초기화용 스냅샷을 뜬다(A12)
+    st.up(s, build=a.build)
+    snapshot.take_if_pending(s)
     if s == "spring":
+        print("고객 웹    http://127.0.0.1:{}  (alice / daon-pass-1!)".format(st.ENV.get("DAON_WEB_PORT", 8088)))
         print("고객 API  http://127.0.0.1:{}/swagger-ui.html".format(st.ENV.get("DAON_PORTAL_API_PORT", 8085)))
         print("관리자 API http://127.0.0.1:{}/swagger-ui.html".format(st.ENV.get("DAON_ADMIN_API_PORT", 8080)))
         print("관리자 화면 http://127.0.0.1:{}  (admin / macro123)".format(st.ENV.get("DAON_ADMIN_WEB_PORT", 8090)))
     else:
         print("EverShop  http://127.0.0.1:{}  관리자 /admin".format(st.ENV.get("DAON_EVERSHOP_PORT", 3000)))
+    print("가짜 메일   http://127.0.0.1:{}  · 가짜 결제·문자·택배: stubs/README.md".format(st.ENV.get("DAON_MAILPIT_PORT", 8025)))
 
 
 def cmd_down(a):
+    from daon import snapshot
+    if a.wipe and not a.hard and snapshot.fast_wipe(a.stack):
+        return                              # 스냅샷으로 몇 초 만에 시드 상태로(A12). 컨테이너는 그대로
     st.down(a.stack, wipe=a.wipe)
+    if a.wipe:
+        for s in ([a.stack] if a.stack else st.STACKS):
+            snapshot.mark_pending(s)
+        print("볼륨까지 지웠습니다. 다음 make up 때 시드를 새로 넣고, 초기화용 스냅샷을 뜹니다.")
 
 
 def cmd_ps(a):
@@ -236,7 +248,7 @@ def main(argv=None):
 
     stack_opt = (["--stack"], {"choices": ["spring", "express"]})
     add("up", cmd_up, stack_opt, (["--build"], {"action": "store_true"}))
-    add("down", cmd_down, stack_opt, (["--wipe"], {"action": "store_true"}))
+    add("down", cmd_down, stack_opt, (["--wipe"], {"action": "store_true"}), (["--hard"], {"action": "store_true"}))
     add("ps", cmd_ps, stack_opt)
     add("logs", cmd_logs, (["service"], {"nargs": "?"}))
     add("mem", cmd_mem)
