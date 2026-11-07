@@ -1,7 +1,7 @@
 [project]
 name = "daon-market-lab"
 version = "0.1.0"
-description = "「Cyber Survival Guide: Living in the Age of Hacks」 다온마켓 랩 도구(재연·확인·수업 이동·점수판)"
+description = "「해킹 서바이벌 가이드」 다온마켓 랩 도구(재연·확인·수업 이동·점수판)"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 

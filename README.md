@@ -1,4 +1,4 @@
-# 다온마켓(daon-market) · 「Cyber Survival Guide: Living in the Age of Hacks」 실습 저장소
+# 다온마켓(daon-market) · 「해킹 서바이벌 가이드」 실습 저장소
 
 가상의 쇼핑몰 회사 「다온마켓」의 백엔드입니다. 오픈소스 쇼핑몰 두 개(mall·EverShop 기반)를 포크했고, 내 PC 한 대에서 docker compose로 돌아갑니다.
 **원본 mall은 중국어 프로젝트이고, 이 강의는 한국어로 번역한 판으로 진행합니다**(`spring/UPSTREAM.md`).
