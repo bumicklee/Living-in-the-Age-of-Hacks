@@ -28,6 +28,8 @@ PC에 이미 MySQL(3306) 같은 프로그램이 있어 포트가 겹치면 `infr
 |---|---|---|
 | http://127.0.0.1:8085/swagger-ui.html | 고객 API(mall-portal) | alice / bob, 비밀번호 `daon-pass-1!` |
 | http://127.0.0.1:8080/swagger-ui.html | 관리자 API(mall-admin) | admin / macro123 (원본 데모 계정) |
+| 〃 | 관리자 API 직원 계정(2-3·2-5) | staff_goods(상품 관리자) / staff_order(주문 관리자), 비밀번호 `daon-pass-1!` |
+| http://127.0.0.1:8095/ops/health | 다온 운영 도구(교육용, 로그인 없음, 2-6) | — |
 | http://127.0.0.1:8090 | 관리자 화면 | 위와 같음 |
 | http://127.0.0.1:3000 · `/admin` | EverShop | admin@daon.example / `daon-admin-1!` |
 
@@ -41,6 +43,11 @@ make score               # 점수판: 취약 N개 / 36
 make mem                 # 컨테이너별 메모리
 make down                # 내리기(데이터 남김) · make wipe: 데이터까지 지우고 시드부터 다시
 ```
+
+- 수업이 진행되면 아키텍처도 바뀝니다. 켠 단계는 `infra/arch.txt`에 한 줄씩 적히고(2-5부터 `a02` = 이그레스 프록시), `make goto`·`make check`가 알아서 맞춥니다.
+- 보안 이벤트(⑤ 탐지) 로그는 `make logs S=mall-portal | grep SECURITY`로 봅니다. 이름 목록은 `course/SECURITY_EVENTS.md`.
+- 섹션 미션은 영상 대신 수업 노트입니다: `make lesson L=2-mission`, `make check L=2-mission`.
+- Express(EverShop)에서 같은 곳을 고치는 법은 `diffs/<수업>/express.diff`(공통 도우미 `diffs/common/`).
 
 ## 안전 범위
 
