@@ -20,6 +20,7 @@ public class OmsPortalOrderReturnApplyServiceImpl implements OmsPortalOrderRetur
     private OmsOrderReturnApplyMapper returnApplyMapper;
     @Override
     public int create(OmsOrderReturnApplyParam returnApply) {
+        // ✏️ 2-미션: 반품을 신청하는 주문이 로그인한 회원의 것인지 확인한다(다온마켓 교육용 표시)
         OmsOrderReturnApply realApply = new OmsOrderReturnApply();
         BeanUtils.copyProperties(returnApply,realApply);
         realApply.setCreateTime(new Date());

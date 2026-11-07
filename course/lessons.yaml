@@ -23,4 +23,5 @@
   - {id: s2-04, 'no': 2-4, title: '회원정보 수정으로 등급과 포인트가 바뀐다(대량 할당)', replay: [T03]}
   - {id: s2-05, 'no': 2-5, title: '이미지 URL 가져오기가 내부망을 연다(SSRF)', arch: A2, replay: [T04]}
   - {id: s2-06, 'no': 2-6, title: 'DNS 리바인딩: 허용한 이름이 내부를 가리킨다', replay: [T05]}
-  # 섹션 2 미션(배송지·반품 신청에 같은 검사)은 영상 대신 수업 노트 lessons/s2-mission.md(2026-11-07 A안)
+  # 섹션 2 미션은 영상 대신 수업 노트(2026-11-07 A안). make lesson L=2-mission · make check L=2-mission
+  - {id: s2-mission, 'no': 2-mission, title: '미션: 배송지·반품 신청에도 같은 소유권 검사', note: true}
