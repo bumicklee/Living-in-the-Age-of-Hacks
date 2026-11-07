@@ -41,6 +41,9 @@
 - 반품 신청 본문에는 상품 가격(`productPrice`, `productRealPrice`)도 있습니다. 2-4의 눈으로 보면 무엇이 문제일까요? 주문 상품 표(`oms_order_item`)에서 가져오도록 바꿔 봅니다.
 - 고객 앱 컨트롤러를 모두 훑어 「요청 값으로 남의 데이터 번호를 받는 곳」을 표로 정리합니다(장바구니·쿠폰·후기). 섹션 끝 정리는 secure-kit의 `OwnershipGuard` 도우미로 이어집니다.
 
+## 선택: 스위치로 다시 보기
+정답 코드(`make goto L=2-mission AT=done`)의 반품 신청 검사도 2-2와 같은 스위치 `secure-kit.ownership.enabled`를 읽습니다. `make switch K=ownership V=off` → `make check L=2-mission`이 레드, `V=on` → 그린.
+
 ## 막히면
 - `make solution L=2-mission` · `make apply-solution L=2-mission`
 
