@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -62,7 +63,8 @@ def mark_pending(stack: str) -> None:
     _pending(stack).write_text(str(int(time.time())))
 
 
-VOLUMES = {"spring": "daon_mysql-data", "express": "daon_pg-data"}
+PROJECT = os.environ.get("COMPOSE_PROJECT_NAME", "daon")     # compose.yml의 name: daon(사본으로 시험할 때만 바꾼다)
+VOLUMES = {"spring": f"{PROJECT}_mysql-data", "express": f"{PROJECT}_pg-data"}
 
 
 def mark_if_new_volume(stack: str) -> None:
@@ -73,7 +75,7 @@ def mark_if_new_volume(stack: str) -> None:
 
 
 def _container(service: str) -> str:
-    return f"daon-{service}-1"          # compose.yml의 name: daon → 컨테이너 이름이 고정이다
+    return f"{PROJECT}-{service}-1"
 
 
 def _running(stack: str, service: str) -> bool:
