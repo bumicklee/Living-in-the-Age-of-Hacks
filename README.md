@@ -10,7 +10,7 @@
 | `infra/` | compose(아키텍처 A0부터), Dockerfile, 초기화 스크립트 | MIT |
 | `seed/` | 가짜 데이터(계정·주문) | MIT |
 | `replay/` · `tests/` | 재연 스크립트와 시험(HTTP, 127.0.0.1만) | MIT |
-| `course/` · `solutions/` · `lessons/` | 수업 시작 상태, 수업별 정답, 수업 카드 | MIT |
+| `course/` · `lessons/` | 수업 시작 상태, 수업 카드 | MIT |
 
 ## 설치
 

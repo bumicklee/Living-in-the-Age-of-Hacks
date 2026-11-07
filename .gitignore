@@ -7,3 +7,4 @@ target/
 infra/.env
 __pycache__/
 scoreboard/*.json
+solutions/

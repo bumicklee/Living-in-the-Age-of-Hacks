@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 from pathlib import Path
@@ -18,7 +19,9 @@ from daon.config import DATA, ROOT
 
 COURSE = ROOT / "course"
 BASE = COURSE / "base"
-SOLUTIONS = ROOT / "solutions"
+# 수업 정답은 저장소 밖에 둔다(2026-11-07 작성자 결정: 정답은 공개 저장소에 올리지 않는다).
+# 기본 위치는 저장소 옆 폴더 ../daon-market-solutions, DAON_SOLUTIONS로 바꿀 수 있다.
+SOLUTIONS = Path(os.environ.get("DAON_SOLUTIONS", ROOT.parent / "daon-market-solutions")).resolve()
 CARDS = ROOT / "lessons"
 PROGRESS = DATA / "progress.json"
 SKIP = {"__pycache__", ".DS_Store"}
