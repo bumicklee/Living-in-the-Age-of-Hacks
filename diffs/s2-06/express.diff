@@ -1,0 +1,46 @@
+# 2-6 Express(EverShop)에서 고칠 곳: 모든 요청의 맨 앞 미들웨어(bin/lib/addDefaultMiddlewareFuncs.ts)
+# - EverShop에는 다온 운영 도구 같은 로컬 도구가 없다. 대신 EverShop 자체가 개발 PC의 localhost:3000에서 관리자 세션 쿠키로 돈다.
+#   쿠키 인증은 DNS 리바인딩에 그대로 노출되므로(브라우저가 쿠키를 붙여 보낸다) 같은 Host 허용 목록을 앱 맨 앞에 둔다.
+# - 운영 배포에서는 ALLOWED_HOSTS에 실제 도메인을 넣는다(예: shop.daon.example). 비어 있으면 이 PC 이름만 허용한다.
+# - 먼저 diffs/common/express-security-event.diff를 넣는다. 적용: cd express && git apply ../diffs/s2-06/express.diff
+
+diff --git a/packages/evershop/src/bin/lib/addDefaultMiddlewareFuncs.ts b/packages/evershop/src/bin/lib/addDefaultMiddlewareFuncs.ts
+index d7a5abd..cd3543f 100644
+--- a/packages/evershop/src/bin/lib/addDefaultMiddlewareFuncs.ts
++++ b/packages/evershop/src/bin/lib/addDefaultMiddlewareFuncs.ts
+@@ -11,6 +11,7 @@ import {
+ } from '../../lib/locale/localeResolution.js';
+ import { translate } from '../../lib/locale/translate/translate.js';
+ import { debug, warning } from '../../lib/log/logger.js';
++import { securityEvent } from '../../lib/log/securityEvent.js';
+ import publicStatic from '../../lib/middlewares/publicStatic.js';
+ import themePublicStatic from '../../lib/middlewares/themePublicStatic.js';
+ import { pool } from '../../lib/postgres/connection.js';
+@@ -32,6 +33,27 @@ import { getDevMiddleware, getHotMiddleware } from './devEnvHelper.js';
+ import { routeNeedsSession } from './routeNeedsSession.js';
+ 
+ export function addDefaultMiddlewareFuncs(app) {
++  // 다온마켓 2-6: Host 허용 목록. 맨 앞에서 검사한다.
++  // DNS 리바인딩으로 들어온 요청은 공격자 이름을 Host에 달고 온다. 목록은 ALLOWED_HOSTS(쉼표로 구분),
++  // 비어 있으면 이 PC에서 부르는 이름(127.0.0.1·localhost + 포트)만 허용한다(비었다고 모두 열지 않는다)
++  const port = process.env.PORT || '3000';
++  const allowedHosts = (process.env.ALLOWED_HOSTS || `127.0.0.1:${port},localhost:${port}`)
++    .split(',')
++    .map((h) => h.trim().toLowerCase())
++    .filter(Boolean);
++  app.use((request, response, next) => {
++    const host = (request.get('host') || '').toLowerCase();
++    if (allowedHosts.includes(host)) {
++      return next();
++    }
++    // ⑤ 탐지: 낯선 Host. 이름은 64자까지만
++    securityEvent.denied('request.denied.host', '2-6', request, {
++      target: `host:${host.slice(0, 64) || '-'}`,
++      reason: '허용하지 않은 Host'
++    });
++    response.status(403).json({ error: { status: 403, message: 'Forbidden host' } });
++  });
++
+   app.use((request, response, next) => {
+     response.debugMiddlewares = [];
+     next();

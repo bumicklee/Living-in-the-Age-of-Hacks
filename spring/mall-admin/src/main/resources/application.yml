@@ -48,6 +48,7 @@ secure:
       - /admin/logout
       - /minio/upload
       - /aliyun/oss/policy
+      - /ops/** # [교육용 추가] 다온 운영 도구(8095 포트 전용, 2-6). 로컬 도구라 로그인 없이 연다
 
 springdoc:
   swagger-ui:
