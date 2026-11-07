@@ -1,0 +1,79 @@
+# 다온마켓 랩 · 늘 함께 켜는 랩 도구(아키텍처 단계와 무관). daon 명령이 compose.yml 바로 위에 이 파일을 겹친다.
+#
+#   - 넉넉한 가짜 시드(A5): MySQL 초기화에 seed/spring/30-daon-bulk.sql을 더한다(tools/gen_seed.py가 만든다)
+#   - 고객 웹(A7): web/ 정적 파일 + /api/ → mall-portal. http://127.0.0.1:8088
+#   - 「교육용 랩」 띠(A10): 관리자 화면 nginx 설정에 띠 한 줄을 끼운다(infra/lab-banner/)
+#   - 가짜 외부 서비스(A11): 결제사·문자·택배·메일(Mailpit). 설명은 stubs/README.md
+#
+# 모든 포트는 127.0.0.1에만 연다(DAON_BIND). 스텁은 두 스택 어느 쪽을 켜도 함께 뜬다.
+
+x-stub: &stub
+  profiles: [spring, express]
+  image: python:3.14.10-slim-trixie
+  command: ["python", "-u", "/app/server.py"]
+  user: "65534:65534"
+  read_only: true
+  mem_limit: 64m
+  healthcheck:
+    test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+    interval: 5s
+    timeout: 3s
+    retries: 20
+  networks: [daon]
+
+services:
+  mysql:
+    volumes:
+      - ../seed/spring/30-daon-bulk.sql:/docker-entrypoint-initdb.d/30-daon-bulk.sql:ro
+
+  web:
+    profiles: [spring]
+    image: nginx:1.30.6-alpine
+    volumes:
+      - ../web/html:/usr/share/nginx/html:ro
+      - ../web/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_WEB_PORT:-8088}:80"]
+    mem_limit: 32m
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://127.0.0.1/index.html"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [daon]
+
+  admin-web:
+    volumes:
+      - ./lab-banner/admin-web.conf:/etc/nginx/conf.d/default.conf:ro
+
+  payment-stub:
+    <<: *stub
+    environment:
+      PAYMENT_WEBHOOK_SECRET: lab-fake-webhook-secret     # 랩 전용 가짜 값
+    volumes: ["../stubs/payment:/app:ro"]
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_PAYMENT_PORT:-9101}:8000"]
+
+  sms-stub:
+    <<: *stub
+    volumes: ["../stubs/sms:/app:ro"]
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_SMS_PORT:-9102}:8000"]
+
+  courier-stub:
+    <<: *stub
+    volumes: ["../stubs/courier:/app:ro"]
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_COURIER_PORT:-9103}:8000"]
+
+  mailpit:
+    profiles: [spring, express]
+    image: axllent/mailpit:v1.32.0
+    environment:
+      MP_MAX_MESSAGES: 500
+    ports:
+      - "${DAON_BIND:-127.0.0.1}:${DAON_MAILPIT_PORT:-8025}:8025"   # 받은 메일 화면
+      - "${DAON_BIND:-127.0.0.1}:${DAON_SMTP_PORT:-1025}:1025"      # SMTP(앱은 mailpit:1025)
+    mem_limit: 64m
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [daon]

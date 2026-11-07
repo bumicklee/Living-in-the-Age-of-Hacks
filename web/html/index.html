@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>다온마켓</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="lab-banner" data-testid="lab-banner">교육용 랩 · 127.0.0.1 · 값은 가짜</div>
+  <header class="top">
+    <a href="/" class="brand" data-link data-testid="nav-home">다온마켓</a>
+    <nav>
+      <a href="/" data-link data-testid="nav-products">상품</a>
+      <a href="/cart" data-link data-testid="nav-cart">장바구니 <span id="cart-count" data-testid="nav-cart-count"></span></a>
+      <a href="/orders" data-link data-testid="nav-orders">내 주문</a>
+      <span id="who" data-testid="nav-user"></span>
+      <a href="/login" data-link id="nav-login" data-testid="nav-login">로그인</a>
+      <button type="button" id="nav-logout" class="link" data-testid="nav-logout" hidden>로그아웃</button>
+    </nav>
+  </header>
+  <main id="app" data-testid="page"></main>
+  <div id="toast" role="status" data-testid="toast" hidden></div>
+  <script src="/app.js"></script>
+</body>
+</html>
