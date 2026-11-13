@@ -1,0 +1,26 @@
+# secure-kit 부품 24개 목록(교육용-소스-설계 7.3). 계약: contract-tests/CONTRACT.md · 시험: contract-tests/test_parts.py
+# spring·express = 각 스택에서 찾을 이름(소스에 그 이름이 있어야 한다, test_manifest.py). lesson = 손으로 먼저 고친 수업
+- {num: 1, key: safe-http-client, how: replace, spring: SafeHttpClient, express: safeFetch, lesson: "2-5", event: egress.denied.internal_address}
+- {num: 2, key: host-allowlist, how: config, spring: HostAllowlistFilter, express: hostAllowlist, lesson: "2-6", event: request.denied.host}
+- {num: 3, key: safe-redirect, how: replace, spring: SafeRedirect, express: safeRedirect, lesson: "11-2", event: redirect.denied.not_allowed}
+- {num: 4, key: upload, how: replace, spring: UploadValidator, express: upload, lesson: "3-6", event: upload.rejected.type}
+- {num: 5, key: headers, how: config, spring: SecurityHeadersFilter, express: headers, lesson: "3-5·6-6", event: cors.denied_origin}
+- {num: 6, key: rate-limit, how: config+annotation, spring: RateLimited, express: rateLimit, lesson: "4-3", event: auth.login.rate_limited}
+- {num: 7, key: password-policy, how: replace, spring: PasswordPolicy, express: passwordPolicy, lesson: "4-2", event: auth.password.rejected_breached}
+- {num: 8, key: constant-time-login, how: replace, spring: ConstantTimeLogin, express: constantTimeLogin, lesson: "4-4", event: null}
+- {num: 9, key: reset-link, how: replace, spring: ResetLinkBuilder, express: resetLink, lesson: "4-5", event: auth.reset.token_reused}
+- {num: 10, key: step-up, how: annotation, spring: RequireStepUp, express: requireStepUp, lesson: "4-7", event: auth.stepup.required}
+- {num: 11, key: token, how: config, spring: KitTokenService, express: token, lesson: "4-8·5-2", event: auth.token.revoked_used}
+- {num: 12, key: field-crypto, how: annotation, spring: Encrypted, express: fieldCrypto, lesson: "5-3·5-4", event: crypto.decrypt.failed}
+- {num: 13, key: startup-check, how: config, spring: StartupSecretCheck, express: startupCheck, lesson: "6-3", event: config.startup.denied_default_secret}
+- {num: 14, key: error-response, how: config, spring: KitErrorResponse, express: errorResponse, lesson: "6-5", event: null}
+- {num: 15, key: audit, how: annotation, spring: Audited, express: audited, lesson: "8-3", event: null}
+- {num: 16, key: log-masking, how: config, spring: MaskingConverter, express: logger, lesson: "8-5", event: null}
+- {num: 17, key: limits, how: config+replace, spring: SafeRegex, express: safeRegex, lesson: "9-3", event: input.denied.too_large}
+- {num: 18, key: fail-closed, how: annotation, spring: FailClosed, express: failClosed, lesson: "9-2", event: auth.fail_closed.dependency_error}
+- {num: 19, key: resilient-client, how: config, spring: ResilientClient, express: resilientFetch, lesson: "9-5", event: resilience.circuit.opened}
+- {num: 20, key: idempotency, how: annotation, spring: Idempotent, express: idempotent, lesson: "10-4", event: payment.duplicate.event}
+- {num: 21, key: budget, how: annotation, spring: Budget, express: budget, lesson: "10-7", event: budget.denied.sms}
+- {num: 22, key: no-store, how: config, spring: NoStoreAuthenticatedFilter, express: noStoreAuthenticated, lesson: "11-4", event: null}
+- {num: 23, key: partner-scope, how: annotation, spring: PartnerScope, express: partnerScope, lesson: "12-2·12-3", event: partner.denied.scope}
+- {num: 24, key: approval, how: annotation, spring: RequiresApproval, express: requiresApproval, lesson: "13-3·13-4", event: approval.pending.second_approver}

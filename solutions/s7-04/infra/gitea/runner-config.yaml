@@ -1,0 +1,14 @@
+# act_runner 설정(랩 전용). 호스트 모드 레이블 하나만 쓴다 = 작업이 러너 컨테이너 안에서 바로 돈다.
+# 도커 소켓도 특권 모드도 쓰지 않는다(7-5 러너 최소 권한). 이미지를 만드는 일은 러너 밖의 빌드 단계가 한다.
+log:
+  level: info
+runner:
+  file: /data/.runner
+  capacity: 1
+  timeout: 10m
+  labels:
+    - "lab:host"
+cache:
+  enabled: false
+host:
+  workdir_parent: /data/work

@@ -1,0 +1,2020 @@
+# 다온마켓 A5 · 보안 이벤트 경보 규칙(Grafana 경보 규칙 불러오기 형식)
+# make alert-rules 가 course/SECURITY_EVENTS.md 표의 「경보 후보(8장)」 칸에서 만든다. 손으로 고치지 않는다.
+# 새 이벤트는 표에 한 줄 더하고 make alert-rules 를 다시 돌린다(Grafana가 다시 뜬다).
+# 손으로 쓴 규칙은 같은 폴더의 bulk.yaml(8-4)·collector.yaml(8-5), 알림 정책은 notify.yaml.
+apiVersion: 1
+groups:
+- orgId: 1
+  name: security-events
+  folder: 다온마켓 경보
+  interval: 30s
+  rules:
+  - uid: sec-access-denied-not-owner
+    title: access.denied.not_owner
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="access.denied.not_owner"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 4
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: access.denied.not_owner
+      severity: P2
+      lesson: 2-2
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'access.denied.not_owner: 같은 actor 10m 안 5건 이상'
+      description: '경보 후보(8장): 같은 actor count ≥ 5 / 10분(번호 훑기, P2)'
+      runbook_url: docs/runbooks/access.denied.not_owner.md
+    isPaused: false
+  - uid: sec-access-denied-no-permission
+    title: access.denied.no_permission
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="access.denied.no_permission"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: access.denied.no_permission
+      severity: P2
+      lesson: 2-3
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'access.denied.no_permission: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): 같은 actor count ≥ 3 / 10분'
+      runbook_url: docs/runbooks/access.denied.no_permission.md
+    isPaused: false
+  - uid: sec-input-unexpected-fields
+    title: input.unexpected_fields
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="input.unexpected_fields"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: input.unexpected_fields
+      severity: P3
+      lesson: 2-4
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'input.unexpected_fields: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도(정상 화면은 보내지 않는다, P3)'
+      runbook_url: docs/runbooks/input.unexpected_fields.md
+    isPaused: false
+  - uid: sec-egress-denied-internal-address
+    title: egress.denied.internal_address
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="egress.denied.internal_address"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: egress.denied.internal_address
+      severity: P1
+      lesson: 2-5
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'egress.denied.internal_address: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도(P1)'
+      runbook_url: docs/runbooks/egress.denied.internal_address.md
+    isPaused: false
+  - uid: sec-egress-denied-scheme
+    title: egress.denied.scheme
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="egress.denied.scheme"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: egress.denied.scheme
+      severity: P2
+      lesson: 2-5
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'egress.denied.scheme: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): no_proxy는 설정 사고, 나머지는 반복 시'
+      runbook_url: docs/runbooks/egress.denied.scheme.md
+    isPaused: false
+  - uid: sec-egress-denied-bad-url
+    title: egress.denied.bad_url
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="egress.denied.bad_url"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: egress.denied.bad_url
+      severity: P2
+      lesson: 2-5
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'egress.denied.bad_url: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): no_proxy는 설정 사고, 나머지는 반복 시'
+      runbook_url: docs/runbooks/egress.denied.bad_url.md
+    isPaused: false
+  - uid: sec-egress-denied-no-proxy
+    title: egress.denied.no_proxy
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="egress.denied.no_proxy"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: egress.denied.no_proxy
+      severity: P2
+      lesson: 2-5
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'egress.denied.no_proxy: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): no_proxy는 설정 사고, 나머지는 반복 시'
+      runbook_url: docs/runbooks/egress.denied.no_proxy.md
+    isPaused: false
+  - uid: sec-egress-denied-not-image
+    title: egress.denied.not_image
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="egress.denied.not_image"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: egress.denied.not_image
+      severity: P2
+      lesson: 2-5
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'egress.denied.not_image: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): no_proxy는 설정 사고, 나머지는 반복 시'
+      runbook_url: docs/runbooks/egress.denied.not_image.md
+    isPaused: false
+  - uid: sec-egress-denied-not-allowed-host
+    title: egress.denied.not_allowed_host
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="egress.denied.not_allowed_host"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: egress.denied.not_allowed_host
+      severity: P2
+      lesson: 2-5(Express)
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'egress.denied.not_allowed_host: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): 반복 시'
+      runbook_url: docs/runbooks/egress.denied.not_allowed_host.md
+    isPaused: false
+  - uid: sec-request-denied-host
+    title: request.denied.host
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="request.denied.host"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: request.denied.host
+      severity: P2
+      lesson: 2-6
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'request.denied.host: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/request.denied.host.md
+    isPaused: false
+  - uid: sec-db-error-bad-sql-grammar
+    title: db.error.bad_sql_grammar
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="db.error.bad_sql_grammar"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: db.error.bad_sql_grammar
+      severity: P2
+      lesson: 3-2
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'db.error.bad_sql_grammar: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/db.error.bad_sql_grammar.md
+    isPaused: false
+  - uid: sec-input-rejected-sort-field
+    title: input.rejected.sort_field
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (ip, app) (count_over_time({event="input.rejected.sort_field"} | json ip="ip" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: input.rejected.sort_field
+      severity: P2
+      lesson: 3-3
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'input.rejected.sort_field: 같은 ip 10m 안 3건 이상'
+      description: '경보 후보(8장): 같은 ip 반복(익명은 actor로 묶이지 않는다)'
+      runbook_url: docs/runbooks/input.rejected.sort_field.md
+    isPaused: false
+  - uid: sec-input-sanitized-html
+    title: input.sanitized.html
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="input.sanitized.html"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: input.sanitized.html
+      severity: P2
+      lesson: 3-4
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'input.sanitized.html: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/input.sanitized.html.md
+    isPaused: false
+  - uid: sec-csp-violation
+    title: csp.violation
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="csp.violation"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: csp.violation
+      severity: P2
+      lesson: 3-5
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'csp.violation: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): 같은 페이지 반복'
+      runbook_url: docs/runbooks/csp.violation.md
+    isPaused: false
+  - uid: sec-upload-rejected-type
+    title: upload.rejected.type
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="upload.rejected.type"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: upload.rejected.type
+      severity: P2
+      lesson: 3-6
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'upload.rejected.type: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): 같은 직원 반복'
+      runbook_url: docs/runbooks/upload.rejected.type.md
+    isPaused: false
+  - uid: sec-upload-rejected-size
+    title: upload.rejected.size
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="upload.rejected.size"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: upload.rejected.size
+      severity: P2
+      lesson: 3-6
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'upload.rejected.size: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): 같은 직원 반복'
+      runbook_url: docs/runbooks/upload.rejected.size.md
+    isPaused: false
+  - uid: sec-auth-login-breached-password-in-use
+    title: auth.login.breached_password_in_use
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.login.breached_password_in_use"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.login.breached_password_in_use
+      severity: P2
+      lesson: 4-2
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.login.breached_password_in_use: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/auth.login.breached_password_in_use.md
+    isPaused: false
+  - uid: sec-auth-password-rejected-breached
+    title: auth.password.rejected_breached
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (ip, app) (count_over_time({event="auth.password.rejected_breached"} | json ip="ip" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.password.rejected_breached
+      severity: P2
+      lesson: 4-2
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.password.rejected_breached: 같은 ip 10m 안 3건 이상'
+      description: '경보 후보(8장): 같은 ip 반복'
+      runbook_url: docs/runbooks/auth.password.rejected_breached.md
+    isPaused: false
+  - uid: sec-auth-login-unknown-account-burst
+    title: auth.login.unknown_account_burst
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.login.unknown_account_burst"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.login.unknown_account_burst
+      severity: P2
+      lesson: 4-4
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.login.unknown_account_burst: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/auth.login.unknown_account_burst.md
+    isPaused: false
+  - uid: sec-auth-reset-code-failed-burst
+    title: auth.reset.code_failed_burst
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.reset.code_failed_burst"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.reset.code_failed_burst
+      severity: P2
+      lesson: 4-5
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.reset.code_failed_burst: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/auth.reset.code_failed_burst.md
+    isPaused: false
+  - uid: sec-auth-reset-host-mismatch
+    title: auth.reset.host_mismatch
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.reset.host_mismatch"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.reset.host_mismatch
+      severity: P2
+      lesson: 4-5
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.reset.host_mismatch: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/auth.reset.host_mismatch.md
+    isPaused: false
+  - uid: sec-auth-reset-token-reused
+    title: auth.reset.token_reused
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.reset.token_reused"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.reset.token_reused
+      severity: P2
+      lesson: 4-5
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.reset.token_reused: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/auth.reset.token_reused.md
+    isPaused: false
+  - uid: sec-auth-stepup-required
+    title: auth.stepup.required
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.stepup.required"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.stepup.required
+      severity: P2
+      lesson: 4-7
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.stepup.required: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): 실패 반복'
+      runbook_url: docs/runbooks/auth.stepup.required.md
+    isPaused: false
+  - uid: sec-auth-stepup-failed
+    title: auth.stepup.failed
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.stepup.failed"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.stepup.failed
+      severity: P2
+      lesson: 4-7
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.stepup.failed: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): 실패 반복'
+      runbook_url: docs/runbooks/auth.stepup.failed.md
+    isPaused: false
+  - uid: sec-auth-mfa-push-flood
+    title: auth.mfa.push_flood
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.mfa.push_flood"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.mfa.push_flood
+      severity: P2
+      lesson: 4-7
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.mfa.push_flood: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/auth.mfa.push_flood.md
+    isPaused: false
+  - uid: sec-auth-token-revoked-used
+    title: auth.token.revoked_used
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.token.revoked_used"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.token.revoked_used
+      severity: P2
+      lesson: 4-8
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.token.revoked_used: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/auth.token.revoked_used.md
+    isPaused: false
+  - uid: sec-auth-refresh-reuse-detected
+    title: auth.refresh.reuse_detected
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.refresh.reuse_detected"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.refresh.reuse_detected
+      severity: P2
+      lesson: 4-8
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.refresh.reuse_detected: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/auth.refresh.reuse_detected.md
+    isPaused: false
+  - uid: sec-auth-token-denied-alg
+    title: auth.token.denied_alg
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.token.denied_alg"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.token.denied_alg
+      severity: P2
+      lesson: 5-2
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.token.denied_alg: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/auth.token.denied_alg.md
+    isPaused: false
+  - uid: sec-auth-token-denied-unknown-kid
+    title: auth.token.denied_unknown_kid
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.token.denied_unknown_kid"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.token.denied_unknown_kid
+      severity: P2
+      lesson: 5-2
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.token.denied_unknown_kid: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/auth.token.denied_unknown_kid.md
+    isPaused: false
+  - uid: sec-auth-token-denied-no-exp
+    title: auth.token.denied_no_exp
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="auth.token.denied_no_exp"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.token.denied_no_exp
+      severity: P2
+      lesson: 5-2
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.token.denied_no_exp: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/auth.token.denied_no_exp.md
+    isPaused: false
+  - uid: sec-crypto-decrypt-failed
+    title: crypto.decrypt.failed
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="crypto.decrypt.failed"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: crypto.decrypt.failed
+      severity: P2
+      lesson: 5-3
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'crypto.decrypt.failed: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/crypto.decrypt.failed.md
+    isPaused: false
+  - uid: sec-pii-reveal-denied
+    title: pii.reveal.denied
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="pii.reveal.denied"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: pii.reveal.denied
+      severity: P2
+      lesson: 5-4
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'pii.reveal.denied: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): 같은 관리자 반복'
+      runbook_url: docs/runbooks/pii.reveal.denied.md
+    isPaused: false
+  - uid: sec-pii-reveal-burst
+    title: pii.reveal.burst
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="pii.reveal.burst"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: pii.reveal.burst
+      severity: P2
+      lesson: 5-4
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'pii.reveal.burst: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/pii.reveal.burst.md
+    isPaused: false
+  - uid: sec-config-startup-denied-default-secret
+    title: config.startup.denied_default_secret
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="config.startup.denied_default_secret"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: config.startup.denied_default_secret
+      severity: P2
+      lesson: 6-3
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'config.startup.denied_default_secret: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도(배포 사고 신호)'
+      runbook_url: docs/runbooks/config.startup.denied_default_secret.md
+    isPaused: false
+  - uid: sec-secret-lease-renew-failed
+    title: secret.lease.renew_failed
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="secret.lease.renew_failed"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: secret.lease.renew_failed
+      severity: P2
+      lesson: 6-3
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'secret.lease.renew_failed: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도(OpenBao 접근 문제·운영 사고 신호)'
+      runbook_url: docs/runbooks/secret.lease.renew_failed.md
+    isPaused: false
+  - uid: sec-cors-denied-origin
+    title: cors.denied_origin
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="cors.denied_origin"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: cors.denied_origin
+      severity: P2
+      lesson: 6-6
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'cors.denied_origin: 같은 actor 10m 안 3건 이상'
+      description: '경보 후보(8장): 같은 출처가 반복되면 8장에서 확인'
+      runbook_url: docs/runbooks/cors.denied_origin.md
+    isPaused: false
+  - uid: sec-csrf-denied-origin
+    title: csrf.denied_origin
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="csrf.denied_origin"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: csrf.denied_origin
+      severity: P2
+      lesson: 6-6(Express)
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'csrf.denied_origin: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/csrf.denied_origin.md
+    isPaused: false
+  - uid: sec-cache-integrity-failed
+    title: cache.integrity.failed
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="cache.integrity.failed"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: cache.integrity.failed
+      severity: P2
+      lesson: 6-4
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'cache.integrity.failed: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도 경보 후보(전환 때는 캐시를 비운다)'
+      runbook_url: docs/runbooks/cache.integrity.failed.md
+    isPaused: false
+  - uid: sec-secret-canary-used
+    title: secret.canary_used
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="secret.canary_used"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: secret.canary_used
+      severity: P2
+      lesson: 6-2
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'secret.canary_used: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도(저장소나 문서가 밖으로 샜다는 신호)'
+      runbook_url: docs/runbooks/secret.canary_used.md
+    isPaused: false
+  - uid: sec-supply-kev-match
+    title: supply.kev_match
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="supply.kev_match"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: supply.kev_match
+      severity: P2
+      lesson: 7-2
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'supply.kev_match: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 결정 없음·기한 지남 WARN은 한 번이라도'
+      runbook_url: docs/runbooks/supply.kev_match.md
+    isPaused: false
+  - uid: sec-supply-upstream-patch-overdue
+    title: supply.upstream_patch.overdue
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="supply.upstream_patch.overdue"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: supply.upstream_patch.overdue
+      severity: P2
+      lesson: 7-3
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'supply.upstream_patch.overdue: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): WARN 한 번이라도'
+      runbook_url: docs/runbooks/supply.upstream_patch.overdue.md
+    isPaused: false
+  - uid: sec-ci-denied-unpinned-step
+    title: ci.denied.unpinned_step
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 86400
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="ci.denied.unpinned_step"} | json actor="actor" [1d]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: ci.denied.unpinned_step
+      severity: P2
+      lesson: 7-5
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'ci.denied.unpinned_step: 같은 actor 1d 안 3건 이상'
+      description: '경보 후보(8장): 같은 actor 3회 / 1일'
+      runbook_url: docs/runbooks/ci.denied.unpinned_step.md
+    isPaused: false
+  - uid: sec-ci-step-changed
+    title: ci.step.changed
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="ci.step.changed"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: ci.step.changed
+      severity: P2
+      lesson: 7-5
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'ci.step.changed: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도'
+      runbook_url: docs/runbooks/ci.step.changed.md
+    isPaused: false
+  - uid: sec-deploy-denied-unsigned-image
+    title: deploy.denied.unsigned_image
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="deploy.denied.unsigned_image"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: deploy.denied.unsigned_image
+      severity: P1
+      lesson: 7-6
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'deploy.denied.unsigned_image: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도(P1)'
+      runbook_url: docs/runbooks/deploy.denied.unsigned_image.md
+    isPaused: false
+  - uid: sec-deserialize-denied-type
+    title: deserialize.denied.type
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="deserialize.denied.type"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: deserialize.denied.type
+      severity: P2
+      lesson: 7-7(7-미션)
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'deserialize.denied.type: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 정상 운영에서는 나올 일이 없다: 한 번이라도'
+      runbook_url: docs/runbooks/deserialize.denied.type.md
+    isPaused: false
+  - uid: sec-config-signature-invalid
+    title: config.signature.invalid
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="config.signature.invalid"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: config.signature.invalid
+      severity: P2
+      lesson: 7-미션
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'config.signature.invalid: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도(설정 파일 변조 신호)'
+      runbook_url: docs/runbooks/config.signature.invalid.md
+    isPaused: false
+  - uid: sec-auth-denied-token
+    title: auth.denied.token
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (ip, app) (count_over_time({event="auth.denied.token"} | json ip="ip" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 19
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: auth.denied.token
+      severity: P2
+      lesson: 8-4(Express 8-3)
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'auth.denied.token: 같은 ip 10m 안 20건 이상'
+      description: '경보 후보(8장): 같은 ip 20회 / 10분(P2)'
+      runbook_url: docs/runbooks/auth.denied.token.md
+    isPaused: false
+  - uid: sec-audit-chain-broken
+    title: audit.chain.broken
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="audit.chain.broken"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: audit.chain.broken
+      severity: P1
+      lesson: 8-6
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'audit.chain.broken: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도, 즉시(P1)'
+      runbook_url: docs/runbooks/audit.chain.broken.md
+    isPaused: false
+  - uid: sec-alert-escalated-unacknowledged
+    title: alert.escalated.unacknowledged
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (actor, app) (count_over_time({event="alert.escalated.unacknowledged"} | json actor="actor" [10m]))
+        queryType: instant
+        editorMode: code
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels:
+      event: alert.escalated.unacknowledged
+      severity: P1
+      lesson: 8-7
+      source: SECURITY_EVENTS.md
+    annotations:
+      summary: 'alert.escalated.unacknowledged: 같은 actor 10m 안 1건 이상'
+      description: '경보 후보(8장): 한 번이라도(P1, 다른 담당 lead@)'
+      runbook_url: docs/runbooks/alert.escalated.unacknowledged.md
+    isPaused: false

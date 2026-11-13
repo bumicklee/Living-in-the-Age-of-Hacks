@@ -38,7 +38,7 @@ def run(stack: str = "spring") -> Result:
     evil = f"rebind.attacker.example:{ops_port()}"
     r = ops_get(evil)
     ev = [f"요청: GET http://{HOST}:{ops_port()}{PATH}  Host: {evil}  (리바인딩된 브라우저가 보내는 모양)",
-          f"응답: HTTP {r.status_code} {r.text[:120]!r}"]
+          f"응답: HTTP {r.status_code} · 본문 {len(r.content)}바이트(설정 값은 출력하지 않음)"]
     if r.status_code == 200 and "daon-ops" in r.text:
         return Result(True, "운영 도구가 공격자 이름으로 온 요청에도 설정 값을 돌려준다", ev)
     return Result(False, "운영 도구는 허용하지 않은 Host를 거부한다", ev)

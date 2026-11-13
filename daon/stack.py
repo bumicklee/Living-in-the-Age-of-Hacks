@@ -18,17 +18,20 @@ ARCH = INFRA / "arch.txt"          # 켠 아키텍처 단계(a02 …). 수업 �
 
 # 스택마다: 앱 서비스(소스가 바뀌면 다시 빌드), 소스 지문을 잴 곳, PC 쪽 포트(겹침 검사)
 APPS = {
-    "spring": ["mall-admin", "mall-portal"],
+    # admin-web(관리자 화면, Vue 빌드)도 수업이 고친다(3-4 후기 화면, 3-6 업로드 부품). 바뀌지 않았으면 빌드 캐시로 몇 초
+    "spring": ["mall-admin", "mall-portal", "admin-web"],
     "express": ["evershop"],
 }
 SOURCES = {
     "spring": ["spring/pom.xml"] + [f"spring/{m}" for m in
-               ("mall-common", "mall-mbg", "mall-security", "mall-demo", "mall-admin", "mall-search", "mall-portal")],
+               ("mall-common", "mall-mbg", "mall-security", "mall-demo", "mall-admin", "mall-search", "mall-portal",
+                "mall-admin-web")] + ["infra/docker/mall.Dockerfile", "infra/docker/mall-admin-web.Dockerfile",
+                                      "infra/approval"],   # 13장 승인 서비스(A10). a10을 켰을 때만 빌드한다(app_services)
     "express": ["express/package.json", "express/package-lock.json", "express/packages"],
 }
 PORTS = {
     "spring": ["DAON_MYSQL_PORT", "DAON_REDIS_PORT", "DAON_RABBIT_PORT", "DAON_RABBIT_UI_PORT", "DAON_MONGO_PORT",
-               "DAON_MINIO_PORT", "DAON_MINIO_UI_PORT", "DAON_ADMIN_API_PORT", "DAON_PORTAL_API_PORT", "DAON_ADMIN_WEB_PORT",
+               "DAON_MINIO_PORT", "DAON_MINIO_UI_PORT", "DAON_GATEWAY_ADMIN_PORT", "DAON_ADMIN_API_PORT", "DAON_PORTAL_API_PORT", "DAON_ADMIN_WEB_PORT",
                "DAON_OPS_PORT"],
     "express": ["DAON_PG_PORT", "DAON_EVERSHOP_PORT"],
 }
@@ -36,9 +39,25 @@ PORTS = {
 LAB_PORTS = ["DAON_PAYMENT_PORT", "DAON_SMS_PORT", "DAON_COURIER_PORT", "DAON_MAILPIT_PORT", "DAON_SMTP_PORT"]
 PORTS["spring"] = PORTS["spring"] + ["DAON_WEB_PORT"] + LAB_PORTS
 PORTS["express"] = PORTS["express"] + LAB_PORTS
+A8_PORTS = ["DAON_CI_PORT", "DAON_CI_REGISTRY_PORT"]   # 7-5(A8)를 켰을 때만 겹침을 본다
 SKIP_PARTS = {"target", "node_modules", "dist", ".git", "__pycache__"}
 # 인프라 지문: 이것이 바뀌면 앱만이 아니라 스택 전체를 다시 맞춘다(새 서비스·망·설정)
-INFRA_SOURCES = ["infra/compose.yml", "infra/compose.lab.yml", "infra/lab-banner", "infra/arch.txt", "infra/egress", "stubs"]
+INFRA_SOURCES = ["infra/compose.yml", "infra/compose.lab.yml", "infra/lab-banner", "infra/arch.txt", "infra/egress", "infra/openbao", "stubs",
+                 "infra/minio", "infra/gateway", "infra/mongo", "infra/rabbitmq", "web/nginx.conf",
+                 "infra/gitea", "infra/ci-tools", "infra/ci-broker",
+                 "infra/observability", "infra/varnish", "infra/approval", "infra/backup"]   # infra/minio/init.sh: 버킷 정책(3-6). 바뀌면 minio-init이 다시 돈다. observability: A5(8-4) 설정
+A5_PORTS = ["DAON_GRAFANA_PORT", "DAON_LOKI_PORT"]     # 8-4(A5)를 켰을 때만 겹침을 본다
+A5_RELOAD = ["loki", "alloy", "grafana"]                       # 설정 파일(볼륨으로 붙인 것)만 바뀌면 compose가 그대로 두므로 다시 띄운다
+A7_PORTS = ["DAON_GATEWAY_SHOP_PORT"]                  # 11-3(A7)을 켰을 때만 겹침을 본다
+A7_RELOAD = ["gateway", "varnish"]                     # 게이트웨이 설정(gateway/nginx.conf)·VCL(varnish/)은 뜰 때 한 번 읽는다(11-3 → 11-4에서 파일만 바뀐다)
+A9_PORTS = ["DAON_GATEWAY_PARTNER_PORT"]               # 12-2(A9)를 켰을 때만 겹침을 본다. 게이트웨이 설정이 바뀌면 A7_RELOAD가 게이트웨이를 다시 띄운다
+A10_PORTS = ["DAON_APPROVAL_PORT"]                     # 13-3(A10)을 켰을 때만 겹침을 본다(승인 서비스 8097)
+A11_RELOAD = ["backup-audit", "backup-job"]            # 14장(A11): 스크립트(infra/backup/*.sh·audit.py)는 볼륨으로 붙인 파일이라 내용만 바뀌면 compose가 그대로 둔다
+
+
+def app_services(stack: str) -> list[str]:
+    """소스가 바뀌면 다시 빌드할 앱 서비스. 13-3(A10)부터 승인 서비스(approval)도 앱이다(compose.a10.yml에만 있어 켰을 때만)."""
+    return APPS[stack] + (["approval"] if stack == "spring" and "a10" in arch_layers() else [])
 
 
 def arch_layers() -> list[str]:
@@ -53,6 +72,20 @@ def arch_layers() -> list[str]:
     return out
 
 
+def redis_cli(*args: str, stdin: str | None = None) -> subprocess.CompletedProcess:
+    """컨테이너 안 redis-cli 한 번. A3(4-3)에서 기본 사용자를 끄면 랩 도구 사용자(lab-ops)로 붙는다.
+
+    켠 단계(arch.txt)가 아니라 지금 떠 있는 Redis에 물어서 정한다(단계를 바꾸고 아직 다시 띄우기 전에도 맞게).
+    """
+    import os
+    name = f"{os.environ.get('COMPOSE_PROJECT_NAME', 'daon')}-redis-1"
+    base = ["docker", "exec", "-i", name, "redis-cli"]
+    probe = subprocess.run(base + ["PING"], capture_output=True, text=True)
+    if "NOAUTH" in (probe.stdout + probe.stderr) or "WRONGPASS" in (probe.stdout + probe.stderr):
+        base += ["--user", "lab-ops", "--no-auth-warning"]
+    return subprocess.run(base + list(args), input=stdin, capture_output=True, text=True)
+
+
 def compose_files() -> list[Path]:
     return [COMPOSE] + ([LAB] if LAB.exists() else []) + [INFRA / f"compose.{n}.yml" for n in arch_layers()]
 
@@ -60,6 +93,7 @@ def compose_files() -> list[Path]:
 def compose(stack: str | None, *args: str, check: bool = True, capture: bool = False) -> subprocess.CompletedProcess:
     if not shutil.which("docker"):
         raise SystemExit("docker가 없습니다. Docker Desktop·OrbStack·Rancher Desktop 중 하나를 설치하세요.")
+    ensure_env()                      # 수업이 .env.example에 더한 항목을 내 .env에 맞춘다(6-2~)
     profiles = []
     for s in ([stack] if stack else STACKS):
         profiles += ["--profile", s]
@@ -75,6 +109,15 @@ def ensure_env() -> None:
     if not env.exists():
         shutil.copy(INFRA / ".env.example", env)
         print("infra/.env를 만들었습니다(infra/.env.example 복사). 포트를 바꾸려면 이 파일을 고치세요.")
+        return
+    # 수업이 .env.example에 새 항목을 더하면(6-2부터) 내 .env에 없는 항목만 덧붙인다. 내가 바꾼 값은 건드리지 않는다
+    have = {l.split("=", 1)[0].strip() for l in env.read_text("utf-8").splitlines() if "=" in l and not l.lstrip().startswith("#")}
+    add = [l for l in (INFRA / ".env.example").read_text("utf-8").splitlines()
+           if "=" in l and not l.lstrip().startswith("#") and l.split("=", 1)[0].strip() not in have]
+    if add:
+        with env.open("a", encoding="utf-8") as f:
+            f.write("\n# .env.example에서 덧붙임(make up)\n" + "\n".join(add) + "\n")
+        print(f"infra/.env에 새 항목 {len(add)}개를 덧붙였습니다(.env.example 기준).")
 
 
 def _our_ports() -> set[int]:
@@ -95,7 +138,10 @@ def _our_ports() -> set[int]:
 def check_ports(stack: str) -> None:
     ours = _our_ports()
     busy = []
-    for key in PORTS[stack]:
+    for key in (PORTS[stack] + (A8_PORTS if "a08" in arch_layers() else []) + (A5_PORTS if "a05" in arch_layers() else [])
+                + (A7_PORTS if "a07" in arch_layers() and stack == "spring" else [])
+                + (A9_PORTS if "a09" in arch_layers() and stack == "spring" else [])
+                + (A10_PORTS if "a10" in arch_layers() and stack == "spring" else [])):
         p = int(ENV.get(key, 0) or 0)
         if not p or p in ours:
             continue
@@ -181,18 +227,53 @@ def wait_healthy(stack: str, timeout: int = 600) -> None:
         time.sleep(3)
 
 
+def wait_a5(timeout: int = 120) -> None:
+    """A5(8-4~): Loki는 뜬 뒤 몇십 초 동안 /ready가 503이다. 시험·재연이 바로 묻지 않게 기다린다."""
+    import urllib.request
+    url = f"http://127.0.0.1:{ENV.get('DAON_LOKI_PORT', 3100)}/ready"
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        try:
+            if urllib.request.urlopen(url, timeout=2).status == 200:
+                return
+        except OSError:
+            pass
+        time.sleep(2)
+    print(f"Loki가 {timeout}초 안에 준비되지 않았습니다(make logs S=loki)")
+
+
+def prune_dangling() -> None:
+    """다시 빌드하면 옛 이미지가 이름 없이(<none>) 남는다(하나에 약 400MB). 그것만 지운다. 빌드 캐시는 남겨 다음 빌드를 빠르게 한다."""
+    r = subprocess.run(["docker", "image", "prune", "-f"], capture_output=True, text=True)
+    freed = [l for l in r.stdout.splitlines() if l.startswith("Total reclaimed space")]
+    if freed and not freed[0].endswith(" 0B"):
+        print("이름 없는 옛 이미지 정리: " + freed[0].split(":", 1)[1].strip())
+
+
 def up(stack: str, *, build: bool = False) -> None:
     ensure_env()
     check_ports(stack)
     fp = fingerprint(stack)
+    old_infra = _infra_stamp(stack).read_text().strip() if _infra_stamp(stack).exists() else None
+    new_infra = infra_fingerprint(stack)
     need_build = build or built_fingerprint(stack) != fp
     args = ["up", "-d", "--remove-orphans"] + (["--build"] if need_build else [])
     compose(stack, *args)
+    if old_infra != new_infra and "a11" in arch_layers() and stack == "spring":
+        # 수업 이동은 infra/backup 디렉터리를 교체한다. Docker Desktop의 기존 bind mount는
+        # 옛 디렉터리를 가리키므로 설정이 같아도 백업 작업을 다시 만들어야 한다.
+        have = set((compose(stack, "config", "--services", check=False, capture=True).stdout or "").split())
+        reload = [name for name in A11_RELOAD if name in have]
+        if reload:
+            compose(stack, "up", "-d", "--no-deps", "--force-recreate", *reload)
     wait_healthy(stack)
     DATA.mkdir(exist_ok=True)
     if need_build:
         _stamp_path(stack).write_text(fp)
-    _infra_stamp(stack).write_text(infra_fingerprint(stack))
+        prune_dangling()
+    _infra_stamp(stack).write_text(new_infra)
+    if "a05" in arch_layers():
+        wait_a5()
     if stack == "express":
         setup_express()
 
@@ -210,13 +291,31 @@ def ensure_fresh(stack: str) -> bool:
         layers = ", ".join(arch_layers()) or "A0만"
         print(f"[{stack}] 인프라 구성이 바뀌어 스택을 다시 맞춥니다(켠 단계: {layers})")
         compose(stack, "up", "-d", "--remove-orphans", *(["--build"] if app_changed else []))
+        if stack == "spring":
+            # 관리자 화면 nginx는 설정(infra/lab-banner)을 뜰 때 한 번 읽는다. 파일만 바뀌면 compose가 컨테이너를 그대로 두므로 다시 띄운다(3-5 CSP)
+            compose(stack, "up", "-d", "--no-deps", "--force-recreate", "admin-web", "web")
+        if "a05" in arch_layers():
+            # A5(8-4~): 수집기·경보 설정(infra/observability)은 뜰 때 한 번 읽는다
+            compose(stack, "up", "-d", "--no-deps", "--force-recreate", *A5_RELOAD)
+            wait_a5()
+        if "a07" in arch_layers() and stack == "spring":
+            # A7(11-3~): 게이트웨이 설정·VCL은 볼륨으로 붙인 파일이라 내용만 바뀌면 compose가 그대로 둔다
+            compose(stack, "up", "-d", "--no-deps", "--force-recreate", *A7_RELOAD)
+        if "a11" in arch_layers() and stack == "spring":
+            # A11(14장): 백업 스크립트도 볼륨으로 붙인 파일이다. 14-2 시작 모습에는 backup-audit가 없으므로 정의된 것만 다시 띄운다
+            have = set((compose(stack, "config", "--services", check=False, capture=True).stdout or "").split())
+            reload = [name for name in A11_RELOAD if name in have]
+            if reload:
+                compose(stack, "up", "-d", "--no-deps", "--force-recreate", *reload)
     else:
-        print(f"[{stack}] 소스가 바뀌어 앱을 다시 빌드합니다: {', '.join(APPS[stack])}")
-        compose(stack, "up", "-d", "--build", "--no-deps", *APPS[stack])
+        print(f"[{stack}] 소스가 바뀌어 앱을 다시 빌드합니다: {', '.join(app_services(stack))}")
+        compose(stack, "up", "-d", "--build", "--no-deps", *app_services(stack))
     wait_healthy(stack)
     DATA.mkdir(exist_ok=True)
     _stamp_path(stack).write_text(fp)
     p.write_text(ifp)
+    if app_changed:
+        prune_dangling()
     return True
 
 

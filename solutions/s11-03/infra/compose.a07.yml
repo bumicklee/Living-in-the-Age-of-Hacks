@@ -1,0 +1,49 @@
+# 다온마켓 랩 · 아키텍처 A7 「캐시와 게이트웨이 강화」(수업 11-3·11-4)
+#
+#   infra/arch.txt에 a07 줄이 있으면 daon 명령이 compose.yml(+ a02 · a03 · a04 · a01 · a08 · a05 · a06) 위에 이 파일을 함께 쓴다.
+#
+# 바뀌는 것
+#   ① 게이트웨이(6-4의 nginx)에 고객 API 입구 8086을 연다: PC → gateway:8086 /api/ → varnish:6081 → mall-portal:8085
+#      고객 웹(8088)·시험이 쓰는 앱 직접 주소(8085)는 그대로 둔다(섹션 2~10 시험이 바뀌지 않게). 「A7 경로」는 8086이다
+#   ② 게이트웨이 설정(gateway/nginx.conf)에 「요청 경계가 모호한 요청 거절」 표와 거절 이벤트 줄(request.denied.malformed)
+#   ③ 게이트웨이·캐시 이미지를 태그가 아니라 다이제스트(@sha256:…)로 고정한다. 태그는 같은 이름에 다른 내용을 올릴 수 있다(7-6)
+#      다이제스트는 2026-11-10 Docker Hub에서 읽은 여러 아키텍처 묶음(index)의 값. 버전을 올릴 때는 태그와 다이제스트를 함께 바꾼다
+#   ④ Varnish 캐시(11-4). 처음 설정(varnish/default.vcl)은 성능 팀이 넣은 [회사 설정]: /api/ GET을 60초 동안 누구에게나 같은 응답
+#
+# 게이트웨이 → 뒷단 구간의 HTTP 판(작성자 결정 #15)
+#   nginx 1.29.4부터 뒷단으로 HTTP/2(proxy_http_version 2)를 보낼 수 있다(make audit-gateway가 실행 중인 게이트웨이에서 확인한다).
+#   그러나 Varnish의 뒷단(앱 쪽)은 HTTP/1.1만 쓴다. 그래서 이 랩은 「앞단이 모호한 요청을 거절 + 본문을 다 받아 길이를 다시 정함
+#   + 뒷단 연결 재사용 끔 + 버전 고정」으로 간다. 끝까지 HTTP/2로 가려면 캐시를 빼거나 HTTP/2 뒷단을 지원하는 캐시가 필요하다.
+#
+# 메모리: varnish 128MB 상한(캐시 저장 48MB). 게이트웨이는 그대로 64MB.
+
+services:
+  gateway:
+    image: nginx:1.30.6-alpine@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bdee1fa8c619c311
+    ports:
+      - "${DAON_BIND:-127.0.0.1}:${DAON_GATEWAY_SHOP_PORT:-8086}:8086"         # 고객 API 입구(A7)
+
+  varnish:
+    profiles: [spring]
+    image: varnish:8.0.2-alpine@sha256:1b39ddb86b460d9c80fbe7a92de6167ebafd4bb58d5b098a02f963d6efd7902e
+    depends_on:
+      mall-portal: { condition: service_healthy }
+    # 랩 스위치(make switch K=private-cache, 11-4)를 읽으려고 시작 스크립트를 한 번 거친다. 스크립트는 VCL 파일만 고르고
+    # 이미지의 원래 시작 스크립트(docker-varnish-entrypoint)로 넘긴다
+    entrypoint: ["/bin/sh", "/etc/daon-varnish/start.sh"]
+    env_file:
+      - path: ../.daon/switches.env
+        required: false
+    environment:
+      VARNISH_HTTP_PORT: "6081"
+      VARNISH_PROXY_PORT: "6082"
+      VARNISH_SIZE: 48M
+    volumes:
+      - ./varnish:/etc/daon-varnish:ro
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD-SHELL", "varnishadm status | grep -q running"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [app]

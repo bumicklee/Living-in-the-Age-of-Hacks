@@ -39,8 +39,18 @@ def cmd_up(a):
     print("가짜 메일   http://127.0.0.1:{}  · 가짜 결제·문자·택배: stubs/README.md".format(st.ENV.get("DAON_MAILPIT_PORT", 8025)))
 
 
+def _incidents_without_evidence() -> list[str]:
+    """14-4: 사고 기록 폴더(.daon/incident/<번호>/) 가운데 증거 목록(evidence.sha256)이 아직 없는 것"""
+    base = course.DATA / "incident"
+    return sorted(d.name for d in base.iterdir() if d.is_dir() and not (d / "evidence.sha256").exists()) if base.exists() else []
+
+
 def cmd_down(a):
     from daon import snapshot
+    pending = _incidents_without_evidence() if a.wipe else []
+    if pending and not a.force:
+        raise SystemExit(f"사고 중에는 wipe 금지(14-4 런북 첫 줄): 증거를 모으지 않은 사고 기록이 있습니다({', '.join(pending)}).\n"
+                         f"먼저 make evidence INCIDENT={pending[0]} · 그래도 지우려면 make wipe FORCE=1")
     if a.wipe and not a.hard and snapshot.fast_wipe(a.stack):
         return                              # 스냅샷으로 몇 초 만에 시드 상태로(A12). 컨테이너는 그대로
     st.down(a.stack, wipe=a.wipe)
@@ -60,6 +70,106 @@ def cmd_logs(a):
 
 def cmd_mem(a):
     st.mem()
+
+
+def cmd_scan_secrets(a):
+    """6-2: 작업 트리·git 이력·도커 이미지에서 시크릿 찾기. 값은 찍지 않고 규칙·파일·건수만 보여 준다(gitleaks)."""
+    from daon import secretscan as ss
+    use = a.rules or "auto"
+    try:
+        if a.image:
+            found = ss.scan_image(a.image, use)
+            where = f"이미지 {a.image}의 설정 파일"
+        elif a.history:
+            found = ss.scan_history(use)
+            where = "git 이력 전체"
+        else:
+            found = ss.scan_tree(use)
+            where = "작업 트리(" + ", ".join(ss.TREE_ROOTS) + ")"
+    except ss.ScanUnavailable as e:
+        raise SystemExit(str(e))
+    print(f"시크릿 점검 · {where} · 규칙 {a.rules or ('.gitleaks.toml' if ss.CONFIG_LAB.exists() else '기준 규칙')}")
+    print(f"찾은 곳: {len(found)}건 (값은 가렸습니다)")
+    print("\n".join(ss.summarize(found)))
+    if a.fail and found:
+        sys.exit(1)
+
+
+def cmd_hooks(a):
+    """6-2: 커밋 전 시크릿 점검 훅(pre-commit) 설치."""
+    import shutil
+    src = ROOT / "tools" / "hooks" / "pre-commit"
+    if not src.exists():
+        raise SystemExit("훅 파일(tools/hooks/pre-commit)이 아직 없습니다. 6-2에서 만드는 파일입니다.")
+    dest = ROOT / ".git" / "hooks" / "pre-commit"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dest)
+    dest.chmod(0o755)
+    print(f"설치했습니다: {dest.relative_to(ROOT)} (커밋 전에 시크릿을 점검합니다)")
+
+
+def cmd_dump_db(a):
+    """랩 전용(가짜 시드): DB·캐시에 개인정보가 평문으로 읽히는지 건수만 센다(5-3). 값은 찍지 않는다"""
+    from replay import t14_pii_at_rest as t14
+    lines, leaked = t14.summary()
+    print("\n".join(lines))
+    print(f"평문으로 읽히는 곳: {leaked}")
+
+
+def cmd_peek(a):
+    """랩 전용(5-3·5-4 영상용): 관리자 응답을 가짜 회원(alice·bob)만 골라 보여 준다. 원본 데모 회원의 번호는 찍지 않는다.
+    list = 회원 목록 · search 번호 = 번호로 찾기 · order ID = 주문 상세의 수령인 번호 · reveal ID [사유] = 원문 보기"""
+    from replay._http import ADMINS, admin
+    from replay.t09_login_guard import clear_counters
+    with admin() as c:
+        clear_counters()
+        t = c.post("/admin/login", json={"username": "admin", "password": ADMINS["admin"]["password"]}).json()["data"]["token"]
+        h = {"Authorization": "Bearer " + t}
+        if a.what == "list":
+            for r in c.get("/daon/customer/list", headers=h).json()["data"]:
+                if r["username"] in ("alice", "bob"):
+                    print(f'{r["username"]:6} phone={r["phone"]}')
+        elif a.what == "search":
+            rows = c.get("/daon/customer/search", params={"phone": a.arg}, headers=h).json()["data"]
+            print(f"검색 {a.arg} → {len(rows)}건")
+            for r in rows:
+                if r["username"] in ("alice", "bob"):
+                    print(f'{r["username"]:6} phone={r["phone"]}')
+        elif a.what == "order":
+            o = c.get(f"/order/{a.arg}", headers=h).json()["data"]
+            print(f'주문 {a.arg} 수령인 전화 = {o["receiverPhone"]}')
+        elif a.what == "reveal":
+            params = {"reason": a.reason} if a.reason else {}
+            r = c.get(f"/daon/customer/{a.arg}/phone", params=params, headers=h)
+            print(f"HTTP {r.status_code}" + (f' {r.json()["data"]}' if r.status_code == 200 else f' {r.json().get("message")}'))
+
+
+def cmd_rotate_key(a):
+    """랩 전용(5-2): 토큰 서명 키(OpenBao transit daon-jwt)를 회전·폐기·되돌린다. 키 값은 찍지 않고 버전만 보인다.
+    rotate = 새 버전을 만든다(이후 새 토큰은 새 버전, 옛 토큰도 겹침 기간 동안은 통한다)
+    retire = 겹침이 끝났다 → 가장 최근 버전 아래는 폐기(옛 토큰 거절)
+    reset  = 폐기 해제(시험이 끝나고 처음 상태로)
+    status = 버전만 보기"""
+    import subprocess
+    if a.key != "jwt":
+        raise SystemExit("지금은 K=jwt만 됩니다")
+    script = {
+        "rotate": "bao write -f transit/keys/daon-jwt/rotate >/dev/null",
+        "retire": 'L=$(bao read -field=latest_version transit/keys/daon-jwt); bao write transit/keys/daon-jwt/config min_decryption_version=$L >/dev/null',
+        "reset": "bao write transit/keys/daon-jwt/config min_decryption_version=1 >/dev/null",
+        "status": ":",
+    }[a.action]
+    show = ('echo "latest_version=$(bao read -field=latest_version transit/keys/daon-jwt)'
+            ' min_decryption_version=$(bao read -field=min_decryption_version transit/keys/daon-jwt)"')
+    full = ("export BAO_ADDR=http://openbao:8200; "
+            "export BAO_TOKEN=$(tr -d '\\n ' < /bao-lab/init.json | sed -n 's/.*\"root_token\":\"\\([^\"]*\\)\".*/\\1/p'); "
+            f"{script}; {show}")
+    net = next((n for n in ("daon_admin", "daon_daon") if subprocess.run(["docker", "network", "inspect", n], capture_output=True).returncode == 0), "daon_daon")   # 6-4 뒤에는 admin 망(OpenBao가 있는 바깥으로 열린 망)
+    r = subprocess.run(["docker", "run", "--rm", "--network", net, "-v", "daon_bao-lab:/bao-lab:ro",
+                        "--entrypoint", "/bin/sh", "openbao/openbao:2.4.1", "-c", full], capture_output=True, text=True, timeout=60)
+    if r.returncode:
+        raise SystemExit("OpenBao에 닿지 않습니다(make up STACK=spring)")
+    print(r.stdout.strip())
 
 
 # ── 수업 ──
@@ -90,8 +200,9 @@ def cmd_check(a):
     stack = a.stack or current_stack()
     st.ensure_fresh(stack)
     tests = course.tests_for(a.lesson) if a.lesson else sorted((ROOT / "tests").glob("test_*.py"))
-    from daon import lab
+    from daon import lab, resilience
     lab.warn_if_off()
+    resilience.warn_if_faulted()
     if not tests:
         print(f"{a.lesson} 수업은 시험이 없습니다(사고·원리 수업). make replay로 화면을 보세요.")
         return
@@ -143,7 +254,7 @@ def cmd_apply_solution(a):
     print(f"내 파일은 {backup.relative_to(ROOT)}에 남겼습니다.")
 
 
-TOTAL_T = 36
+TOTAL_T = 37   # 2026-11-07 T37(가격 신뢰, 점검표 F45) 추가
 
 
 def cmd_score(a):
@@ -153,7 +264,9 @@ def cmd_score(a):
     rows, red = [], 0
     for t, mod in replay.all_modules().items():
         try:
-            r = mod.run(stack)
+            # T20은 Grafana의 평가·메일 묶음 대기 뒤에야 판정할 수 있다.
+            fast = "dynamic_run" in mod.run.__code__.co_varnames[:mod.run.__code__.co_argcount] and t != "T20"
+            r = mod.run(stack, **({"dynamic_run": False} if fast else {}))
             state = "레드(취약)" if r.vulnerable else "그린(막힘)"
             red += r.vulnerable
         except replay.NotReady as e:
@@ -187,6 +300,11 @@ def cmd_verify_course(a):
             course.goto(l["id"], done=False)
             st.ensure_fresh(stack)
             start = _outcomes(tests, stack)
+            if l["no"] == "10-2":
+                # 시작 시험은 의도적으로 같은 쿠폰 이력을 여러 행 만든다.
+                # 완료 코드가 유니크 제약을 걸기 전에 재연 데이터만 되돌린다.
+                from daon.money import cmd_money_reset
+                cmd_money_reset(a)
             course.goto(l["id"], done=True)
             st.ensure_fresh(stack)
             end = _outcomes(tests, stack)
@@ -253,10 +371,16 @@ def main(argv=None):
 
     stack_opt = (["--stack"], {"choices": ["spring", "express"]})
     add("up", cmd_up, stack_opt, (["--build"], {"action": "store_true"}))
-    add("down", cmd_down, stack_opt, (["--wipe"], {"action": "store_true"}), (["--hard"], {"action": "store_true"}))
+    add("down", cmd_down, stack_opt, (["--wipe"], {"action": "store_true"}), (["--hard"], {"action": "store_true"}), (["--force"], {"action": "store_true"}))
     add("ps", cmd_ps, stack_opt)
     add("logs", cmd_logs, (["service"], {"nargs": "?"}))
     add("mem", cmd_mem)
+    add("dump-db", cmd_dump_db)
+    add("scan-secrets", cmd_scan_secrets, (["--history"], {"action": "store_true"}), (["--image"], {}),
+        (["--rules"], {"choices": ["default", "reference"]}), (["--fail"], {"action": "store_true"}))
+    add("hooks", cmd_hooks)
+    add("peek", cmd_peek, (["what"], {"choices": ["list", "search", "order", "reveal"]}), (["arg"], {"nargs": "?"}), (["reason"], {"nargs": "?"}))
+    add("rotate-key", cmd_rotate_key, (["key"], {"nargs": "?", "default": "jwt"}), (["action"], {"nargs": "?", "default": "rotate", "choices": ["rotate", "retire", "reset", "status"]}))
     add("goto", cmd_goto, (["lesson"], {}), (["at"], {"nargs": "?", "default": ""}))
     add("lesson", cmd_lesson, (["lesson"], {}))
     add("status", cmd_status)
@@ -266,7 +390,37 @@ def main(argv=None):
     add("replay", cmd_replay, (["t"], {"nargs": "?"}), stack_opt)
     add("score", cmd_score, stack_opt)
     add("verify-course", cmd_verify_course, stack_opt, (["--only"], {}))
+    from daon import guide                    # 따라 하기 도우미: make where · next · doctor
+    guide.register(add, stack_opt)
     from daon import lab                      # 방어 스위치(make switch)·랩 상황판(make lab)
     lab.register(add, stack_opt)
+    from daon import supply                   # 섹션 7: SBOM·KEV·원본 패치·로컬 CI·배포 확인
+    supply.register(add, stack_opt)
+    from daon import observe                  # 섹션 8: 기록과 경보(A5)
+    observe.register(add, stack_opt)
+    from daon import resilience               # 섹션 9: 스텁 장애·측정·설정 점검(A6)
+    resilience.register(add, stack_opt)
+    from daon import money                    # 섹션 10: 돈이 오가는 기능(원장 깨기·대사·랩 값 되돌리기)
+    money.register(add, stack_opt)
+    from daon import boundary                 # 섹션 11: 두 번 해석되는 요청(설정 점검·캐시 비우기, A7)
+    boundary.register(add, stack_opt)
+    from daon import partner                  # 섹션 12: 파트너 입구(A9)·인증서·연동 앱 대장·일괄 폐기
+    partner.register(add, stack_opt)
+    from daon import approval                 # 섹션 13: 승인 서비스(A10)·고액 환불·권한 상승
+    approval.register(add, stack_opt)
+    from daon import backup                   # 섹션 14: 불변 백업(A11)·복구 훈련
+    backup.register(add, stack_opt)
+    from daon import incident                 # 섹션 14: 증거 보존(make evidence). 모의 침해 재생은 make drill D=14-4
+    incident.register(add, stack_opt)
+    from daon import timeline                 # 섹션 14: 사고 타임라인(python -m daon timeline)
+    timeline.register(add, stack_opt)
+    from daon import capstone                 # 섹션 15: 캡스톤(make capstone PART=1|status|answer, RESET=1)
+    capstone.register(add, stack_opt)
+    from daon import audit                    # 섹션 15: 최종 점검표 74행(make audit)·점수판 비교(make final-score)
+    audit.register(add, stack_opt)
+    from daon import kit                      # 섹션 15: secure-kit 예제 앱(make kit-up·kit-down·kit-contract)
+    kit.register(add, stack_opt)
+    from daon import responder                # 섹션 15: 사고 대응 랩 도구(daon keys·tokens·gitea·incident)
+    responder.register(add, stack_opt)
     a = p.parse_args(argv)
     a.fn(a)

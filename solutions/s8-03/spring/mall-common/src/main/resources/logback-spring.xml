@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+<configuration>
+    <!--logback 내부 상태 정보를 출력하지 않도록 설정, logback 설정 문제를 점검할 때는 주석 처리 가능-->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+    <!--기본 로그 설정 참조-->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <!--기본 콘솔 로그 출력 구현 사용-->
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+    <!--애플리케이션 이름-->
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="springBoot"/>
+    <!--로그 파일 저장 경로-->
+    <property name="LOG_FILE_PATH" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/logs}"/>
+    <!--LogStash접속host-->
+    <springProperty name="LOG_STASH_HOST" scope="context" source="logstash.host" defaultValue="localhost"/>
+    <!--LogStash 로그 출력 사용 여부, true는 사용, false는 사용 안 함-->
+    <springProperty name="ENABLE_LOG_STASH" scope="context" source="logstash.enableInnerLog" defaultValue="false"/>
+
+    <!--DEBUG로그를 파일로 출력-->
+    <appender name="FILE_DEBUG"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--DEBUG 이상 레벨 로그 출력-->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+        <encoder>
+            <!--기본 파일 로그 형식으로 설정-->
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--파일 이름 형식 설정-->
+            <fileNamePattern>${LOG_FILE_PATH}/debug/${APP_NAME}-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+            <!--로그 파일 크기 설정, 초과하면 파일을 새로 생성, 기본값10M-->
+            <maxFileSize>${LOG_FILE_MAX_SIZE:-10MB}</maxFileSize>
+            <!--로그 파일 보관 일수, 기본 30일-->
+            <maxHistory>${LOG_FILE_MAX_HISTORY:-30}</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!--ERROR로그를 파일로 출력-->
+    <appender name="FILE_ERROR"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--ERROR 레벨 로그만 출력-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <!--기본 파일 로그 형식으로 설정-->
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--파일 이름 형식 설정-->
+            <fileNamePattern>${LOG_FILE_PATH}/error/${APP_NAME}-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+            <!--로그 파일 크기 설정, 초과하면 파일을 새로 생성, 기본값10M-->
+            <maxFileSize>${LOG_FILE_MAX_SIZE:-10MB}</maxFileSize>
+            <!--로그 파일 보관 일수, 기본 30일-->
+            <maxHistory>${LOG_FILE_MAX_HISTORY:-30}</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!--logstash.enableInnerLog가 true이면 LogStash 로그 출력 사용-->
+    <condition class="ch.qos.logback.core.boolex.PropertyEqualityCondition">
+        <key>ENABLE_LOG_STASH</key>
+        <value>true</value>
+    </condition>
+
+    <if>
+        <then>
+            <!--DEBUG로그 출력 위치LogStash-->
+            <appender name="LOG_STASH_DEBUG" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+                <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                    <level>DEBUG</level>
+                </filter>
+                <destination>${LOG_STASH_HOST}:4560</destination>
+                <addDefaultStatusListener>false</addDefaultStatusListener>
+                <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                    <providers>
+                        <timestamp>
+                            <timeZone>Asia/Shanghai</timeZone>
+                        </timestamp>
+                        <!--사용자 정의 로그 출력 형식-->
+                        <pattern>
+                            <pattern>
+                                {
+                                "project": "mall",
+                                "level": "%level",
+                                "service": "${APP_NAME:-}",
+                                "pid": "${PID:-}",
+                                "thread": "%thread",
+                                "class": "%logger",
+                                "message": "%message",
+                                "stack_trace": "%exception{20}"
+                                }
+                            </pattern>
+                        </pattern>
+                    </providers>
+                </encoder>
+            </appender>
+
+            <!--ERROR로그 출력 위치LogStash-->
+            <appender name="LOG_STASH_ERROR" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+                <filter class="ch.qos.logback.classic.filter.LevelFilter">
+                    <level>ERROR</level>
+                    <onMatch>ACCEPT</onMatch>
+                    <onMismatch>DENY</onMismatch>
+                </filter>
+                <destination>${LOG_STASH_HOST}:4561</destination>
+                <addDefaultStatusListener>false</addDefaultStatusListener>
+                <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                    <providers>
+                        <timestamp>
+                            <timeZone>Asia/Shanghai</timeZone>
+                        </timestamp>
+                        <!--사용자 정의 로그 출력 형식-->
+                        <pattern>
+                            <pattern>
+                                {
+                                "project": "mall",
+                                "level": "%level",
+                                "service": "${APP_NAME:-}",
+                                "pid": "${PID:-}",
+                                "thread": "%thread",
+                                "class": "%logger",
+                                "message": "%message",
+                                "stack_trace": "%exception{20}"
+                                }
+                            </pattern>
+                        </pattern>
+                    </providers>
+                </encoder>
+            </appender>
+
+            <!--비즈니스 로그 출력 위치LogStash-->
+            <appender name="LOG_STASH_BUSINESS" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+                <destination>${LOG_STASH_HOST}:4562</destination>
+                <addDefaultStatusListener>false</addDefaultStatusListener>
+                <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                    <providers>
+                        <timestamp>
+                            <timeZone>Asia/Shanghai</timeZone>
+                        </timestamp>
+                        <!--사용자 정의 로그 출력 형식-->
+                        <pattern>
+                            <pattern>
+                                {
+                                "project": "mall",
+                                "level": "%level",
+                                "service": "${APP_NAME:-}",
+                                "pid": "${PID:-}",
+                                "thread": "%thread",
+                                "class": "%logger",
+                                "message": "%message",
+                                "stack_trace": "%exception{20}"
+                                }
+                            </pattern>
+                        </pattern>
+                    </providers>
+                </encoder>
+            </appender>
+
+            <!--API 접근 기록 로그 출력 위치LogStash-->
+            <appender name="LOG_STASH_RECORD" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+                <destination>${LOG_STASH_HOST}:4563</destination>
+                <addDefaultStatusListener>false</addDefaultStatusListener>
+                <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                    <providers>
+                        <timestamp>
+                            <timeZone>Asia/Shanghai</timeZone>
+                        </timestamp>
+                        <!--사용자 정의 로그 출력 형식-->
+                        <pattern>
+                            <pattern>
+                                {
+                                "project": "mall",
+                                "level": "%level",
+                                "service": "${APP_NAME:-}",
+                                "class": "%logger",
+                                "message": "%message"
+                                }
+                            </pattern>
+                        </pattern>
+                    </providers>
+                </encoder>
+            </appender>
+
+            <root level="DEBUG">
+                <appender-ref ref="LOG_STASH_DEBUG"/>
+                <appender-ref ref="LOG_STASH_ERROR"/>
+            </root>
+            <logger name="com.macro.mall.common.log.WebLogAspect" level="DEBUG">
+                <appender-ref ref="LOG_STASH_RECORD"/>
+            </logger>
+            <logger name="com.macro.mall" level="DEBUG">
+                <appender-ref ref="LOG_STASH_BUSINESS"/>
+            </logger>
+        </then>
+    </if>
+
+    <!-- 다온마켓 8-3: 감사 로그(AUDIT)는 앱 로그와 다른 파일로. 한 줄 JSON 그대로(%msg), 앱 로그에는 섞지 않는다(additivity=false).
+         파일은 볼륨(audit-logs)에 있고 8-4에서 수집기가 stream=audit으로 읽는다. docs/audit-schema.yaml -->
+    <appender name="AUDIT_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${DAON_AUDIT_FILE:-/var/logs/daon/audit.jsonl}</file>
+        <append>true</append>
+        <immediateFlush>true</immediateFlush>
+        <encoder>
+            <pattern>%msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <logger name="AUDIT" level="INFO" additivity="false">
+        <appender-ref ref="AUDIT_FILE"/>
+    </logger>
+
+    <!--프레임워크 로그 출력 제어-->
+    <logger name="org.slf4j" level="INFO"/>
+    <logger name="springfox" level="INFO"/>
+    <logger name="io.swagger" level="INFO"/>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.hibernate.validator" level="INFO"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE_DEBUG"/>
+        <appender-ref ref="FILE_ERROR"/>
+    </root>
+</configuration>

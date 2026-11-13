@@ -1,0 +1,143 @@
+# 다온마켓 A5 · 손으로 쓴 경보 규칙 세 개(수업 8-4). SECURITY_EVENTS.md 표에서 만들지 않는다(한 줄 이벤트가 아니라 합계라서).
+#
+#   data.read.bulk           계정별 한도: 회원 개인정보 조회(AUDIT action customer.*)의 count(돌려준 건수)를 actor별 10분 합계로.
+#                            랩 기준 30건(시드 회원 40명, 결정 #16). 주문·반품 목록은 주문 관리자의 평소 업무량이 이보다 커서(한 쪽 10건씩 몇 번이면 넘음)
+#                            같은 기준으로 묶으면 오탐이 난다(실측 2026-11-10). 운영에서는 기능별 기준선을 따로 둔다
+#   data.read.response_size  응답 크기: 앞단 게이트웨이(A1) 접근 로그의 bytes를 관리자 경로별 10분 합계로(1MB 초과)
+#   egress.traffic.high      나가는 트래픽: 이그레스 프록시(A2) 로그의 보낸 바이트를 10분 합계로(5MB 초과)
+#
+# 랩에는 「평소」 기록이 없어 고정 기준을 쓴다. 운영에서는 지난 기간 같은 시간대를 기준선으로 쓴다(오탐이 준다).
+# 기준값을 바꾸면 Grafana를 다시 띄운다: make alert-rules (이 파일은 건드리지 않고 Grafana만 다시 띄운다)
+apiVersion: 1
+groups:
+- orgId: 1
+  name: bulk-and-traffic
+  folder: 다온마켓 경보
+  interval: 30s
+  rules:
+  - uid: bulk-data-read-bulk
+    title: data.read.bulk
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange: {from: 600, to: 0}
+      datasourceUid: loki
+      model:
+        refId: A
+        queryType: instant
+        editorMode: code
+        # 회원 개인정보 조회만 더한다. count는 「돌려준 건수」(8-3)
+        expr: sum by (actor) (sum_over_time({stream="audit"} | json actor="actor", action="action", count="count" | action=~"customer\\..*" | unwrap count | __error__="" [10m]))
+    - refId: C
+      relativeTimeRange: {from: 0, to: 0}
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator: {type: gt, params: [30]}
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels: {event: data.read.bulk, severity: P2, lesson: 8-4, source: bulk.yaml}
+    annotations:
+      summary: 'data.read.bulk: 같은 계정이 10분 동안 회원 개인정보 30건 넘게 조회'
+      description: 'AUDIT customer.* count 합계(actor별 10분) > 30. 한 요청만 보면 정상 업무와 구별이 어렵다: 누적으로 본다'
+      runbook_url: docs/runbooks/data.read.bulk.md
+    isPaused: false
+
+  - uid: bulk-order-read-bulk
+    title: data.read.bulk
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange: {from: 600, to: 0}
+      datasourceUid: loki
+      model:
+        refId: A
+        queryType: instant
+        editorMode: code
+        # 주문 관리자의 보통 업무(10건씩 몇 쪽)와 구별해 10분 200건 초과만 경보한다.
+        expr: sum by (actor) (sum_over_time({stream="audit"} | json actor="actor", action="action", count="count" | action="order.list" | unwrap count | __error__="" [10m]))
+    - refId: C
+      relativeTimeRange: {from: 0, to: 0}
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator: {type: gt, params: [200]}
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels: {event: data.read.bulk, severity: P2, lesson: 15-1, source: bulk.yaml}
+    annotations:
+      summary: 'data.read.bulk: 같은 계정이 10분 동안 주문 200건 넘게 조회'
+      description: 'AUDIT order.list count 합계(actor별 10분) > 200. 회원 조회와 다른 기준선을 쓴다'
+      runbook_url: docs/runbooks/data.read.bulk.md
+    isPaused: false
+
+  - uid: bulk-data-read-response-size
+    title: data.read.response_size
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange: {from: 600, to: 0}
+      datasourceUid: loki
+      model:
+        refId: A
+        queryType: instant
+        editorMode: code
+        expr: sum by (uri) (sum_over_time({app="gateway"} | json uri="uri", bytes="bytes" | uri=~"/(api/)?(daon|order|returnApply|couponHistory)/.*" | unwrap bytes | __error__="" [10m]))
+    - refId: C
+      relativeTimeRange: {from: 0, to: 0}
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator: {type: gt, params: [1048576]}
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels: {event: data.read.response_size, severity: P2, lesson: 8-4, source: bulk.yaml}
+    annotations:
+      summary: 'data.read.response_size: 관리자 경로 응답이 10분에 1MB 넘음'
+      description: '게이트웨이(A1) 접근 로그 bytes 합계. 앱 포트로 바로 부른 요청은 게이트웨이를 지나지 않아 세지 않는다'
+      runbook_url: docs/runbooks/data.read.response_size.md
+    isPaused: false
+
+  - uid: bulk-egress-traffic-high
+    title: egress.traffic.high
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange: {from: 600, to: 0}
+      datasourceUid: loki
+      model:
+        refId: A
+        queryType: instant
+        editorMode: code
+        # squid 기본 접근 로그: 시각 걸린시간 보낸곳 결과/상태 바이트 방법 주소 …
+        expr: sum by (app) (sum_over_time({app="egress"} | regexp "^\\S+\\s+\\d+\\s+\\S+\\s+\\S+/\\d+\\s+(?P<bytes>\\d+)\\s" | unwrap bytes | __error__="" [10m]))
+    - refId: C
+      relativeTimeRange: {from: 0, to: 0}
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator: {type: gt, params: [5242880]}
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels: {event: egress.traffic.high, severity: P2, lesson: 8-4, source: bulk.yaml}
+    annotations:
+      summary: 'egress.traffic.high: 이그레스 프록시로 나간 양이 10분에 5MB 넘음'
+      description: '랩은 고정 기준. 운영은 지난 기간 같은 시간대 기준선과 비교'
+      runbook_url: docs/runbooks/egress.traffic.high.md
+    isPaused: false

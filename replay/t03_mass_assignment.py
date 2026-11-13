@@ -17,7 +17,7 @@ STACKS = ("spring",)
 USER = "alice"
 FAKE_POINTS = 999999
 FAKE_GROWTH = 99999
-FAKE_LEVEL = 1          # 원본 시드의 가장 높은 등급(황금 회원)
+FAKE_LEVEL = 1          # 원본 시드의 골드 회원 등급(최고 등급 3은 다이아몬드)
 
 
 def info(c, token) -> dict:

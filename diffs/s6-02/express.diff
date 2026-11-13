@@ -1,0 +1,31 @@
+# 6-2 Express(EverShop)에서 고칠 곳: 설정 파일 속 자격증명(점검표 F23·E24 일부)
+# - docker-compose.yml: 데이터베이스 기본 계정(postgres/postgres)을 파일에서 빼고 실행 환경에서 넣는다(자리 표시 ${DB_PASSWORD}). 값은 .env(git에 넣지 않음)나 6-3의 시크릿 저장소에서 온다.
+# - 데이터베이스 포트 공개(ports 5432)는 6-4(망 분리)에서 닫는다.
+# - 스캔 규칙은 두 스택이 같은 .gitleaks.toml을 쓴다(yml 평문 비밀번호를 잡는 규칙).
+# - 적용: cd express && git apply ../diffs/s6-02/express.diff   (확인: 저장소 맨 위에서 make scan-secrets)
+
+diff --git a/docker-compose.yml b/docker-compose.yml
+--- a/docker-compose.yml	2026-11-09 09:45:33
++++ b/docker-compose.yml	2026-11-09 09:45:33
+@@ -7,8 +7,8 @@
+     environment:
+       DB_HOST: database
+       DB_PORT: 5432
+-      DB_PASSWORD: postgres
+-      DB_USER: postgres
++      DB_PASSWORD: ${DB_PASSWORD:?실행 환경에 DB_PASSWORD가 필요합니다}
++      DB_USER: ${DB_USER:?실행 환경에 DB_USER가 필요합니다}
+       DB_NAME: postgres
+     networks:
+       - myevershop
+@@ -24,8 +24,8 @@
+     volumes:
+       - postgres-data:/var/lib/postgresql/data
+     environment:
+-      POSTGRES_PASSWORD: postgres
+-      POSTGRES_USER: postgres
++      POSTGRES_PASSWORD: ${DB_PASSWORD:?실행 환경에 DB_PASSWORD가 필요합니다}
++      POSTGRES_USER: ${DB_USER:?실행 환경에 DB_USER가 필요합니다}
+       POSTGRES_DB: postgres
+     ports:
+       - "5432:5432"

@@ -2,6 +2,7 @@ package com.macro.mall.controller;
 
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
+import com.macro.mall.security.audit.Audited;
 import com.macro.mall.dto.OmsOrderReturnApplyResult;
 import com.macro.mall.dto.OmsReturnApplyQueryParam;
 import com.macro.mall.dto.OmsUpdateStatusParam;
@@ -29,6 +30,7 @@ public class OmsOrderReturnApplyController {
     @Operation(summary = "반품 신청 페이지 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
+    @Audited(action = "return.list", resource = "return")   // 다온마켓 8-3
     public CommonResult<CommonPage<OmsOrderReturnApply>> list(OmsReturnApplyQueryParam queryParam,
                                                               @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                               @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
@@ -50,6 +52,7 @@ public class OmsOrderReturnApplyController {
     @Operation(summary = "반품 신청 상세 조회")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
+    @Audited(action = "return.detail", resource = "return")   // 다온마켓 8-미션: 반품 상세(신청자 이름·전화)
     public CommonResult getItem(@PathVariable Long id) {
         OmsOrderReturnApplyResult result = returnApplyService.getItem(id);
         return CommonResult.success(result);

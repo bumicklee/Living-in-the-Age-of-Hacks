@@ -1,0 +1,21 @@
+# 다온 가게(15-4 완료 지점). 값은 모두 랩 전용 가짜 값이다.
+# 0.0.0.0은 컨테이너 안쪽 주소다. 호스트에는 compose가 127.0.0.1:18183으로만 연다.
+server:
+  port: 18183
+  address: 0.0.0.0
+  # server.error.include-* (예외·스택을 응답에 싣던 개발용 설정)는 지웠다. error-response 부품이 덮어쓰기도 한다
+
+spring:
+  application:
+    name: spring-shop
+  main:
+    banner-mode: off
+
+# 15-4: secure-kit 부품 셋
+secure-kit:
+  error-response:
+    enabled: true                      # 오류 응답은 일반 문구 + 추적 번호만
+  rate-limit:
+    login: { per-account: 5/10m, per-ip: 50/10m }   # @RateLimited("login")의 한도
+  lab:
+    expose: true                       # 랩 전용 /_kit/* (계약 시험용. 회사 서비스에서는 끈다)

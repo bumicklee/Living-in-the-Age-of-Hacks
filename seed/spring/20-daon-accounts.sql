@@ -34,3 +34,19 @@ VALUES
   (101, 'staff_goods', '$2a$10$u0wE8GEVqNE2AP6u02Lrw.MzzCBfWTdG51t.vJLpjX0hwkbwj7izu', '상품 담당', 'goods@daon.example', '다온마켓 상품 담당 직원', '2026-11-01 09:00:00', 1),
   (102, 'staff_order', '$2a$10$u0wE8GEVqNE2AP6u02Lrw.MzzCBfWTdG51t.vJLpjX0hwkbwj7izu', '주문 담당', 'order@daon.example', '다온마켓 주문 담당 직원', '2026-11-01 09:00:00', 1);
 INSERT INTO ums_admin_role_relation (admin_id, role_id) VALUES (101, 1), (102, 2);
+
+-- 섹션 3(인젝션) 시드. 값은 모두 가짜다.
+-- ① 공개하지 않은 상품 두 개(publish_status = 0). 정상 검색에는 나오지 않아야 한다. 3-2 재연에서 「비공개 상품이 섞여 나옴」을 보는 표시다.
+INSERT INTO pms_product (id, brand_id, product_category_id, product_attribute_category_id, name, product_sn, delete_status, publish_status, new_status, recommand_status, verify_status, sort, sale, price, original_price, gift_growth, gift_point, use_point_limit, sub_title, description, stock, low_stock, unit, promotion_type, brand_name, product_category_name, keywords)
+VALUES
+  (231, 101, 103, 4, '다온 노이즈캔슬링 이어폰(출시 전)', 'DAON-P231', 0, 0, 1, 0, 1, 0, 0, 89000, 89000, 0, 0, 0, '출시 전 비공개 · 다온마켓 가짜 상품', '출시 전 비공개 상품. 교육용 랩의 가짜 상품입니다.', 50, 10, '개', 0, '다온', '디지털', '다온 이어폰 비공개'),
+  (232, 101, 101, 4, '다온 겨울 한정 담요(출시 전)', 'DAON-P232', 0, 0, 1, 0, 1, 0, 0, 42000, 42000, 0, 0, 0, '출시 전 비공개 · 다온마켓 가짜 상품', '출시 전 비공개 상품. 교육용 랩의 가짜 상품입니다.', 80, 10, '개', 0, '다온', '생활', '다온 담요 비공개');
+-- ② 상품 후기 표(원본 utf8)를 utf8mb4로: 후기에 이모지를 쓸 수 있게(3-4 정상 후기 시험)
+ALTER TABLE pms_comment CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 섹션 10(10-5 원장 대사) 시드. alice·bob 가입 포인트 1,000점의 원장 줄. 이 줄이 없으면 시드 상태에서 대사가 두 사람을 불일치로 낸다.
+-- id 901·902(bulk 시드의 원장은 1001부터). 2026-11-10 더함: 새 볼륨(make wipe HARD=1)에서만 들어간다.
+INSERT INTO ums_integration_change_history (id, member_id, create_time, change_type, change_count, operate_man, operate_note, source_type)
+VALUES
+  (901, 101, '2026-11-01 10:00:00', 0, 1000, 'system', '가입 축하 포인트(가짜)', 0),
+  (902, 102, '2026-11-01 10:05:00', 0, 1000, 'system', '가입 축하 포인트(가짜)', 0);

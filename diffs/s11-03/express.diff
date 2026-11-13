@@ -1,0 +1,24 @@
+# 11-3 Express(EverShop): 같은 게이트웨이(A7)를 앞에 둔다고 보고, Node HTTP 서버의 엄격 파싱을 설정에 적는다
+# - insecureHTTPParser: false(기본값)·requireHostHeader: true. 느슨한 파서를 켜는 곳(코드·--insecure-http-parser)이 없는지 make audit-gateway가 본다
+# - Node 버전 고정은 infra/docker/evershop.Dockerfile(이 diff 밖)의 FROM node:20.19.5-alpine. Node 20은 지원 종료 일정을 확인해 올린다【출처 확인】
+# - 적용: cd express && git apply ../diffs/s11-03/express.diff
+
+diff --git a/packages/evershop/src/bin/lib/startUp.js b/packages/evershop/src/bin/lib/startUp.js
+index bdcf50e..09f9fce 100644
+--- a/packages/evershop/src/bin/lib/startUp.js
++++ b/packages/evershop/src/bin/lib/startUp.js
+@@ -29,7 +29,13 @@ const __dirname = path.dirname(__filename);
+ export const start = async function start(context, cb) {
+   const app = createApp();
+   /** Create a http server */
+-  const server = http.createServer(app);
++  // 다온마켓 11-3: Node HTTP 파서를 엄격하게 둔다(기본값이지만 설정에 적어 둔다).
++  // insecureHTTPParser를 켜면 잘못된 헤더·모호한 길이 표시를 받아 주어 앞단(게이트웨이)과 요청의 끝을 다르게 볼 수 있다.
++  // Node 버전은 infra/docker/evershop.Dockerfile의 FROM node:x.y.z로 고정한다(파서 결함은 버전 패치로 고친다).
++  const server = http.createServer(
++    { insecureHTTPParser: false, requireHostHeader: true },
++    app
++  );
+   const modules = [...getCoreModules(), ...getEnabledExtensions()];
+ 
+   /** Loading bootstrap script from modules */

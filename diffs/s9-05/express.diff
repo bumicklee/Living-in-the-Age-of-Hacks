@@ -1,0 +1,136 @@
+# 9-5 Express(EverShop)에서 고칠 곳: 결제 요청의 재시도 한 곳·백오프·지터·재시도 예산·서킷 브레이커·죽은 이벤트(T24)
+# - 새 lib/daon/payClient.ts: Spring DaonPaymentClient·DaonPayRequestReceiver·RetryBudget과 같은 규칙. 의존성 없이 작은 상태 기계로 쓴다
+#   (라이브러리를 쓰면 버전 고정과 7-2 SBOM 확인). 끝내 실패하면 queue.dead_lettered + event 표에 daon_payment_dead.
+# - 새 modules/oms/subscribers/order_placed/daonRequestPayment.ts: 주문이 들어오면(order_placed 이벤트) 결제 요청.
+#   EverShop은 PostgreSQL event 표가 큐 역할을 한다. 원본 EventProcessor는 구독자가 실패해도 이벤트를 지운다(다시 하지 않음).
+# - 적용 순서: s9-03 diff 다음(새 파일만). cd express && git apply ../diffs/s9-05/express.diff
+
+diff --git a/packages/evershop/src/lib/daon/payClient.ts b/packages/evershop/src/lib/daon/payClient.ts
+new file mode 100644
+index 0000000..a6d57d7
+--- /dev/null
++++ b/packages/evershop/src/lib/daon/payClient.ts
+@@ -0,0 +1,108 @@
++/**
++ * 다온마켓 9-5(T24) Express: 결제사(가짜 payment-stub) 결제 요청. Spring DaonPaymentClient·DaonPayRequestReceiver·RetryBudget과 같은 규칙.
++ *
++ * - 재시도는 여기 한 곳에서만: 지수 백오프(1·2·4초) + 지터(절반은 무작위), 최대 3번 다시
++ * - 재시도 예산: 최근 1분 새 요청의 10%(최소 3번)까지만 다시 보낸다. 넘으면 resilience.retry_budget.exhausted
++ * - 서킷 브레이커: 최근 10번 중(최소 4번) 실패 50% 이상이면 20초 동안 부르지 않는다(작은 상태 기계, 의존성 없이).
++ *   라이브러리를 쓴다면 opossum 같은 것(【실측 예정】 버전 고정·SBOM 확인)
++ * - 결제사의 거절(4xx)은 실패로 세지 않고 다시 보내지도 않는다
++ * - 끝내 실패하면 queue.dead_lettered + 「죽은 이벤트」(daon_payment_dead)를 event 표에 남긴다. 처리하는 구독자는 운영자가 다시 보낼 때 만든다
++ * - 같은 주문은 같은 멱등 키(Idempotency-Key)로 보낸다(10-4)
++ */
++import { emit } from '../event/emitter.js';
++import { securityEvent } from '../log/securityEvent.js';
++
++const PAY_URL = process.env.DAON_PAYMENT_URL || 'http://payment-stub:8000';
++const TIMEOUT_MS = 1000;
++const MAX_RETRIES = 3;
++const BASE_DELAY_MS = 1000;
++
++class Rejected extends Error {}
++class CircuitOpen extends Error {}
++
++// ── 서킷 브레이커 ──
++const breaker = { state: 'closed' as 'closed' | 'open' | 'half', results: [] as boolean[], openedAt: 0, trial: false };
++const WINDOW = 10, MIN_CALLS = 4, FAIL_RATE = 0.5, OPEN_MS = 20_000;
++
++function allow(): boolean {
++  if (breaker.state === 'open' && Date.now() - breaker.openedAt >= OPEN_MS) { breaker.state = 'half'; breaker.trial = false; }
++  if (breaker.state === 'open') return false;
++  if (breaker.state === 'half') { if (breaker.trial) return false; breaker.trial = true; }
++  return true;
++}
++
++function record(ok: boolean, traceId?: string) {
++  if (breaker.state === 'half') {
++    if (ok) {
++      breaker.state = 'closed'; breaker.results = [];
++      securityEvent.suspicious('resilience.circuit.closed', '9-5', undefined, { actor: 'system:pay-worker', target: 'dependency:pay-stub', reason: '시험 호출 성공, 다시 부름' });
++    } else { open(traceId); }
++    return;
++  }
++  breaker.results = [...breaker.results, ok].slice(-WINDOW);
++  const fails = breaker.results.filter((r) => !r).length;
++  if (breaker.results.length >= MIN_CALLS && fails / breaker.results.length >= FAIL_RATE) open(traceId);
++}
++
++function open(_traceId?: string) {
++  breaker.state = 'open'; breaker.openedAt = Date.now(); breaker.results = [];
++  securityEvent.denied('resilience.circuit.opened', '9-5', undefined, { actor: 'system:pay-worker', target: 'dependency:pay-stub', reason: '실패 비율 기준 초과로 차단(20초)' });
++}
++
++// ── 재시도 예산 ──
++const requests: number[] = [];
++const retries: number[] = [];
++function prune(list: number[]) { const now = Date.now(); while (list.length && now - list[0] > 60_000) list.shift(); }
++function tryRetry(): boolean {
++  prune(requests); prune(retries);
++  const allowed = Math.max(3, Math.floor(requests.length * 0.1));
++  if (retries.length >= allowed) return false;
++  retries.push(Date.now());
++  return true;
++}
++
++async function once(order: { order_number: string; grand_total: number }, key: string, traceId?: string): Promise<string> {
++  if (!allow()) throw new CircuitOpen('서킷 열림');
++  try {
++    const res = await fetch(`${PAY_URL}/v1/payments`, {
++      method: 'POST',
++      headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key, ...(traceId ? { 'X-Trace-Id': traceId } : {}) },
++      body: JSON.stringify({ order_sn: order.order_number, amount: Number(order.grand_total) }),
++      signal: AbortSignal.timeout(TIMEOUT_MS)
++    });
++    if (res.status >= 400 && res.status < 500) { throw new Rejected(`결제사 거절 ${res.status}`); }
++    if (res.status !== 201 && res.status !== 200) throw new Error(`결제사 응답 ${res.status}`);
++    record(true, traceId);
++    return (await res.json()).payment_id;
++  } catch (e) {
++    if (!(e instanceof Rejected)) record(false, traceId);
++    throw e;
++  }
++}
++
++const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
++const backoff = (attempt: number) => { const cap = BASE_DELAY_MS * 2 ** Math.min(attempt, 5); return cap / 2 + Math.random() * (cap / 2); };
++
++export async function requestPayment(order: { order_number: string; grand_total: number }, traceId?: string): Promise<string | null> {
++  const key = `pay-${order.order_number}`;
++  requests.push(Date.now());
++  for (let attempt = 0; ; attempt += 1) {
++    try {
++      return await once(order, key, traceId);
++    } catch (e) {
++      let why: string | null = null;
++      if (e instanceof Rejected) why = '결제사가 거절(4xx), 다시 보내지 않음';
++      else if (attempt >= MAX_RETRIES) why = `재시도 ${MAX_RETRIES}번 넘음`;
++      else if (!tryRetry()) {
++        securityEvent.denied('resilience.retry_budget.exhausted', '9-5', undefined, { actor: 'system:pay-worker', target: 'dependency:pay-stub', reason: '재시도 예산 소진, 다시 보내지 않음' });
++        why = '재시도 예산 소진';
++      }
++      if (why) {
++        securityEvent.denied('queue.dead_lettered', '9-5', undefined, { actor: 'system:pay-worker', target: 'queue:order_placed', reason: `${why} · 주문 ${order.order_number}` });
++        await emit('daon_payment_dead' as any, { order_number: order.order_number, reason: why, trace_id: traceId } as any);
++        return null;
++      }
++      await sleep(backoff(attempt));
++    }
++  }
++}
+diff --git a/packages/evershop/src/modules/oms/subscribers/order_placed/daonRequestPayment.ts b/packages/evershop/src/modules/oms/subscribers/order_placed/daonRequestPayment.ts
+new file mode 100644
+index 0000000..0f1877d
+--- /dev/null
++++ b/packages/evershop/src/modules/oms/subscribers/order_placed/daonRequestPayment.ts
+@@ -0,0 +1,9 @@
++import { requestPayment } from '../../../../lib/daon/payClient.js';
++
++/**
++ * 다온마켓 9-5(T24) Express: 주문이 들어오면 결제 요청(가짜 결제사). EverShop은 PostgreSQL event 표가 큐 역할을 한다.
++ * 재시도·서킷 브레이커·재시도 예산·죽은 이벤트는 lib/daon/payClient.ts 한 곳에서만.
++ */
++export default async function daonRequestPayment(data) {
++  await requestPayment(data, data && data.trace_id);
++}

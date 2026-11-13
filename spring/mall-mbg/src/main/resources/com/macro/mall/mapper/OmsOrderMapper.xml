@@ -31,12 +31,12 @@
     <result column="bill_receiver_phone" jdbcType="VARCHAR" property="billReceiverPhone" />
     <result column="bill_receiver_email" jdbcType="VARCHAR" property="billReceiverEmail" />
     <result column="receiver_name" jdbcType="VARCHAR" property="receiverName" />
-    <result column="receiver_phone" jdbcType="VARCHAR" property="receiverPhone" />
+    <result column="receiver_phone" jdbcType="VARCHAR" property="receiverPhone" typeHandler="com.macro.mall.security.crypto.EncryptedStringTypeHandler" />
     <result column="receiver_post_code" jdbcType="VARCHAR" property="receiverPostCode" />
     <result column="receiver_province" jdbcType="VARCHAR" property="receiverProvince" />
     <result column="receiver_city" jdbcType="VARCHAR" property="receiverCity" />
     <result column="receiver_region" jdbcType="VARCHAR" property="receiverRegion" />
-    <result column="receiver_detail_address" jdbcType="VARCHAR" property="receiverDetailAddress" />
+    <result column="receiver_detail_address" jdbcType="VARCHAR" property="receiverDetailAddress" typeHandler="com.macro.mall.security.crypto.EncryptedStringTypeHandler" />
     <result column="note" jdbcType="VARCHAR" property="note" />
     <result column="confirm_status" jdbcType="INTEGER" property="confirmStatus" />
     <result column="delete_status" jdbcType="INTEGER" property="deleteStatus" />
@@ -172,9 +172,9 @@
       #{autoConfirmDay,jdbcType=INTEGER}, #{integration,jdbcType=INTEGER}, #{growth,jdbcType=INTEGER}, 
       #{promotionInfo,jdbcType=VARCHAR}, #{billType,jdbcType=INTEGER}, #{billHeader,jdbcType=VARCHAR}, 
       #{billContent,jdbcType=VARCHAR}, #{billReceiverPhone,jdbcType=VARCHAR}, #{billReceiverEmail,jdbcType=VARCHAR}, 
-      #{receiverName,jdbcType=VARCHAR}, #{receiverPhone,jdbcType=VARCHAR}, #{receiverPostCode,jdbcType=VARCHAR}, 
+      #{receiverName,jdbcType=VARCHAR}, #{receiverPhone,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler}, #{receiverPostCode,jdbcType=VARCHAR}, 
       #{receiverProvince,jdbcType=VARCHAR}, #{receiverCity,jdbcType=VARCHAR}, #{receiverRegion,jdbcType=VARCHAR}, 
-      #{receiverDetailAddress,jdbcType=VARCHAR}, #{note,jdbcType=VARCHAR}, #{confirmStatus,jdbcType=INTEGER}, 
+      #{receiverDetailAddress,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler}, #{note,jdbcType=VARCHAR}, #{confirmStatus,jdbcType=INTEGER}, 
       #{deleteStatus,jdbcType=INTEGER}, #{useIntegration,jdbcType=INTEGER}, #{paymentTime,jdbcType=TIMESTAMP}, 
       #{deliveryTime,jdbcType=TIMESTAMP}, #{receiveTime,jdbcType=TIMESTAMP}, #{commentTime,jdbcType=TIMESTAMP}, 
       #{modifyTime,jdbcType=TIMESTAMP})
@@ -401,7 +401,7 @@
         #{receiverName,jdbcType=VARCHAR},
       </if>
       <if test="receiverPhone != null">
-        #{receiverPhone,jdbcType=VARCHAR},
+        #{receiverPhone,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       </if>
       <if test="receiverPostCode != null">
         #{receiverPostCode,jdbcType=VARCHAR},
@@ -416,7 +416,7 @@
         #{receiverRegion,jdbcType=VARCHAR},
       </if>
       <if test="receiverDetailAddress != null">
-        #{receiverDetailAddress,jdbcType=VARCHAR},
+        #{receiverDetailAddress,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       </if>
       <if test="note != null">
         #{note,jdbcType=VARCHAR},
@@ -731,7 +731,7 @@
         receiver_name = #{receiverName,jdbcType=VARCHAR},
       </if>
       <if test="receiverPhone != null">
-        receiver_phone = #{receiverPhone,jdbcType=VARCHAR},
+        receiver_phone = #{receiverPhone,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       </if>
       <if test="receiverPostCode != null">
         receiver_post_code = #{receiverPostCode,jdbcType=VARCHAR},
@@ -746,7 +746,7 @@
         receiver_region = #{receiverRegion,jdbcType=VARCHAR},
       </if>
       <if test="receiverDetailAddress != null">
-        receiver_detail_address = #{receiverDetailAddress,jdbcType=VARCHAR},
+        receiver_detail_address = #{receiverDetailAddress,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       </if>
       <if test="note != null">
         note = #{note,jdbcType=VARCHAR},
@@ -808,12 +808,12 @@
       bill_receiver_phone = #{billReceiverPhone,jdbcType=VARCHAR},
       bill_receiver_email = #{billReceiverEmail,jdbcType=VARCHAR},
       receiver_name = #{receiverName,jdbcType=VARCHAR},
-      receiver_phone = #{receiverPhone,jdbcType=VARCHAR},
+      receiver_phone = #{receiverPhone,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       receiver_post_code = #{receiverPostCode,jdbcType=VARCHAR},
       receiver_province = #{receiverProvince,jdbcType=VARCHAR},
       receiver_city = #{receiverCity,jdbcType=VARCHAR},
       receiver_region = #{receiverRegion,jdbcType=VARCHAR},
-      receiver_detail_address = #{receiverDetailAddress,jdbcType=VARCHAR},
+      receiver_detail_address = #{receiverDetailAddress,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       note = #{note,jdbcType=VARCHAR},
       confirm_status = #{confirmStatus,jdbcType=INTEGER},
       delete_status = #{deleteStatus,jdbcType=INTEGER},

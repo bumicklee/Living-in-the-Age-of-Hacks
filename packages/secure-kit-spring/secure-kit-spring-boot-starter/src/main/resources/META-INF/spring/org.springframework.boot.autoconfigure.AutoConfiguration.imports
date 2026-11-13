@@ -1,0 +1,4 @@
+io.github.securekit.boot.SecureKitRedisAutoConfiguration
+io.github.securekit.boot.SecureKitAutoConfiguration
+io.github.securekit.boot.SecureKitAnnotationsAutoConfiguration
+io.github.securekit.boot.SecureKitLabAutoConfiguration

@@ -1,0 +1,6 @@
+node_modules/
+data/
+.env
+.backup/
+extras/18-4/work/
+captures/

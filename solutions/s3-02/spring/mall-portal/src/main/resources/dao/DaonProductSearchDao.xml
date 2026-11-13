@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.macro.mall.portal.dao.DaonProductSearchDao">
+    <!-- [교육용 추가] 다온마켓 상품 검색. 검색어와 정렬을 문자열로 이어 붙인다 -->
+    <!-- 다온마켓 3-2: 랩 스위치(query-binding)와 함께 쓰려고 문장 이름을 searchBound로 했다. DAO의 search()가 이 문장을 부른다 -->
+    <select id="searchBound" resultMap="com.macro.mall.mapper.PmsProductMapper.BaseResultMap">
+        select * from pms_product
+        where delete_status = 0 and publish_status = 1
+        <!-- 다온마켓 3-2: 검색어는 값 자리에 바인딩한다. %는 문장 쪽에서 붙인다 -->
+        and name like CONCAT('%', #{keyword}, '%')
+        <!-- ✏️ 3-3: 정렬 값을 문장에 그대로 끼워 넣는다(다온마켓 교육용 표시) -->
+        order by ${sort}
+        limit 100
+    </select>
+</mapper>

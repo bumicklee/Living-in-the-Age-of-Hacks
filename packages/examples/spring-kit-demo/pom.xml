@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- secure-kit 부품 예제 앱(부품 24개 전부). 계약: packages/contract-tests/CONTRACT.md 1절. 값은 모두 가짜다 -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.14</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.github.securekit.examples</groupId>
+    <artifactId>spring-kit-demo</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <name>spring-kit-demo</name>
+    <description>secure-kit 부품 24개를 붙인 작은 예제 앱</description>
+
+    <properties>
+        <java.version>17</java.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- 의존성 한 줄: 먼저 mvn -f packages/secure-kit-spring/pom.xml install 로 로컬에 설치한다 -->
+        <dependency>
+            <groupId>io.github.securekit</groupId>
+            <artifactId>secure-kit-spring-boot-starter</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>spring-kit-demo</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

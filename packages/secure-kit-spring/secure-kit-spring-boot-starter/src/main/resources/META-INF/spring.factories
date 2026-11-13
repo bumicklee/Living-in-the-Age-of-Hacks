@@ -1,0 +1,2 @@
+# 기동 검사기(startup-check): 기본값 시크릿이면 기동을 멈춘다
+org.springframework.boot.env.EnvironmentPostProcessor=io.github.securekit.boot.StartupSecretCheck

@@ -2,6 +2,7 @@ package com.macro.mall.controller;
 
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
+import com.macro.mall.security.audit.Audited;
 import com.macro.mall.dto.*;
 import com.macro.mall.model.OmsOrder;
 import com.macro.mall.service.OmsOrderService;
@@ -27,6 +28,7 @@ public class OmsOrderController {
     @Operation(summary = "주문 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
+    @Audited(action = "order.list", resource = "order")   // 다온마켓 8-3
     public CommonResult<CommonPage<OmsOrder>> list(OmsOrderQueryParam queryParam,
                                                    @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
                                                    @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
@@ -70,6 +72,7 @@ public class OmsOrderController {
     @Operation(summary = "주문 상세 조회: 주문 정보, 상품 정보, 작업 기록")
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ResponseBody
+    @Audited(action = "order.detail", resource = "order")   // 다온마켓 8-3
     public CommonResult<OmsOrderDetail> detail(@PathVariable Long id) {
         OmsOrderDetail orderDetailResult = orderService.detail(id);
         return CommonResult.success(orderDetailResult);

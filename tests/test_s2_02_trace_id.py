@@ -16,7 +16,8 @@ def test_trace_id_reaches_security_log(stack):
     target = ACCOUNTS["alice"]["orders"][0]
     r = t01.order_detail_response("bob", target, tid)
     assert r.headers.get("X-Trace-Id") == tid, f"기대: 응답 헤더 X-Trace-Id={tid}. 실제: {r.headers.get('X-Trace-Id')}"
-    e = _logs.wait_event("mall-portal", since, "access.denied.not_owner", "2-2", stack, trace_id=tid)
+    e = _logs.wait_event("mall-portal", since, "access.denied.not_owner", "2-2", stack,
+                         timeout=15, trace_id=tid)
     assert e, f"기대: mall-portal SECURITY access.denied.not_owner 줄의 trace_id가 요청의 X-Trace-Id({tid})와 같아야 합니다"
 
 

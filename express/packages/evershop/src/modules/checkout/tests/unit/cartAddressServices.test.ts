@@ -28,7 +28,7 @@ const SAVED = {
   postal_code: '94043',
   sorting_code: null,
   country: 'US',
-  telephone: '+16502530000',
+  telephone: '+16505550100',
   extra: { nickname: 'Home' },
   is_default: true
 };
@@ -146,7 +146,7 @@ describe('addShippingAddress / addBillingAddress', () => {
         administrative_area: 'US-CA',
         postal_code: '94043',
         country: 'US',
-        telephone: '+16502530000',
+        telephone: '+16505550100',
         extra: { nickname: 'Home' }
       });
       expect(lastInsert().data).not.toHaveProperty('customerAddressUuid');

@@ -73,7 +73,7 @@ const usRow: AddressRow = {
   administrative_area: 'US-CA',
   postal_code: '94043',
   country: 'us',
-  telephone: '+1 650 253 0000'
+  telephone: '+1 650 555 0100'
 };
 
 beforeEach(() => {

@@ -1,0 +1,126 @@
+# 9-3 Express(EverShop)에서 고칠 곳: 본문 상한(압축 해제 뒤)·GraphQL 문서 검증과 깊이 상한(E10)·정적 파일 미들웨어가 걸리는 곳(E16)
+# - bodyJson.ts: body-parser json의 limit·inflate를 적는다(limit은 압축을 푼 뒤 읽은 바이트로 센다). 넘으면 413(9-2의 오류 처리기가 4xx를 그대로) + input.denied.too_large.
+# - graphqlMiddleware.js: validateSchema(schema, document)는 질의 문서를 검사하지 않았다 → validate(schema, document, [...specifiedRules, 깊이 상한 10]).
+#   깊이를 넘으면 400 + input.denied.graphql_depth. 검증 오류는 500이 아니라 400.
+# - publicStatic.ts: 점이 든 폴더 경로면 응답 없이 걸려 있었다 → next().
+# - body-parser·qs·multer 버전 올리기(npm audit 권고)는 7-2의 overrides 방식으로 따로 한다(이 diff에는 없음).
+# - 적용 순서: s9-02 diff 다음(파일은 겹치지 않는다). cd express && git apply ../diffs/s9-03/express.diff
+
+diff --git a/packages/evershop/src/lib/middlewares/bodyJson.ts b/packages/evershop/src/lib/middlewares/bodyJson.ts
+index 3231087..c689797 100644
+--- a/packages/evershop/src/lib/middlewares/bodyJson.ts
++++ b/packages/evershop/src/lib/middlewares/bodyJson.ts
+@@ -1,7 +1,21 @@
+ import bodyParser from 'body-parser';
++import { securityEvent } from '../log/securityEvent.js';
+ import { EvershopRequest } from '../../types/request.js';
+ import { EvershopResponse } from '../../types/response.js';
+ 
++// 다온마켓 9-3: 상한을 기본값에 맡기지 않고 적는다. body-parser의 limit은 압축을 푼 뒤(inflate) 읽은 바이트로 센다.
++// 넘으면 413(오류 처리기가 4xx를 그대로 내보낸다, 9-2) + input.denied.too_large. 바이트 수 대신 구간만 남긴다.
++const LIMIT = process.env.DAON_MAX_BODY || '100kb';
++const parser = bodyParser.json({ limit: LIMIT, inflate: true });
++
+ export default (request: EvershopRequest, response: EvershopResponse, next) => {
+-  bodyParser.json()(request, response, next);
++  parser(request, response, (err) => {
++    if (err && err.type === 'entity.too.large') {
++      securityEvent.denied('input.denied.too_large', '9-3', request as any, {
++        target: `path:${String(request.path).replace(/[^A-Za-z0-9/._-]/g, '').slice(0, 120)}`,
++        reason: `본문 크기 상한(${LIMIT}) 초과(압축 해제 뒤 기준)`
++      });
++    }
++    next(err);
++  });
+ };
+diff --git a/packages/evershop/src/lib/middlewares/publicStatic.ts b/packages/evershop/src/lib/middlewares/publicStatic.ts
+index 803aeb6..5c3f2e4 100644
+--- a/packages/evershop/src/lib/middlewares/publicStatic.ts
++++ b/packages/evershop/src/lib/middlewares/publicStatic.ts
+@@ -25,6 +25,9 @@ export default async function publicStatic(
+         response,
+         next
+       );
++    } else {
++      // 다온마켓 9-3(E16): 점이 든 폴더 이름(예: /a.b/)이면 아무 응답도 없이 요청이 걸려 있었다. 다음 처리기로 넘긴다
++      next();
+     }
+   } catch (e) {
+     // If the path is not a file or does not exist in the public folder, call next
+diff --git a/packages/evershop/src/modules/graphql/services/graphqlMiddleware.js b/packages/evershop/src/modules/graphql/services/graphqlMiddleware.js
+index b78cd03..475aa2d 100644
+--- a/packages/evershop/src/modules/graphql/services/graphqlMiddleware.js
++++ b/packages/evershop/src/modules/graphql/services/graphqlMiddleware.js
+@@ -1,10 +1,14 @@
+ import {
+   execute,
++  GraphQLError,
++  Kind,
+   NoSchemaIntrospectionCustomRule,
+   parse,
++  specifiedRules,
+   validate,
+   validateSchema
+ } from 'graphql';
++import { securityEvent } from '../../../lib/log/securityEvent.js';
+ import { createDefinitionCache } from '../../../lib/metafield/definitionCache.js';
+ import { pool } from '../../../lib/postgres/connection.js';
+ import { OK } from '../../../lib/util/httpStatus.js';
+@@ -12,6 +16,35 @@ import isDevelopmentMode from '../../../lib/util/isDevelopmentMode.js';
+ import { createLinkLoaders } from '../../../lib/widget/linkResolver.js';
+ import { getContext } from './contextHelper.js';
+ 
++// 다온마켓 9-3(E10): 질의 깊이 상한. 중첩이 깊은 질의 하나가 DB 질의를 곱으로 늘린다
++const MAX_DEPTH = 10;
++function depthLimitRule(context) {
++  const fragments = Object.create(null);
++  for (const d of context.getDocument().definitions) {
++    if (d.kind === Kind.FRAGMENT_DEFINITION) fragments[d.name.value] = d;
++  }
++  const depthOf = (node, depth, seen) => {
++    if (!node.selectionSet) return depth;
++    let max = depth;
++    for (const sel of node.selectionSet.selections) {
++      if (sel.kind === Kind.FRAGMENT_SPREAD) {
++        const f = fragments[sel.name.value];
++        if (f && !seen.has(f.name.value)) max = Math.max(max, depthOf(f, depth, new Set([...seen, f.name.value])));
++      } else {
++        max = Math.max(max, depthOf(sel, depth + 1, seen));
++      }
++    }
++    return max;
++  };
++  return {
++    OperationDefinition(node) {
++      if (depthOf(node, 0, new Set()) > MAX_DEPTH) {
++        context.reportError(new GraphQLError(`질의 깊이가 상한(${MAX_DEPTH})을 넘습니다`, { nodes: [node], extensions: { code: 'DEPTH_LIMIT' } }));
++      }
++    }
++  };
++}
++
+ export const graphqlMiddleware = (schema) =>
+   async function graphqlMiddleware(request, response, next) {
+     const { body } = request;
+@@ -33,10 +66,18 @@ export const graphqlMiddleware = (schema) =>
+           return;
+         }
+       }
+-      // Validate the query
+-      const validationErrors = validateSchema(schema, document);
++      // 다온마켓 9-3(E10): validateSchema(schema, document)는 스키마만 보고 질의 문서는 검사하지 않았다.
++      // validate(schema, document, 규칙)로 문서를 검사하고, 깊이 상한 규칙을 더한다
++      const schemaErrors = validateSchema(schema);
++      const validationErrors = schemaErrors.length > 0 ? schemaErrors
++        : validate(schema, document, [...specifiedRules, depthLimitRule]);
+       if (validationErrors.length > 0) {
+-        next(new Error(validationErrors[0].message));
++        if (validationErrors.some((e) => e.extensions && e.extensions.code === 'DEPTH_LIMIT')) {
++          securityEvent.denied('input.denied.graphql_depth', '9-3', request, {
++            target: 'graphql:query', reason: `질의 깊이 상한(${MAX_DEPTH}) 초과`
++          });
++        }
++        response.status(400).json({ data: null, error: { status: 400, message: validationErrors[0].message } });
+       } else {
+         // Build the context value once per request. linkLoaders are
+         // request-scoped: their per-request cache must NOT leak across

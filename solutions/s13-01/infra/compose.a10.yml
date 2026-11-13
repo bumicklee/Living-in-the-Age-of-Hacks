@@ -1,0 +1,77 @@
+# 다온마켓 랩 · 아키텍처 A10 「승인 서비스 분리」(수업 13-3, 13-4·13-6이 이어서 쓴다)
+#
+#   infra/arch.txt에 a10 줄이 있으면 daon 명령이 compose.yml(+ a02 · a03 · a04 · a01 · a08 · a05 · a06 · a07 · a09) 위에 이 파일을 함께 쓴다.
+#   13-1이 끝나면 이 파일과 승인 서비스 소스(infra/approval/)가 생긴다. 켜는 것(arch.txt의 a10 줄)은 13-3에서 한다.
+#
+# 바뀌는 것
+#   ① 승인 서비스 approval(작은 Spring Boot 앱, 127.0.0.1:8097). 관리자 앱과 다른 코드베이스·다른 DB 계정·다른 금고 권한
+#      - DB: 금고의 동적 계정(역할 approval). 주문·반품·관리자 표는 읽기만, daon_approval_* 두 표만 쓴다
+#      - 금고: 승인 토큰 서명 키 transit/daon-approval의 서명 권한은 승인 서비스에만. 관리자 앱은 확인(verify)만
+#      - 메일: 고액 확인 번호를 Mailpit(가짜 메일)으로만 보낸다(13-4)
+#   ② approval-init(한 번 돌고 끝남): 서명 키·정책·DB 역할·AppRole을 만들고 승인 서비스 접속 정보를 전용 볼륨에 쓴다
+#   ③ 관리자 앱은 DAON_APPROVAL_URL로 승인 서비스에 「요청」만 한다. 환불 실행기는 승인 토큰을 확인해야만 결제사를 부른다
+#
+# 한계(수업에서 말한다)
+#   - 승인 서비스와 관리자 앱 사이 통신은 랩 내부 망이라 TLS·서비스 인증서가 없다(5-5·12-3의 mTLS를 붙이는 것이 다음 단계).
+#   - 승인 서비스 하나에 승인이 모이면 그것이 새 단일 장애점이 된다(13-미션에서 다시 생각한다).
+# 메모리: +256MB(승인 서비스). approval-init은 끝나면 내려간다.
+
+services:
+  approval-init:
+    profiles: [spring]
+    image: openbao/openbao:2.4.1
+    user: "0:0"                                  # 새 볼륨에 쓰고 승인 서비스 사용자(10001)에게 넘기려고
+    entrypoint: ["/bin/sh", "/approval-init.sh"]
+    environment:
+      DAON_BAO_DB_PASSWORD: ${DAON_BAO_DB_PASSWORD:?infra/.env에 DAON_BAO_DB_PASSWORD가 없습니다(.env.example 참고)}
+    volumes:
+      - ./approval/approval-init.sh:/approval-init.sh:ro
+      - bao-lab:/bao-lab:ro
+      - approval-creds:/approval-creds
+    depends_on:
+      openbao-init: { condition: service_completed_successfully }
+    restart: "no"
+    mem_limit: 64m
+    networks: [data]
+
+  approval:
+    profiles: [spring]
+    build:
+      context: ./approval
+      dockerfile: Dockerfile
+    image: daon/approval:dev
+    env_file:
+      - path: ../.daon/switches.env              # 방어 스위치(approval·dual-approval·ops-elevation). 없으면 모두 켜짐
+        required: false
+    environment:
+      DAON_OPENBAO_ADDR: http://openbao:8200
+      DAON_APPROVAL_CREDS: /run/approval
+      DAON_SMTP_HOST: mailpit
+      DAON_SMTP_PORT: "1025"
+      DAON_SWITCH_SIGN_KEY: ${DAON_SWITCH_SIGN_KEY:-lab-fake-switch-sign-0001}
+      LOGGING_PATTERN_CORRELATION: "[%X{trace_id:-}] "
+      TZ: Asia/Seoul
+    volumes:
+      - approval-creds:/run/approval:ro
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_APPROVAL_PORT:-8097}:8097"]   # 승인 화면 대신 시험·재연·두 번째 승인자가 부른다(이 PC에서만)
+    mem_limit: 256m
+    depends_on:
+      approval-init: { condition: service_completed_successfully }
+      mysql: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:8097/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 20s
+    networks: [app, data]
+
+  mall-admin:
+    environment:
+      DAON_APPROVAL_URL: http://approval:8097                                 # 승인 서비스(요청만 한다)
+      DAON_PAYMENT_STUB_URL: http://payment-stub:8000                          # 환불 실행기가 부르는 가짜 결제사
+    depends_on:
+      approval: { condition: service_healthy }
+
+volumes:
+  approval-creds: {}

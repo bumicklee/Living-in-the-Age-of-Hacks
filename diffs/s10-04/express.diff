@@ -1,0 +1,59 @@
+# 10-4 Express(EverShop)에서 고칠 곳: E26 결제 의도 만들기에 소유 확인과 멱등 키
+# - createPaymentIntent.ts는 이미 금액을 주문에서 읽는다(좋은 예). 빠진 것은 「이 주문이 요청한 사람 것인가」와 Idempotency-Key.
+# - 남의 주문이면 400(없는 주문과 같은 답) + access.denied.not_owner. Stripe 호출에 idempotencyKey.
+# - Stripe·PayPal 웹훅(modules/stripe/api/stripeWebhook 등)은 이미 서명 확인과 중복 처리를 갖췄다(좋은 예, 10초 화면).
+# - 고객 정보 위치(request.locals.customer)는 EverShop 버전에 따라 다르다【실측 예정】.
+# - 적용: diffs/common/express-security-event.diff 다음. cd express && git apply ../diffs/s10-04/express.diff
+
+diff --git a/packages/evershop/src/modules/stripe/api/createPaymentIntent/createPaymentIntent.ts b/packages/evershop/src/modules/stripe/api/createPaymentIntent/createPaymentIntent.ts
+--- a/packages/evershop/src/modules/stripe/api/createPaymentIntent/createPaymentIntent.ts
++++ b/packages/evershop/src/modules/stripe/api/createPaymentIntent/createPaymentIntent.ts
+@@ -1,4 +1,5 @@
+ import { select } from '@evershop/postgres-query-builder';
++import { securityEvent } from '../../../../lib/log/securityEvent.js';
+ import Stripe from 'stripe';
+ import { error } from '../../../../lib/log/logger.js';
+ import { pool } from '../../../../lib/postgres/connection.js';
+@@ -20,6 +21,9 @@
+ ) => {
+   try {
+     const { order_id } = request.body;
++    // 다온마켓 10-4(E26): 주문은 본인 것이어야 한다. 로그인한 고객이면 customer_id, 손님 주문이면 장바구니 세션의 주문만
++    const customer = (request as any).locals?.customer || (request as any).getCurrentCustomer?.();
++    const idemKey = String(request.get('Idempotency-Key') || '').slice(0, 80);
+ 
+     // The charge amount MUST come from the order, never from a client-supplied
+     // cart. The order is the frozen, server-owned record of what is owed; a
+@@ -33,7 +37,14 @@
+       .and('payment_status', '=', 'pending')
+       .load(pool);
+ 
+-    if (!order) {
++    if (order && customer && order.customer_id && order.customer_id !== customer.customer_id) {
++      securityEvent.denied('access.denied.not_owner', '10-4', request, {
++        actor: `customer:${customer.uuid}`,
++        target: `order:${order.order_id}`,
++        reason: '남의 주문으로 결제 의도 만들기'
++      });
++    }
++    if (!order || (customer && order.customer_id && order.customer_id !== customer.customer_id)) {
+       response.status(INVALID_PAYLOAD);
+       response.json({
+         error: {
+@@ -57,6 +68,7 @@
+     // The metadata order_id is what the webhook and the return page bind the
+     // intent back to. It is the order's own uuid, set here — not echoed from
+     // the client — so the binding is trustworthy.
++    // 다온마켓 10-4: 같은 주문을 다시 눌러도 결제 의도는 하나(결제사 멱등 키). 클라이언트 키가 없으면 주문 uuid로
+     const paymentIntent = await stripe.paymentIntents.create({
+       amount: toStripeMinorUnit(order.grand_total, order.currency),
+       currency: order.currency,
+@@ -68,7 +80,7 @@
+       },
+       capture_method:
+         stripePaymentMode === 'capture' ? 'automatic_async' : 'manual'
+-    });
++    }, { idempotencyKey: `daon-pi-${order.uuid}-${idemKey || 'default'}` });
+ 
+     response.status(OK);
+     response.json({

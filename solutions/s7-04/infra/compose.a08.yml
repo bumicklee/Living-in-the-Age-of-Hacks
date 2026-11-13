@@ -1,0 +1,141 @@
+# 다온마켓 랩 · 아키텍처 A8 「로컬 CI」(수업 7-5). 교육용 랩 전용, 값은 모두 가짜.
+#
+#   infra/arch.txt에 a08 줄이 있으면 daon 명령이 이 파일을 함께 쓴다(make up 으로 같이 뜬다).
+#
+# 서비스(메모리 약 +770MB)
+#   gitea     저장소·CI(Actions). PC에는 http://127.0.0.1:3300 하나만 연다
+#   registry  로컬 이미지 레지스트리(registry:2, 계정 인증). PC에는 127.0.0.1:5050
+#   ci-broker 레지스트리 단기 자격증명 발급기. 지금 도는 작업의 Gitea 토큰을 확인하고 10분 안에 사라지는 계정을 준다   infra/ci-broker/
+#   ci-init   처음 한 번(멱등): 계정·조직·저장소·외부 단계 씨앗·저장소 비밀값·러너 등록 토큰   infra/gitea/init.sh
+#   runner    Gitea Actions 러너. 호스트 모드(레이블 lab:host), 작업이 이 컨테이너 안에서 돈다   infra/ci-tools/
+#
+# 7-5 시작 지점의 모습(일부러 이렇게 둔다 → 7-5에서 고친다)
+#   - 러너가 root로 돌고 도커 소켓을 통째로 받았다(쓰지는 않지만 작업이 PC의 도커 전체를 쓸 수 있는 자리다)
+#   - 레지스트리에 올리는 장기 계정(ci-push)의 비밀번호가 저장소 비밀값(REGISTRY_PASSWORD)에 있다
+#
+# 망: ci-run(internal, 러너·Gitea) / ci-pub(Gitea만, PC 포트용). 러너는 바깥 인터넷도, 앱·저장소 망(app·data·admin)도 못 본다.
+# 이미지 이름: PC에서는 127.0.0.1:5050/daon/<이름>, 러너 안에서는 registry:5000/daon/<이름> (같은 이미지, 같은 다이제스트)
+
+name: daon
+
+x-ci-env: &ci-env
+  DAON_CI_ADMIN_PASSWORD: ${DAON_CI_ADMIN_PASSWORD:?infra/.env에 DAON_CI_ADMIN_PASSWORD가 없습니다(.env.example 참고)}
+  DAON_CI_PUSH_PASSWORD: ${DAON_CI_PUSH_PASSWORD:?infra/.env에 DAON_CI_PUSH_PASSWORD가 없습니다(.env.example 참고)}
+
+services:
+  gitea:
+    image: gitea/gitea:1.24.7
+    environment:
+      GITEA__database__DB_TYPE: sqlite3
+      GITEA__security__INSTALL_LOCK: "true"
+      GITEA__server__ROOT_URL: http://gitea:3000/
+      GITEA__server__DOMAIN: gitea
+      GITEA__server__DISABLE_SSH: "true"
+      GITEA__service__DISABLE_REGISTRATION: "true"
+      GITEA__actions__DEFAULT_ACTIONS_URL: self      # uses: daon-lab/scan-step@… 를 이 Gitea에서 찾는다(인터넷 없이)
+      GITEA__log__LEVEL: warn
+      TZ: Asia/Seoul
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_CI_PORT:-3300}:3000"]
+    volumes: [gitea-data:/data]
+    mem_limit: 384m
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3000/api/healthz >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 15s
+    networks:
+      ci-run: { aliases: [gitea] }
+      ci-pub: {}
+
+  ci-init:
+    image: gitea/gitea:1.24.7
+    entrypoint: ["/bin/sh", "/init.sh"]
+    environment:
+      <<: *ci-env
+      GITEA_WORK_DIR: /data
+      GITEA_CUSTOM: /data/gitea
+    volumes:
+      - gitea-data:/data
+      - ci-reg:/reg
+      - ./gitea/init.sh:/init.sh:ro
+      - ./gitea/seed:/seed:ro
+    depends_on:
+      gitea: { condition: service_healthy }
+    restart: "no"
+    mem_limit: 128m
+    networks: [ci-run]
+
+  registry:
+    image: registry:2
+    environment:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: daon-lab
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_CI_REGISTRY_PORT:-5050}:5000"]
+    volumes:
+      - registry-data:/var/lib/registry
+      - ci-auth:/auth:ro
+    depends_on:
+      ci-broker: { condition: service_healthy }
+    mem_limit: 512m                                   # 이미지 한 층(약 200MB)을 올릴 때 잠깐 많이 쓴다(128MB에서는 죽었다)
+    networks:
+      ci-run: { aliases: [registry, registry.local] }   # .local 이름은 도구가 http로 붙는다(cosign 등)
+      ci-pub: {}
+
+  ci-broker:
+    image: daon/ci-tools:lab
+    entrypoint: ["python3", "/broker.py"]
+    environment:
+      <<: *ci-env
+      GITEA_API: http://gitea:3000/api/v1
+      DAON_CI_SIGN_PASSWORD: ${DAON_CI_SIGN_PASSWORD:-lab-fake-sign-0001}
+    volumes:
+      - ci-auth:/auth
+      - ci-keys:/keys                                  # 서명 키 한 쌍(7-6). 공개 키는 배포 확인이 읽는다
+      - ./ci-broker/broker.py:/broker.py:ro
+      - ./gitea/seed:/seed:ro                          # 파일이 아니라 폴더로 마운트한다(파일이 새로 써져도 따라간다)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/healthz >/dev/null"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    depends_on:
+      gitea: { condition: service_healthy }
+    user: "0"                                         # ci-auth 볼륨(처음에는 root 소유)에 쓴다
+    mem_limit: 64m
+    networks: [ci-run]
+
+  runner:
+    build: ./ci-tools
+    image: daon/ci-tools:lab
+    user: root                                        # ✏️ 7-5: 비루트로 바꾼다(user · read_only · cap_drop · no-new-privileges)
+    environment:
+      GITEA_INSTANCE_URL: http://gitea:3000
+      GITEA_RUNNER_REGISTRATION_TOKEN_FILE: /reg/token
+      GITEA_RUNNER_NAME: daon-lab-runner
+      CONFIG_FILE: /config.yaml
+    volumes:
+      - runner-data:/data
+      - ci-reg:/reg:ro
+      - ./gitea/runner-config.yaml:/config.yaml:ro
+      - ../.daon/ci/in:/ci-in:ro                      # 빌드 단계가 만든 이미지 파일(tar)
+      - /var/run/docker.sock:/var/run/docker.sock     # ✏️ 7-5: 도커 소켓을 넘기지 않는다(빌드는 러너 밖 단계가 한다)
+    depends_on:
+      ci-init: { condition: service_completed_successfully }
+    mem_limit: 256m
+    networks: [ci-run]
+
+volumes:
+  gitea-data: {}
+  runner-data: {}
+  ci-reg: {}
+  ci-auth: {}
+  ci-keys: {}
+  registry-data: {}
+
+networks:
+  ci-run:
+    internal: true
+  ci-pub: {}

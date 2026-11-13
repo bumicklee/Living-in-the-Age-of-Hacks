@@ -1,0 +1,84 @@
+spring:
+  application:
+    name: mall-admin
+  profiles:
+    active: dev #기본값은 개발 환경
+  servlet:
+    multipart:
+      enabled: true #파일 업로드 활성화
+      max-file-size: 10MB #파일 업로드 크기 제한:10M
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+mybatis:
+  mapper-locations:
+    - classpath:dao/*.xml
+    - classpath*:com/**/mapper/*.xml
+
+jwt:
+  tokenHeader: Authorization #JWT저장된 요청 헤더
+  secret: mall-admin-secret #JWT암복호화에 사용하는 키
+  expiration: 604800 #JWT만료 시간(60*60*24*7) ✏️ 4-8: 토큰 하나가 7일 동안 통한다(다온마켓 교육용 표시)
+  tokenHead: 'Bearer '  #JWT페이로드에서 시작 부분 가져오기
+
+redis:
+  database: mall
+  key:
+    admin: 'ums:admin'
+    resourceList: 'ums:resourceList'
+  expire:
+    common: 86400 # 24시간
+
+# ✏️ 6-5: 아래 secure.ignored.urls에서 /actuator/**·/druid/**를 빼고, 관리용 엔드포인트는 management.server.port로 나눈다
+secure:
+  ignored:
+    urls: #보안 경로 화이트리스트
+      - /swagger-ui/
+      - /v3/api-docs/*
+      - /*/*.html
+      - /*/*.js
+      - /*/*.css
+      - /*/*.png
+      - /favicon.ico
+      - /actuator/** # ✏️ 6-5: 관리용 화면·엔드포인트를 로그인 없는 허용 목록에서 뺀다
+      - /druid/** # ✏️ 6-5: 관리용 화면·엔드포인트를 로그인 없는 허용 목록에서 뺀다
+      - /admin/login
+      - /admin/register
+      - /admin/info
+      - /admin/logout
+      # ✏️ 3-6: 상품 사진 업로드와 클라우드 업로드 서명이 로그인 없이 열려 있다(데모 화이트리스트, 다온마켓 교육용 표시)
+      - /minio/upload
+      - /aliyun/oss/policy
+      - /ops/** # [교육용 추가] 다온 운영 도구(8095 포트 전용, 2-6). 로컬 도구라 로그인 없이 연다
+
+springdoc:
+  swagger-ui:
+    # Swagger UI 경로 변경
+    path: /swagger-ui.html
+    # Swagger UI 화면 활성화
+    enabled: true # ✏️ 6-5: 운영(prod)에서는 끈다(DocsClosedPostProcessor가 prod 프로필에서 false로 덮는다)
+    # tag와 operation의 펼침 방식 설정용, 여기서는 모두 펼치지 않도록 설정
+    doc-expansion: 'none'
+  api-docs:
+    # api-docs 경로 변경
+    path: /v3/api-docs
+    # 켜기api-docs
+    enabled: true # ✏️ 6-5: 운영(prod)에서는 끈다(DocsClosedPostProcessor가 prod 프로필에서 false로 덮는다)
+  group-configs:
+    - group: 'default'
+      packages-to-scan: com.macro.mall.controller
+  default-flat-param-object: false
+
+aliyun:
+  oss:
+    endpoint: oss-cn-shenzhen.aliyuncs.com # oss외부 서비스 접근 도메인
+    accessKeyId: test # 접근 인증에 사용되는 사용자 식별자
+    accessKeySecret: test # 사용자가 서명 문자열을 암호화하고 oss가 서명 문자열을 검증하는 데 쓰는 키 # ✏️ 6-2: 클라우드 저장소 키(랩에서는 쓰지 않음)
+    bucketName: macro-oss # oss저장 공간
+    policy:
+      expire: 300 # 서명 유효 기간(S)
+    maxSize: 10 # 업로드 파일 크기(M)
+    callback: http://localhost:8080/aliyun/oss/callback # 파일 업로드 성공 후 콜백 주소
+    dir:
+      prefix: mall/images/ # 업로드 폴더 경로 접두사

@@ -39,6 +39,7 @@
         <dependency>
             <groupId>org.mybatis.generator</groupId>
             <artifactId>mybatis-generator-core</artifactId>
+            <scope>provided</scope> <!-- 다온마켓 7-2: 코드 생성 때만 쓴다. 운영 jar에는 넣지 않는다 -->
         </dependency>
         <dependency>
             <groupId>com.mysql</groupId>

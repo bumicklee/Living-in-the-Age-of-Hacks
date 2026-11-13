@@ -1,0 +1,86 @@
+spring:
+  application:
+    name: mall-portal
+  profiles:
+    active: dev #기본값은 개발 환경
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+mybatis:
+  mapper-locations:
+    - classpath:dao/*.xml
+    - classpath*:com/**/mapper/*.xml
+
+# ✏️ 6-6: 아래 daon 아래에 daon.cors.allowed-origins(허용 출처 목록)를 더한다
+daon:
+  jwt:
+    audience: daon-portal #5-2: 토큰을 받는 대상(회원 앱과 관리자 앱이 서로의 토큰을 못 쓰게)
+
+jwt:
+  tokenHeader: Authorization #JWT저장된 요청 헤더
+  # ✏️ 5-2: jwt.secret 설정을 지웠다. 서명 키는 금고(OpenBao)에 있고 앱은 공개키로 확인만 한다
+  expiration: 604800 #JWT만료 시간(60*60*24*7) ✏️ 4-8: 토큰 하나가 7일 동안 통한다(다온마켓 교육용 표시)
+  tokenHead: 'Bearer '  #JWT페이로드에서 시작 부분 가져오기
+
+# ✏️ 6-5: 아래 secure.ignored.urls에서 /actuator/**·/druid/**를 빼고, 관리용 엔드포인트는 management.server.port로 나눈다
+secure:
+  ignored:
+    urls: #보안 경로 화이트리스트
+      - /swagger-ui/
+      - /.well-known/jwks.json
+      - /v3/api-docs/*
+      - /*/*.html
+      - /*/*.js
+      - /*/*.css
+      - /*/*.png
+      - /favicon.ico
+      - /actuator/** # ✏️ 6-5: 관리용 화면·엔드포인트를 로그인 없는 허용 목록에서 뺀다
+      - /druid/** # ✏️ 6-5: 관리용 화면·엔드포인트를 로그인 없는 허용 목록에서 뺀다
+      - /sso/**
+      - /home/**
+      - /product/**
+      - /brand/**
+      - /alipay/**
+      - /daon/product/search # [교육용 추가] 다온마켓 상품 검색(로그인 없이, 3-2·3-3)
+      - /daon/go # [교육용 추가] 로그인 뒤 이동(로그인 전에도 부른다, 11-1·11-2)
+      - /partner/** # [교육용 추가] 파트너 API(12-2). 고객 토큰이 아니라 파트너 토큰·파트너 입구로 지킨다(PartnerScopeInterceptor)
+
+springdoc:
+  swagger-ui:
+    # Swagger UI 경로 변경
+    path: /swagger-ui.html
+    # Swagger UI 화면 활성화
+    enabled: true # ✏️ 6-5: 운영(prod)에서는 끈다(DocsClosedPostProcessor가 prod 프로필에서 false로 덮는다)
+    # tag와 operation의 펼침 방식 설정용, 여기서는 모두 펼치지 않도록 설정
+    doc-expansion: 'none'
+  api-docs:
+    # api-docs 경로 변경
+    path: /v3/api-docs
+    # 켜기api-docs
+    enabled: true # ✏️ 6-5: 운영(prod)에서는 끈다(DocsClosedPostProcessor가 prod 프로필에서 false로 덮는다)
+  group-configs:
+    - group: 'mall-portal'
+      packages-to-scan: com.macro.mall.portal.controller
+
+# 사용자 정의redis key
+redis:
+  database: mall
+  key:
+    authCode: 'ums:authCode'
+    orderId: 'oms:orderId'
+    member: 'ums:member'
+  expire:
+    authCode: 90 # 인증 코드 만료 시간
+    common: 86400 # 24시간
+
+mongo:
+  insert:
+    sqlEnable: true # 데이터베이스 데이터로 삽입할지 제어용mongo
+
+# 메시지 큐 정의
+rabbitmq:
+  queue:
+    name:
+      cancelOrder: cancelOrderQueue
+

@@ -1,6 +1,7 @@
 package com.macro.mall.config;
 
 import com.macro.mall.model.UmsResource;
+import com.macro.mall.security.securekit.SecureKitSwitch;
 import com.macro.mall.security.component.DynamicSecurityService;
 import com.macro.mall.service.UmsAdminService;
 import com.macro.mall.service.UmsResourceService;
@@ -42,7 +43,17 @@ public class MallSecurityConfig {
                 for (UmsResource resource : resourceList) {
                     map.put(resource.getUrl(), new org.springframework.security.access.SecurityConfig(resource.getId() + ":" + resource.getName()));
                 }
-                // ✏️ 2-3: 다온마켓이 새로 만든 관리자 기능(/daon/customer/**)도 권한표에 올린다(다온마켓 교육용 표시)
+                // 다온마켓 2-3: 새 기능도 권한표에 올린다. 고객 정보는 관리자 계정 관리(/admin/**)와 같은 권한이 있어야 본다
+                ConfigAttribute adminOnly = map.get("/admin/**");
+                if (adminOnly != null && SecureKitSwitch.on("admin-default-deny")) {   // [랩 스위치] 끄면 권한표에 올리지 않는다
+                    map.put("/daon/customer/**", adminOnly);
+                }
+                // [교육용 추가] 다온마켓 상품 기능(상품 후기 목록 3-4, 상품 사진 업로드 3-6)은 상품 관리(/product/**)와 같은 권한으로 연다
+                ConfigAttribute goods = map.get("/product/**");
+                if (goods != null) {
+                    map.put("/daon/review/**", goods);
+                    map.put("/minio/**", goods);
+                }
                 return map;
             }
         };

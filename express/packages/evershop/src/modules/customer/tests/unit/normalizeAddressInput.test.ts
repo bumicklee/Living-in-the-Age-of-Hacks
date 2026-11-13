@@ -27,7 +27,7 @@ describe('normalizeAddressInput — the normalization seam (spec § 3.8, § 3.12
 
   describe('telephone → E.164 with the record dial code', () => {
     it.each([
-      ['US', '(650) 253-0000', '+16502530000'],
+      ['US', '(650) 555-0100', '+16505550100'],
       ['VN', '0912 345 678', '+84912345678'],
       ['DE', '+49 30 1234567', '+49301234567'],
       ['FR', '0033 1 23 45 67 89', '+33123456789'],
@@ -84,7 +84,7 @@ describe('normalizeAddressInput — the normalization seam (spec § 3.8, § 3.12
 
     it('single mode: an unchanged recipient leaves the parts alone', () => {
       const out = run(
-        { recipient: 'Jane Smith', telephone: '650 253 0000' },
+        { recipient: 'Jane Smith', telephone: '650 555 0100' },
         { previous: { given_name: 'Jane', family_name: 'Smith', recipient: 'Jane Smith', country: 'US' } }
       );
       expect(out.given_name).toBeUndefined();

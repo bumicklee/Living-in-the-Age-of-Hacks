@@ -1,0 +1,129 @@
+# 8-3 Express(EverShop)에서 고칠 곳: 관리자 조회 감사 로그(점검표 F40, docs/audit-schema.yaml의 express 칸)
+# - 새 파일 lib/log/audit.ts: Spring @Audited·AuditAspect와 같은 8개 필드. 한 줄 JSON 앞에 「AUDIT 」 표식(표준 출력).
+#   목록은 CustomerCollection·OrderCollection의 items()가 돌려준 건수를 센다(전체 건수 total이 아니다). 30건 이상이면 data.read.bulk.
+# - 관리자 GraphQL customers·customer(id)·orders 처리기에 감사 호출. actor는 GraphQL 문맥의 user.uuid(로그인 미들웨어가 넣음).
+# - E18(운영 모드 오류 미기록)의 오류 쪽은 6-5 diff가 이미 고쳤다(trace_id와 메시지만 로그에). 인증 실패 기록은 8-4 diff.
+# - 먼저 넣을 것: diffs/common/express-security-event.diff, diffs/common/express-trace-id.diff, diffs/s5-04/express.diff(같은 고객 처리기 파일)
+# - 적용: cd express && git apply ../diffs/s8-03/express.diff   (git apply --check만 확인, 실행은 실측 예정)
+
+diff --git a/packages/evershop/src/lib/log/audit.ts b/packages/evershop/src/lib/log/audit.ts
+new file mode 100644
+index 0000000..7f0ae7d
+--- /dev/null
++++ b/packages/evershop/src/lib/log/audit.ts
+@@ -0,0 +1,56 @@
++/**
++ * 다온마켓 8-3: 관리자 조회 감사 로그(AUDIT). Spring의 @Audited·AuditAspect와 같은 필드(docs/audit-schema.yaml).
++ *
++ *   customers: async (_, { filters = [] }, context) => audit.collection(root, 'customer.list', 'customer', context)
++ *
++ * 한 줄 JSON 앞에 「AUDIT 」 표식을 붙여 표준 출력으로 낸다(수집기가 stream=audit으로 읽을 수 있게).
++ * 넣지 않는 것: 이름·전화·주소, 토큰, 요청·응답 본문. count는 실제로 돌려준 건수.
++ */
++import { currentTraceId } from '../middlewares/traceId.js';
++import { securityEvent } from './securityEvent.js';
++
++const BULK = Number(process.env.DAON_AUDIT_BULK_THRESHOLD || 30);
++
++type Ctx = { user?: { uuid?: string } } | undefined;
++
++function write(action: string, target: string, count: number, context: Ctx, result = 'ok') {
++  const line = {
++    ts: new Date().toISOString(),
++    trace_id: currentTraceId() || null,
++    actor: context?.user?.uuid ? `admin:${context.user.uuid}` : 'anonymous',
++    action,
++    target,
++    count,
++    reason: null,
++    result
++  };
++  console.info(`AUDIT ${JSON.stringify(line)}`);
++  if (result === 'ok' && count >= BULK) {
++    securityEvent.suspicious('data.read.bulk', '8-3', undefined, {
++      actor: line.actor,
++      target: `action:${action}`,
++      reason: `한 번에 기준 건수(${BULK}건) 이상 조회`
++    });
++  }
++}
++
++export const audit = {
++  /** 값 하나(상세 조회) */
++  one: (action: string, target: string, found: unknown, context: Ctx) =>
++    write(action, target, found ? 1 : 0, context),
++  /** 목록: items()가 돌려준 건수를 센다(전체 건수 total이 아니다) */
++  collection: <T extends { items: () => Promise<unknown[]> }>(root: T, action: string, resource: string, context: Ctx): T => {
++    const items = root.items.bind(root);
++    root.items = async () => {
++      try {
++        const rows = await items();
++        write(action, `${resource}:list`, rows.length, context);
++        return rows;
++      } catch (e) {
++        write(action, `${resource}:list`, 0, context, 'error');
++        throw e;
++      }
++    };
++    return root;
++  }
++};
+diff --git a/packages/evershop/src/modules/customer/graphql/types/Customer/Customer.admin.resolvers.js b/packages/evershop/src/modules/customer/graphql/types/Customer/Customer.admin.resolvers.js
+index 4ecab19..53b7b75 100644
+--- a/packages/evershop/src/modules/customer/graphql/types/Customer/Customer.admin.resolvers.js
++++ b/packages/evershop/src/modules/customer/graphql/types/Customer/Customer.admin.resolvers.js
+@@ -1,3 +1,4 @@
++import { audit } from '../../../../../lib/log/audit.js';
+ import { info } from '../../../../../lib/log/logger.js';
+ import { buildUrl } from '../../../../../lib/router/buildUrl.js';
+ import { camelCase } from '../../../../../lib/util/camelCase.js';
+@@ -7,17 +8,20 @@ import { maskPhone } from '../../../services/maskPhone.js';
+ 
+ export default {
+   Query: {
+-    customer: async (root, { id }, { pool }) => {
++    customer: async (root, { id }, context) => {
+       const query = getCustomersBaseQuery();
+       query.where('uuid', '=', id);
+-      const customer = await query.load(pool);
++      const customer = await query.load(context.pool);
++      // 다온마켓 8-3: 고객 상세 조회 감사 로그(ID만)
++      audit.one('customer.detail', `customer:${id}`, customer, context);
+       return customer ? camelCase(customer) : null;
+     },
+-    customers: async (_, { filters = [] }) => {
++    customers: async (_, { filters = [] }, context) => {
+       const query = getCustomersBaseQuery();
+       const root = new CustomerCollection(query);
+       await root.init(filters);
+-      return root;
++      // 다온마켓 8-3: 돌려준 건수를 감사 로그로(30건 이상이면 data.read.bulk)
++      return audit.collection(root, 'customer.list', 'customer', context);
+     }
+   },
+   Customer: {
+diff --git a/packages/evershop/src/modules/oms/graphql/types/Order/Order.admin.resolvers.js b/packages/evershop/src/modules/oms/graphql/types/Order/Order.admin.resolvers.js
+index b79b17a..bb5b94d 100644
+--- a/packages/evershop/src/modules/oms/graphql/types/Order/Order.admin.resolvers.js
++++ b/packages/evershop/src/modules/oms/graphql/types/Order/Order.admin.resolvers.js
+@@ -1,4 +1,5 @@
+ import { select } from '@evershop/postgres-query-builder';
++import { audit } from '../../../../../lib/log/audit.js';
+ import { buildUrl } from '../../../../../lib/router/buildUrl.js';
+ import { getConfig } from '../../../../../lib/util/getConfig.js';
+ import { getPaymentMethodFactory } from '../../../../checkout/services/getAvailablePaymentMethods.js';
+@@ -7,11 +8,12 @@ import { OrderCollection } from '../../../services/OrderCollection.js';
+ 
+ export default {
+   Query: {
+-    orders: async (_, { filters = [] }) => {
++    orders: async (_, { filters = [] }, context) => {
+       const query = getOrdersBaseQuery();
+       const root = new OrderCollection(query);
+       await root.init(filters);
+-      return root;
++      // 다온마켓 8-3: 주문 목록 감사 로그
++      return audit.collection(root, 'order.list', 'order', context);
+     }
+   },
+   Order: {

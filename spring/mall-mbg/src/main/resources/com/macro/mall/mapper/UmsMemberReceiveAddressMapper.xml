@@ -5,13 +5,13 @@
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="member_id" jdbcType="BIGINT" property="memberId" />
     <result column="name" jdbcType="VARCHAR" property="name" />
-    <result column="phone_number" jdbcType="VARCHAR" property="phoneNumber" />
+    <result column="phone_number" jdbcType="VARCHAR" property="phoneNumber" typeHandler="com.macro.mall.security.crypto.EncryptedStringTypeHandler" />
     <result column="default_status" jdbcType="INTEGER" property="defaultStatus" />
     <result column="post_code" jdbcType="VARCHAR" property="postCode" />
     <result column="province" jdbcType="VARCHAR" property="province" />
     <result column="city" jdbcType="VARCHAR" property="city" />
     <result column="region" jdbcType="VARCHAR" property="region" />
-    <result column="detail_address" jdbcType="VARCHAR" property="detailAddress" />
+    <result column="detail_address" jdbcType="VARCHAR" property="detailAddress" typeHandler="com.macro.mall.security.crypto.EncryptedStringTypeHandler" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -113,9 +113,9 @@
       default_status, post_code, province, 
       city, region, detail_address
       )
-    values (#{memberId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{phoneNumber,jdbcType=VARCHAR}, 
+    values (#{memberId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{phoneNumber,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler}, 
       #{defaultStatus,jdbcType=INTEGER}, #{postCode,jdbcType=VARCHAR}, #{province,jdbcType=VARCHAR}, 
-      #{city,jdbcType=VARCHAR}, #{region,jdbcType=VARCHAR}, #{detailAddress,jdbcType=VARCHAR}
+      #{city,jdbcType=VARCHAR}, #{region,jdbcType=VARCHAR}, #{detailAddress,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.macro.mall.model.UmsMemberReceiveAddress">
@@ -160,7 +160,7 @@
         #{name,jdbcType=VARCHAR},
       </if>
       <if test="phoneNumber != null">
-        #{phoneNumber,jdbcType=VARCHAR},
+        #{phoneNumber,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       </if>
       <if test="defaultStatus != null">
         #{defaultStatus,jdbcType=INTEGER},
@@ -178,7 +178,7 @@
         #{region,jdbcType=VARCHAR},
       </if>
       <if test="detailAddress != null">
-        #{detailAddress,jdbcType=VARCHAR},
+        #{detailAddress,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       </if>
     </trim>
   </insert>
@@ -252,7 +252,7 @@
         name = #{name,jdbcType=VARCHAR},
       </if>
       <if test="phoneNumber != null">
-        phone_number = #{phoneNumber,jdbcType=VARCHAR},
+        phone_number = #{phoneNumber,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       </if>
       <if test="defaultStatus != null">
         default_status = #{defaultStatus,jdbcType=INTEGER},
@@ -270,7 +270,7 @@
         region = #{region,jdbcType=VARCHAR},
       </if>
       <if test="detailAddress != null">
-        detail_address = #{detailAddress,jdbcType=VARCHAR},
+        detail_address = #{detailAddress,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -279,13 +279,13 @@
     update ums_member_receive_address
     set member_id = #{memberId,jdbcType=BIGINT},
       name = #{name,jdbcType=VARCHAR},
-      phone_number = #{phoneNumber,jdbcType=VARCHAR},
+      phone_number = #{phoneNumber,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       default_status = #{defaultStatus,jdbcType=INTEGER},
       post_code = #{postCode,jdbcType=VARCHAR},
       province = #{province,jdbcType=VARCHAR},
       city = #{city,jdbcType=VARCHAR},
       region = #{region,jdbcType=VARCHAR},
-      detail_address = #{detailAddress,jdbcType=VARCHAR}
+      detail_address = #{detailAddress,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

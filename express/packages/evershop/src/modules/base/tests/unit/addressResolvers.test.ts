@@ -32,7 +32,7 @@ const ROW = {
   administrative_area: 'US-CA',
   postal_code: '94043',
   country: 'US',
-  telephone: '+16502530000',
+  telephone: '+16505550100',
   extra: { tax_id: '123', delivery_note: 'ring twice' }
 };
 

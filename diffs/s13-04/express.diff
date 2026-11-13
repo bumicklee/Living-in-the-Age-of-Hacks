@@ -1,0 +1,54 @@
+# 13-4 Express(EverShop): 고액은 바로 실행하지 않는다. 환불 라우트가 202 Accepted + 승인 상태(PENDING_SECOND·SCHEDULED·HELD_BY_BREAKER)를 돌려주고,
+#   관리자 화면 RefundButton이 그 상태를 보여 준다. 두 번째 승인·메일 확인 번호·지연 실행·서킷 브레이커는 승인 서비스(A10) 몫이라 Spring과 같다
+# - 적용: diffs/s13-03/express.diff 다음. cd express && git apply ../diffs/s13-04/express.diff
+
+diff --git a/packages/evershop/src/modules/oms/api/createOrderRefund/createOrderRefund.ts b/packages/evershop/src/modules/oms/api/createOrderRefund/createOrderRefund.ts
+index d7e547a..005aa25 100644
+--- a/packages/evershop/src/modules/oms/api/createOrderRefund/createOrderRefund.ts
++++ b/packages/evershop/src/modules/oms/api/createOrderRefund/createOrderRefund.ts
+@@ -2,6 +2,8 @@ import { error } from '../../../../lib/log/logger.js';
+ import { securityEvent } from '../../../../lib/log/securityEvent.js';
+ import { requestApproval, verifyApprovalToken } from '../../../../lib/secureKit/approval.js';
+ import { FORBIDDEN, INTERNAL_SERVER_ERROR, OK } from '../../../../lib/util/httpStatus.js';
++
++const ACCEPTED = 202;   // 13-4: 고액은 두 번째 승인·지연 실행 뒤에 실행된다
+ import { EvershopRequest } from '../../../../types/request.js';
+ import { EvershopResponse } from '../../../../types/response.js';
+ import { refundOrder } from '../../services/refundOrder.js';
+@@ -25,6 +27,12 @@ export default async (
+     const orderUuid = String(request.params.id);
+     const user = request.getCurrentUser();
+     const approval = await requestApproval(request, { orderUuid, amount: String(amount) });
++    // 13-4: 고액은 바로 실행하지 않는다. 상태만 돌려주고(202), 지연 실행 창이 끝나면 실행기가 토큰을 받아 실행한다
++    if (['PENDING_SECOND', 'SCHEDULED', 'HELD_BY_BREAKER'].includes(approval.status)) {
++      response.status(ACCEPTED);
++      response.json({ data: { approval: approval.status, approvalId: approval.id } });
++      return;
++    }
+     const approved = approval.status === 'APPROVED' ? verifyApprovalToken(approval.token, 'refund', orderUuid) : null;
+     if (!approved) {
+       securityEvent.denied('refund.denied.no_approval', '13-3', request, {
+diff --git a/packages/evershop/src/modules/oms/pages/admin/orderEdit/RefundButton.tsx b/packages/evershop/src/modules/oms/pages/admin/orderEdit/RefundButton.tsx
+index 8e80e62..a68b9c7 100644
+--- a/packages/evershop/src/modules/oms/pages/admin/orderEdit/RefundButton.tsx
++++ b/packages/evershop/src/modules/oms/pages/admin/orderEdit/RefundButton.tsx
+@@ -48,6 +48,19 @@ export default function RefundButton({
+                       submitBtn={false}
+                       onSuccess={(response) => {
+                         setLoading(false);
++                        // 다온마켓 13-4: 고액은 승인 서비스의 상태를 보여 준다(바로 환불되지 않는다)
++                        const approval = response.data?.approval;
++                        if (approval) {
++                          const label = {
++                            PENDING_SECOND: '두 번째 승인(재무 담당)을 기다립니다. 확인 번호는 메일로 갑니다',
++                            SCHEDULED: '승인됨: 지연 실행 창이 끝나면 환불합니다(창 안에서 취소할 수 있습니다)',
++                            HELD_BY_BREAKER: '출금 서킷 브레이커가 열려 자동 실행을 멈췄습니다',
++                            CANCELLED: '취소됨'
++                          }[approval] || approval;
++                          toast.info(label);
++                          closeAlert();
++                          return;
++                        }
+                         if (response.error) {
+                           toast.error(response.error.message);
+                           dispatchAlert({

@@ -1,0 +1,10 @@
+# 다온마켓 A5 · 대시보드 불러오기(수업 8-4). infra/observability/grafana/dashboards/*.json
+apiVersion: 1
+providers:
+  - name: daon
+    folder: 다온마켓
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards

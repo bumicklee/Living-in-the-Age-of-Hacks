@@ -1,0 +1,9 @@
+{
+  "name": "daon-dependency-before",
+  "version": "1.0.0",
+  "private": true,
+  "description": "의존성 점검 수업의 고치기 전 예제. 실제 서비스에 사용하지 않습니다.",
+  "dependencies": {
+    "express": "4.17.1"
+  }
+}

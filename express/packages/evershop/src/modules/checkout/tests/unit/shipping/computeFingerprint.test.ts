@@ -6,7 +6,7 @@ import {
 
 const DEST = {
   recipient: 'Jane Smith',
-  telephone: '+16502530000',
+  telephone: '+16505550100',
   address_line_1: '1600 Amphitheatre Pkwy',
   country: 'US',
   administrative_area: 'US-CA',

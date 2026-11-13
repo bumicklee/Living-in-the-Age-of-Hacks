@@ -90,6 +90,7 @@ public class UmsMemberController {
     @ResponseBody
     public CommonResult getAuthCode(@RequestParam String telephone) {
         String authCode = memberService.generateAuthCode(telephone);
+        // ✏️ 4-5: 문자로만 가야 할 인증 번호를 응답 본문(data)에 싣는다(다온마켓 교육용 표시)
         return CommonResult.success(authCode,"인증 코드 발급 성공");
     }
 
@@ -104,6 +105,7 @@ public class UmsMemberController {
     }
 
 
+    // ✏️ 4-8: 회원 로그아웃 API가 없다. 토큰을 서버에서 끝낼 방법이 없다(다온마켓 교육용 표시)
     @Operation(summary = "새로고침token")
     @RequestMapping(value = "/refreshToken", method = RequestMethod.GET)
     @ResponseBody

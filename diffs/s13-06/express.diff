@@ -1,0 +1,136 @@
+# 13-6 Express(EverShop, E21): 토큰 속 정보를 그대로 믿지 않고, 고위험 기능은 DB에서 권한 상승 만료 시각을 다시 읽는다
+# - 새 전역 미들웨어 [auth]daonElevation.ts: 상점 설정 저장(saveSetting)을 고위험 묶음 store-settings로. 없으면 403 + ops.denied.no_elevation
+#   (EverShop에는 관리자 계정·역할 관리 API가 없다. Spring은 관리자 계정·역할·권한표 바꾸기)
+# - 새 표 daon_ops_elevation(마이그레이션 auth 1.0.4, 1.0.3은 5-2 diff) · 켜기 POST /api/daon/elevation/activate {token, group}
+#   (승인 서비스가 서명한 권한 상승 토큰, 주인 = 로그인한 관리자 메일) → ops.elevation.granted
+# - 공용·데모 계정 닫기는 EverShop 관리자 표 admin_user.status=0(데이터 작업)으로 같은 원리. 이 diff에는 넣지 않았다
+# - 적용: diffs/s13-04/express.diff 다음(5-2 diff가 먼저 있어야 마이그레이션 번호가 이어진다). cd express && git apply ../diffs/s13-06/express.diff
+
+diff --git a/packages/evershop/src/modules/auth/api/daonElevationActivate/[context]bodyParser[auth].ts b/packages/evershop/src/modules/auth/api/daonElevationActivate/[context]bodyParser[auth].ts
+new file mode 100644
+index 0000000..7322d7c
+--- /dev/null
++++ b/packages/evershop/src/modules/auth/api/daonElevationActivate/[context]bodyParser[auth].ts
+@@ -0,0 +1,5 @@
++import bodyParser from 'body-parser';
++
++export default (request, response, next) => {
++  bodyParser.json({ inflate: false })(request, response, next);
++};
+diff --git a/packages/evershop/src/modules/auth/api/daonElevationActivate/daonElevationActivate.ts b/packages/evershop/src/modules/auth/api/daonElevationActivate/daonElevationActivate.ts
+new file mode 100644
+index 0000000..f15e8f6
+--- /dev/null
++++ b/packages/evershop/src/modules/auth/api/daonElevationActivate/daonElevationActivate.ts
+@@ -0,0 +1,33 @@
++import { insertOnUpdate } from '@evershop/postgres-query-builder';
++import { securityEvent } from '../../../../lib/log/securityEvent.js';
++import { pool } from '../../../../lib/postgres/connection.js';
++import { verifyApprovalToken } from '../../../../lib/secureKit/approval.js';
++import { FORBIDDEN, OK } from '../../../../lib/util/httpStatus.js';
++import { EvershopRequest } from '../../../../types/request.js';
++
++/**
++ * 다온마켓 13-6(Express): 승인 서비스가 서명한 권한 상승 토큰(누가·묶음·만료)을 확인하고 만료 시각까지 켠다.
++ * 토큰의 주인(sub)이 지금 로그인한 관리자(메일)와 같아야 한다. 승인(다른 사람)은 승인 서비스에서 한다.
++ */
++export default async (request: EvershopRequest, response, next) => {
++  const user = request.getCurrentUser();
++  const { token, group } = request.body || {};
++  const p = verifyApprovalToken(token, 'ops-elevation', String(group));
++  if (!p || !user || p.sub !== user.email) {
++    securityEvent.denied('ops.denied.no_elevation', '13-6', request, {
++      actor: `admin:${user?.uuid ?? 'unknown'}`, target: 'elevation:token', reason: '권한 상승 토큰이 없거나 서명·주인이 맞지 않음'
++    });
++    response.status(FORBIDDEN);
++    response.json({ error: { status: FORBIDDEN, message: 'Forbidden' } });
++    return;
++  }
++  const expiresAt = new Date(Number(p.exp) * 1000);
++  await insertOnUpdate('daon_ops_elevation', ['admin_user_id', 'grp'])
++    .given({ admin_user_id: (user as any).admin_user_id, grp: p.group, approval: p.approval, expires_at: expiresAt })
++    .execute(pool);
++  securityEvent.suspicious('ops.elevation.granted', '13-6', request, {
++    actor: `admin:${user.uuid}`, target: `approval:${p.approval}`, reason: `승인된 권한 상승(${p.group})`
++  });
++  response.status(OK);
++  response.json({ data: { group: p.group, expiresAt: expiresAt.toISOString() } });
++};
+diff --git a/packages/evershop/src/modules/auth/api/daonElevationActivate/route.json b/packages/evershop/src/modules/auth/api/daonElevationActivate/route.json
+new file mode 100644
+index 0000000..f904f0a
+--- /dev/null
++++ b/packages/evershop/src/modules/auth/api/daonElevationActivate/route.json
+@@ -0,0 +1,5 @@
++{
++  "methods": ["POST"],
++  "path": "/daon/elevation/activate",
++  "access": "private"
++}
+diff --git a/packages/evershop/src/modules/auth/api/global/[auth]daonElevation.ts b/packages/evershop/src/modules/auth/api/global/[auth]daonElevation.ts
+new file mode 100644
+index 0000000..44cd0c3
+--- /dev/null
++++ b/packages/evershop/src/modules/auth/api/global/[auth]daonElevation.ts
+@@ -0,0 +1,39 @@
++import { select } from '@evershop/postgres-query-builder';
++import { securityEvent } from '../../../../lib/log/securityEvent.js';
++import { pool } from '../../../../lib/postgres/connection.js';
++import { FORBIDDEN } from '../../../../lib/util/httpStatus.js';
++import { EvershopRequest } from '../../../../types/request.js';
++
++/**
++ * 다온마켓 13-6(Express, E21): 역할 검사(auth)를 지난 요청도 고위험 기능이면 DB에서 권한 상승 만료 시각을 다시 읽는다.
++ * 토큰 속 정보(역할·권한)를 그대로 믿지 않는다. 살아 있는 권한 상승이 없으면 403 + ops.denied.no_elevation.
++ * EverShop에는 관리자 계정·역할 관리 API가 없어서, 상점 설정 저장(saveSetting: 결제·배송 설정 포함)을 고위험 묶음으로 둔다.
++ */
++const HIGH_RISK: Record<string, string> = { saveSetting: 'store-settings' };
++
++export default async (request: EvershopRequest, response, next) => {
++  const routeId = request.currentRoute?.id;
++  const group = routeId ? HIGH_RISK[routeId] : undefined;
++  const user = request.getCurrentUser();
++  if (!group || !user || request.method !== 'POST') {
++    next();
++    return;
++  }
++  const row = await select()
++    .from('daon_ops_elevation')
++    .where('admin_user_id', '=', (user as any).admin_user_id)
++    .and('grp', '=', group)
++    .and('expires_at', '>', new Date())
++    .load(pool);
++  if (row) {
++    next();
++    return;
++  }
++  securityEvent.denied('ops.denied.no_elevation', '13-6', request, {
++    actor: `admin:${user.uuid}`,
++    target: `route:${routeId}`,
++    reason: `고위험 기능(${group})을 권한 상승 없이 호출`
++  });
++  response.status(FORBIDDEN);
++  response.json({ error: { status: FORBIDDEN, message: '권한 상승(사유·다른 사람 승인·시간 제한)이 필요합니다' } });
++};
+diff --git a/packages/evershop/src/modules/auth/migration/Version-1.0.4.ts b/packages/evershop/src/modules/auth/migration/Version-1.0.4.ts
+new file mode 100644
+index 0000000..8aa0f2d
+--- /dev/null
++++ b/packages/evershop/src/modules/auth/migration/Version-1.0.4.ts
+@@ -0,0 +1,16 @@
++import type { PoolClient } from 'pg';
++
++/**
++ * 다온마켓 13-6: 시간 제한 권한 상승(JIT). 관리자마다 묶음(grp)별 만료 시각 한 줄.
++ * 승인 서비스(A10)가 서명한 권한 상승 토큰을 확인한 뒤에만 쓴다(daonElevationActivate). 사유는 승인 서비스 표에만 있다.
++ * 버전 1.0.3은 5-2 diff(token_version)가 쓴다.
++ */
++export default async (connection: PoolClient) => {
++  await connection.query(`CREATE TABLE IF NOT EXISTS daon_ops_elevation (
++    admin_user_id INT NOT NULL REFERENCES admin_user (admin_user_id) ON DELETE CASCADE,
++    grp VARCHAR(40) NOT NULL,
++    approval VARCHAR(40) NOT NULL,
++    expires_at TIMESTAMPTZ NOT NULL,
++    PRIMARY KEY (admin_user_id, grp)
++  )`);
++};

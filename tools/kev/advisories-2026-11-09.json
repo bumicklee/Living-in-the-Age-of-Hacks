@@ -1,0 +1,663 @@
+{
+ "_meta": {
+  "title": "권고 색인(교육용 사본)",
+  "made": "2026-11-09",
+  "source": "OSV(osv.dev)에 2026-11-09에 운영 jar의 Maven 패키지 56개를 조회한 응답에서 권고가 나온 16개를 옮겼다. 이 파일을 쓰면 인터넷 없이도 같은 결과가 나온다.",
+  "note": "운영에서는 SBOM을 OSV 같은 권고 데이터베이스에 매번 조회한다. 이 사본은 날짜를 박은 랩용이다."
+ },
+ "maven": {
+  "pkg:maven/ch.qos.logback/logback-core@1.5.32": [
+   {
+    "id": "GHSA-jhq6-gfmj-v8fx",
+    "cve": [
+     "CVE-2026-10532"
+    ],
+    "severity": "LOW",
+    "summary": "Logback vulnerable to Object Injection through HardenedObjectInputStream modules"
+   },
+   {
+    "id": "GHSA-p47f-322f-whfh",
+    "cve": [
+     "CVE-2026-9828"
+    ],
+    "severity": "LOW",
+    "summary": "QOS.CH Sarl logback logback-core has a deserialization of untrusted data vulnerability"
+   }
+  ],
+  "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.21.2": [
+   {
+    "id": "GHSA-7hhh-6rmp-j9qf",
+    "cve": [
+     "CVE-2026-89425"
+    ],
+    "severity": "HIGH",
+    "summary": "jackson-core: UTF8DataInputJsonParser._reportInvalidToken() missing maxErrorTokenLength limit -> unb"
+   },
+   {
+    "id": "GHSA-p6pp-m3f8-5c89",
+    "cve": [
+     "CVE-2026-89407"
+    ],
+    "severity": "HIGH",
+    "summary": " jackson-core: ReDoS: quadratic backtracking in NumberInput.PATTERN_FLOAT via looksLikeValidNumber()"
+   },
+   {
+    "id": "GHSA-r7wm-3cxj-wff9",
+    "cve": [
+     "CVE-2026-68494"
+    ],
+    "severity": "HIGH",
+    "summary": "jackson-core: Async parser maxNumberLength bypass via chunked digit accumulation (incomplete fix for"
+   }
+  ],
+  "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.21.2": [
+   {
+    "id": "GHSA-3pjw-73gf-8qr5",
+    "cve": [
+     "CVE-2026-59888"
+    ],
+    "severity": "MODERATE",
+    "summary": "jackson-databind: @JsonIgnore on a Record property is bypassed with a PropertyNamingStrategy"
+   },
+   {
+    "id": "GHSA-5gvw-p9qm-jgwh",
+    "cve": [
+     "CVE-2026-59889"
+    ],
+    "severity": "MODERATE",
+    "summary": "jackson-databind: @JsonView bypassed for @JsonUnwrapped container properties on deserialization"
+   },
+   {
+    "id": "GHSA-5hh8-q8hv-fr38",
+    "cve": [
+     "CVE-2026-54517"
+    ],
+    "severity": "MODERATE",
+    "summary": "jackson-databind has @JsonView bypass for setterless creator properties"
+   },
+   {
+    "id": "GHSA-5jmj-h7xm-6q6v",
+    "cve": [
+     "CVE-2026-54515"
+    ],
+    "severity": "MODERATE",
+    "summary": "jackson-databind has case-insensitive deserialization bypasses per-property @JsonIgnoreProperties"
+   },
+   {
+    "id": "GHSA-9fxm-vc8v-hj55",
+    "cve": [
+     "CVE-2026-54516"
+    ],
+    "severity": "MODERATE",
+    "summary": "jackson-databind's renamed @JsonIgnore'd setters can deserialize via private fields"
+   },
+   {
+    "id": "GHSA-cxp5-3px4-pw24",
+    "cve": [
+     "CVE-2026-91777"
+    ],
+    "severity": "HIGH",
+    "summary": "jackson-databind quadratic forward-reference completion "
+   },
+   {
+    "id": "GHSA-gx83-3vf8-gh7j",
+    "cve": [
+     "CVE-2026-83557"
+    ],
+    "severity": "MODERATE",
+    "summary": "jackson-databind: Comparable missing from DefaultBaseTypeLimitingValidator's unsafe base types (inco"
+   },
+   {
+    "id": "GHSA-hgj6-7826-r7m5",
+    "cve": [
+     "CVE-2026-54514"
+    ],
+    "severity": "MODERATE",
+    "summary": "jackson-databind: InetSocketAddress deserialization triggers eager DNS resolution (SSRF)"
+   },
+   {
+    "id": "GHSA-j3rv-43j4-c7qm",
+    "cve": [
+     "CVE-2026-54512"
+    ],
+    "severity": "HIGH",
+    "summary": "jackson-databind has a PolymorphicTypeValidator bypass via generic type parameters that allows arbit"
+   },
+   {
+    "id": "GHSA-mhm7-754m-9p8w",
+    "cve": [],
+    "severity": "MODERATE",
+    "summary": "jackson-databind: `@JsonView` bypass for creator properties with `@JsonTypeInfo(include=As.EXTERNAL_"
+   },
+   {
+    "id": "GHSA-q4xh-88c3-wmh7",
+    "cve": [
+     "CVE-2026-68497"
+    ],
+    "severity": "HIGH",
+    "summary": "jackson-databind: Duration XMLGregorianCalendar Unbounded Number Parse DoS"
+   },
+   {
+    "id": "GHSA-rcqc-6cw3-h962",
+    "cve": [
+     "CVE-2026-54518"
+    ],
+    "severity": "MODERATE",
+    "summary": "jackson-databind has a @JsonView bypass for unwrapped creator parameters"
+   },
+   {
+    "id": "GHSA-rmj7-2vxq-3g9f",
+    "cve": [
+     "CVE-2026-54513"
+    ],
+    "severity": "HIGH",
+    "summary": "jackson-databind has an array subtype allowlist bypass in BasicPolymorphicTypeValidator (allowIfSubT"
+   },
+   {
+    "id": "GHSA-vvgp-rfg2-7rr6",
+    "cve": [
+     "CVE-2026-77310"
+    ],
+    "severity": "MODERATE",
+    "summary": "jackson-databind: Incomplete fix for CVE-2026-54514: eager DNS resolution (SSRF) still present in In"
+   },
+   {
+    "id": "GHSA-wjgm-6hv5-3cvf",
+    "cve": [
+     "CVE-2026-19032"
+    ],
+    "severity": "MODERATE",
+    "summary": "jackson-databind: Path Deserialization Missing Scheme Allowlist for FileSystemProvider Resolution"
+   },
+   {
+    "id": "GHSA-wv8q-qhhj-9h54",
+    "cve": [
+     "CVE-2026-91776"
+    ],
+    "severity": "HIGH",
+    "summary": "jackson-databind retains every unknown raw type ID "
+   }
+  ],
+  "pkg:maven/com.google.guava/guava@33.4.8-jre": [
+   {
+    "id": "GHSA-xxph-c9ww-hj94",
+    "cve": [
+     "CVE-2026-102554"
+    ],
+    "severity": "HIGH",
+    "summary": "Google Guava: CompactHashMap/CompactHashSet/MapMakerInternalMap deserialization triggers uncontrolle"
+   }
+  ],
+  "pkg:maven/com.rabbitmq/amqp-client@5.25.0": [
+   {
+    "id": "GHSA-5m9f-rphj-c435",
+    "cve": [
+     "CVE-2026-63336"
+    ],
+    "severity": "MODERATE",
+    "summary": "RabbitMQ Java client: TrustEverythingTrustManager used by default in useSslProtocol() enables MITM"
+   },
+   {
+    "id": "GHSA-5xwg-cfvj-gff5",
+    "cve": [
+     "CVE-2026-61634"
+    ],
+    "severity": "LOW",
+    "summary": "RabbitMQ Java client accepts broker frames larger than the negotiated AMQP frame_max"
+   },
+   {
+    "id": "GHSA-68mj-5wr7-6fgg",
+    "cve": [
+     "CVE-2026-69219"
+    ],
+    "severity": "HIGH",
+    "summary": "RabbitMQ Java client ValueReader: Oversized LongString/bytes length triggers OOM via unchecked alloc"
+   },
+   {
+    "id": "GHSA-6g32-pxv4-2wfj",
+    "cve": [
+     "CVE-2026-63337"
+    ],
+    "severity": "HIGH",
+    "summary": "RabbitMQ Java client: Unvalidated Class.forName in JSON-RPC ProcedureDescription enables arbitrary c"
+   },
+   {
+    "id": "GHSA-7822-rcf6-97fx",
+    "cve": [
+     "CVE-2026-106122"
+    ],
+    "severity": "MODERATE",
+    "summary": "RabbitMQ: Malformed UTF-8 in shortstr properties permanently disables RPC consumers"
+   },
+   {
+    "id": "GHSA-93j5-89vc-pph4",
+    "cve": [
+     "CVE-2026-69220"
+    ],
+    "severity": "HIGH",
+    "summary": "RabbitMQ Java client ValueReader: Unbounded recursive table/array nesting causes StackOverflowError "
+   },
+   {
+    "id": "GHSA-cqgh-8p3p-mx4m",
+    "cve": [
+     "CVE-2026-106121"
+    ],
+    "severity": "MODERATE",
+    "summary": "RabbitMQ: JSONReader in the default JSON-RPC mapper never terminates on truncated input, causing DoS"
+   },
+   {
+    "id": "GHSA-h6w7-qmcm-q6xr",
+    "cve": [
+     "CVE-2026-106123"
+    ],
+    "severity": "MODERATE",
+    "summary": "RabbitMQ Java client: plaintext broker credentials leaked in exception message from ConnectionFactor"
+   },
+   {
+    "id": "GHSA-jh4v-gfqj-7rhx",
+    "cve": [
+     "CVE-2026-75516"
+    ],
+    "severity": "HIGH",
+    "summary": "RabbitMQ Java client has frame-level OOM: Math.min(maxInboundMessageBodySize, 0) defeats frame size "
+   },
+   {
+    "id": "GHSA-qx7j-jv8m-fppr",
+    "cve": [
+     "CVE-2026-63335"
+    ],
+    "severity": "MODERATE",
+    "summary": "RabbitMQ Java client malformed body frame triggers raw command assembler exception"
+   }
+  ],
+  "pkg:maven/dom4j/dom4j@1.6.1": [
+   {
+    "id": "GHSA-6pcc-3rfx-4gpm",
+    "cve": [
+     "CVE-2018-1000632"
+    ],
+    "severity": "HIGH",
+    "summary": "Dom4j contains a XML Injection vulnerability"
+   },
+   {
+    "id": "GHSA-hwj3-m3p6-hj38",
+    "cve": [
+     "CVE-2020-10683"
+    ],
+    "severity": "CRITICAL",
+    "summary": "dom4j allows External Entities by default which might enable XXE attacks"
+   }
+  ],
+  "pkg:maven/io.netty/netty-codec@4.1.132.Final": [
+   {
+    "id": "GHSA-558v-64gr-wgg4",
+    "cve": [
+     "CVE-2026-59901"
+    ],
+    "severity": "HIGH",
+    "summary": "Netty: [Bzip2Decoder] Infinite Loop in RLE State Machine Leads to Event-Loop Thread Hang"
+   },
+   {
+    "id": "GHSA-mj4r-2hfc-f8p6",
+    "cve": [
+     "CVE-2026-42583"
+    ],
+    "severity": "HIGH",
+    "summary": "Netty Lz4FrameDecoder is vulnerable to resource exhaustion "
+   }
+  ],
+  "pkg:maven/io.netty/netty-handler@4.1.132.Final": [
+   {
+    "id": "GHSA-3qp7-7mw8-wx86",
+    "cve": [
+     "CVE-2026-44249"
+    ],
+    "severity": "HIGH",
+    "summary": "Netty has an IPv6 Subnet Filter Bypass via Incorrect Comparator Masking"
+   },
+   {
+    "id": "GHSA-c4c3-7fpv-j4q5",
+    "cve": [
+     "CVE-2026-75595"
+    ],
+    "severity": "CRITICAL",
+    "summary": "Netty: SNI Routing Bypass via Fragmented TLS ClientHello Causing Fallback to Default SslContext"
+   },
+   {
+    "id": "GHSA-c653-97m9-rcg9",
+    "cve": [
+     "CVE-2026-50010"
+    ],
+    "severity": "HIGH",
+    "summary": "Netty: Wrapping plain trust manager silently disables hostname verification"
+   },
+   {
+    "id": "GHSA-fccg-mwvh-qqg4",
+    "cve": [
+     "CVE-2026-75596"
+    ],
+    "severity": "MODERATE",
+    "summary": "Netty: Fragmented ClientHello records trigger quadratic pre-handshake reassembly in default SNI pars"
+   },
+   {
+    "id": "GHSA-x4gw-5cx5-pgmh",
+    "cve": [
+     "CVE-2026-45416"
+    ],
+    "severity": "HIGH",
+    "summary": "Netty: SNI handler pre-allocates up to 16 MiB from nine attacker bytes"
+   }
+  ],
+  "pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@10.1.54": [
+   {
+    "id": "GHSA-5m62-pw8w-7w9f",
+    "cve": [
+     "CVE-2026-43515"
+    ],
+    "severity": "CRITICAL",
+    "summary": "Apache Tomcat - Security constraints not correctly applied"
+   },
+   {
+    "id": "GHSA-5mp6-jrq3-r938",
+    "cve": [
+     "CVE-2026-43513"
+    ],
+    "severity": "HIGH",
+    "summary": "Apache Tomcat: LockOutRealm treats user names as case-sensitive"
+   },
+   {
+    "id": "GHSA-5v3h-fjv2-54fg",
+    "cve": [
+     "CVE-2026-55956"
+    ],
+    "severity": "MODERATE",
+    "summary": "Apache Tomcat has an Improper Authorization vulnerability"
+   },
+   {
+    "id": "GHSA-9m89-8frq-c98c",
+    "cve": [
+     "CVE-2026-43514"
+    ],
+    "severity": "LOW",
+    "summary": "Apache Tomcat - AJP secret compared in non-constant time"
+   },
+   {
+    "id": "GHSA-9xv2-5v5q-p794",
+    "cve": [
+     "CVE-2026-65905"
+    ],
+    "severity": "CRITICAL",
+    "summary": "Apache Tomcat's DIGEST authenticator has an Authentication Bypass by Capture-replay vulnerability"
+   },
+   {
+    "id": "GHSA-f525-44xv-f2qj",
+    "cve": [
+     "CVE-2026-65637"
+    ],
+    "severity": "CRITICAL",
+    "summary": "Apache Tomcat - HTTP/2 no-authority bypass of strict SNI validation"
+   },
+   {
+    "id": "GHSA-fv25-8xcx-gqjc",
+    "cve": [
+     "CVE-2026-42498"
+    ],
+    "severity": "HIGH",
+    "summary": "Apache Tomcat - WebSocket authentication header exposure"
+   },
+   {
+    "id": "GHSA-gcx9-497g-6cp6",
+    "cve": [
+     "CVE-2026-65182"
+    ],
+    "severity": "CRITICAL",
+    "summary": "Apache Tomcat has an Improper Access Control, Incorrect Authorization vulnerability"
+   },
+   {
+    "id": "GHSA-gx5v-xp9w-j4cg",
+    "cve": [
+     "CVE-2026-41284"
+    ],
+    "severity": "HIGH",
+    "summary": "Apache Tomcat: Unbounded read in WebDAV LOCK and  PROPFIND handling"
+   },
+   {
+    "id": "GHSA-h3x4-894j-xpx5",
+    "cve": [
+     "CVE-2026-68525"
+    ],
+    "severity": "CRITICAL",
+    "summary": "Apache Tomcat's FORM authentication process has an Incorrect Authorization vulnerability"
+   },
+   {
+    "id": "GHSA-h6fc-48rj-7qqh",
+    "cve": [
+     "CVE-2026-43512"
+    ],
+    "severity": "CRITICAL",
+    "summary": "Apache Tomcat - Digest authenticator will authenticate any unknown user"
+   },
+   {
+    "id": "GHSA-h792-v28v-ppgr",
+    "cve": [
+     "CVE-2026-53404"
+    ],
+    "severity": "HIGH",
+    "summary": "Apache Tomcat's rewrite valve has an Always-Incorrect Control Flow Implementation vulnerability"
+   },
+   {
+    "id": "GHSA-mqg3-r7h5-24x4",
+    "cve": [
+     "CVE-2026-55276"
+    ],
+    "severity": "CRITICAL",
+    "summary": "Apache Tomcat has an Always-Incorrect Control Flow Implementation vulnerability"
+   },
+   {
+    "id": "GHSA-r29c-68gh-xp6x",
+    "cve": [
+     "CVE-2026-41293"
+    ],
+    "severity": "CRITICAL",
+    "summary": "Apache Tomcat - HTTP/2 request headers not validated"
+   }
+  ],
+  "pkg:maven/org.bouncycastle/bcprov-jdk18on@1.84": [
+   {
+    "id": "GHSA-9pwp-9qqc-pr26",
+    "cve": [
+     "CVE-2026-8763"
+    ],
+    "severity": "CRITICAL",
+    "summary": "Bouncy Castle: Name Constraints bypass via trailing dot in rfc822Name and URI"
+   },
+   {
+    "id": "GHSA-qp49-qgx5-5m26",
+    "cve": [
+     "CVE-2026-13506"
+    ],
+    "severity": "HIGH",
+    "summary": "Bouncy Castle: Lazy ASN.1 sequence forcing resets nesting-depth guard"
+   }
+  ],
+  "pkg:maven/org.springframework.data/spring-data-mongodb@4.5.11": [
+   {
+    "id": "GHSA-5whc-4q84-fj73",
+    "cve": [
+     "CVE-2026-41717"
+    ],
+    "severity": "HIGH",
+    "summary": "Spring Data MongoDB is vulnerable to SpEL (Spring Expression Language) expression injection"
+   },
+   {
+    "id": "GHSA-hc43-m36c-8v33",
+    "cve": [
+     "CVE-2026-41696"
+    ],
+    "severity": "MODERATE",
+    "summary": "Spring Data MongoDB Has Regex Parameter Binding Injection in @Query Repository Methods"
+   }
+  ],
+  "pkg:maven/org.springframework.security/spring-security-web@6.5.10": [
+   {
+    "id": "GHSA-293q-567p-wmwq",
+    "cve": [
+     "CVE-2026-47838"
+    ],
+    "severity": "MODERATE",
+    "summary": "Spring Security Vulnerable to Unauthorized User Impersonation when Using X.509 Client Certificates"
+   },
+   {
+    "id": "GHSA-x2r2-rvhq-2mqv",
+    "cve": [
+     "CVE-2026-41706"
+    ],
+    "severity": "MODERATE",
+    "summary": "Spring Security: Open Redirect via Unvalidated Post-Login Redirect URL Stored in CookieRequestCache"
+   }
+  ],
+  "pkg:maven/org.springframework/spring-core@6.2.18": [
+   {
+    "id": "GHSA-659m-px2c-25wj",
+    "cve": [
+     "CVE-2026-41848"
+    ],
+    "severity": "LOW",
+    "summary": "Spring Framework Denial of Service via AntPathMatcher"
+   }
+  ],
+  "pkg:maven/org.springframework/spring-web@6.2.18": [
+   {
+    "id": "GHSA-7m2p-62gw-p8qq",
+    "cve": [
+     "CVE-2026-41854"
+    ],
+    "severity": "MODERATE",
+    "summary": "Spring Framework Server-Side Request Forgery via UriComponentsBuilder"
+   }
+  ],
+  "pkg:maven/org.springframework/spring-webmvc@6.2.18": [
+   {
+    "id": "GHSA-3chg-m5w7-qfv5",
+    "cve": [
+     "CVE-2026-41845"
+    ],
+    "severity": "HIGH",
+    "summary": "Spring Framework Cross-site Scripting via JavaScriptUtils"
+   },
+   {
+    "id": "GHSA-72pg-x5f8-j25j",
+    "cve": [
+     "CVE-2026-41843"
+    ],
+    "severity": "MODERATE",
+    "summary": "Spring Framework Path Traversal via Versioned Static Resources in Spring MVC and WebFlux"
+   },
+   {
+    "id": "GHSA-957g-f97v-vppc",
+    "cve": [
+     "CVE-2026-41846"
+    ],
+    "severity": "MODERATE",
+    "summary": "Spring Framework Cross-site Scripting via JSP Form Tags"
+   },
+   {
+    "id": "GHSA-cjpg-rgq5-fr37",
+    "cve": [
+     "CVE-2026-41853"
+    ],
+    "severity": "MODERATE",
+    "summary": "Spring Framework Multipart Request Smuggling in Spring MVC and WebFlux"
+   },
+   {
+    "id": "GHSA-h3qp-gqrc-q736",
+    "cve": [
+     "CVE-2026-41844"
+    ],
+    "severity": "MODERATE",
+    "summary": "Spring Framework Open Redirect in Spring MVC and WebFlux"
+   },
+   {
+    "id": "GHSA-j9f9-w8pj-32f8",
+    "cve": [
+     "CVE-2026-47890"
+    ],
+    "severity": "CRITICAL",
+    "summary": "Spring Framework Server Sent Event stream corruption while rendering fragments"
+   },
+   {
+    "id": "GHSA-mq64-j8f9-9gcj",
+    "cve": [
+     "CVE-2026-41841"
+    ],
+    "severity": "MODERATE",
+    "summary": "Spring Framework Information Disclosure via Static Resource Cache in Spring MVC and WebFlux"
+   },
+   {
+    "id": "GHSA-pc63-qcmh-9cmg",
+    "cve": [
+     "CVE-2026-47884"
+    ],
+    "severity": "CRITICAL",
+    "summary": "Spring Framework Improper Path Limitation in XsltView"
+   },
+   {
+    "id": "GHSA-x23c-287f-qqv5",
+    "cve": [
+     "CVE-2026-41842"
+    ],
+    "severity": "HIGH",
+    "summary": "Spring Framework Denial of Service via Versioned Resources in Spring MVC and WebFlux"
+   }
+  ],
+  "pkg:maven/org.xerial.snappy/snappy-java@1.1.10.7": [
+   {
+    "id": "GHSA-gwq9-9ffj-mvrv",
+    "cve": [
+     "CVE-2026-93451"
+    ],
+    "severity": "HIGH",
+    "summary": "snappy-java: Heap buffer overflow in Snappy.uncompress*Array typed-array methods"
+   },
+   {
+    "id": "GHSA-q233-g92q-qxp6",
+    "cve": [
+     "CVE-2026-108106"
+    ],
+    "severity": "HIGH",
+    "summary": "snappy-java: Unbounded memory allocation from attacker-declared uncompressed lengtha"
+   },
+   {
+    "id": "GHSA-xqrx-qh46-34m7",
+    "cve": [
+     "CVE-2026-116590"
+    ],
+    "severity": "MODERATE",
+    "summary": "snappy-java: JVM crash from unchecked ranges in Snappy.arrayCopy and SnappyOutputStream.rawWrite"
+   }
+  ]
+ },
+ "fixture_aliases": {
+  "pkg:maven/dom4j/dom4j@1.6.1": [
+   "LAB-KEV-0001"
+  ]
+ },
+ "npm_audit_counts": {
+  "mall-admin-web": {
+   "info": 0,
+   "low": 1,
+   "moderate": 8,
+   "high": 26,
+   "critical": 1,
+   "total": 36
+  },
+  "express": {
+   "info": 0,
+   "low": 9,
+   "moderate": 30,
+   "high": 8,
+   "critical": 3,
+   "total": 50
+  }
+ }
+}

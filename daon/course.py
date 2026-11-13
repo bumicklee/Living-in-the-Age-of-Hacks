@@ -19,9 +19,8 @@ from daon.config import DATA, ROOT
 
 COURSE = ROOT / "course"
 BASE = COURSE / "base"
-# 수업 정답은 저장소 밖에 둔다(2026-11-07 작성자 결정: 정답은 공개 저장소에 올리지 않는다).
-# 기본 위치는 저장소 옆 폴더 ../daon-market-solutions, DAON_SOLUTIONS로 바꿀 수 있다.
-SOLUTIONS = Path(os.environ.get("DAON_SOLUTIONS", ROOT.parent / "daon-market-solutions")).resolve()
+# 수업 정답은 저장소 안 solutions/에 둔다. 시험용으로 다른 폴더를 쓰려면 DAON_SOLUTIONS로 바꾼다.
+SOLUTIONS = Path(os.environ.get("DAON_SOLUTIONS", ROOT / "solutions")).resolve()
 CARDS = ROOT / "lessons"
 PROGRESS = DATA / "progress.json"
 SKIP = {"__pycache__", ".DS_Store"}

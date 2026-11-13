@@ -14,6 +14,8 @@ import com.macro.mall.portal.dao.PortalOrderItemDao;
 import com.macro.mall.portal.dao.SmsCouponHistoryDao;
 import com.macro.mall.portal.domain.*;
 import com.macro.mall.portal.service.*;
+import com.macro.mall.security.event.SecurityEventLogger;
+import com.macro.mall.security.securekit.SecureKitSwitch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -394,8 +396,8 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
 
     @Override
     public OmsOrderDetail detail(Long orderId) {
-        // ✏️ 2-2: 이 주문이 로그인한 회원의 것인지 조회 조건에서 확인한다(다온마켓 교육용 표시)
-        OmsOrder omsOrder = orderMapper.selectByPrimaryKey(orderId);
+        // [랩 스위치] secure-kit.ownership.enabled(기본 켜짐). 영상에서 make switch K=ownership V=off로 끄면 고치기 전처럼 번호만으로 읽는다
+        OmsOrder omsOrder = SecureKitSwitch.on("ownership") ? findOwnOrder(orderId) : orderMapper.selectByPrimaryKey(orderId);
         OmsOrderItemExample example = new OmsOrderItemExample();
         example.createCriteria().andOrderIdEqualTo(orderId);
         List<OmsOrderItem> orderItemList = orderItemMapper.selectByExample(example);
@@ -403,6 +405,24 @@ public class OmsPortalOrderServiceImpl implements OmsPortalOrderService {
         BeanUtil.copyProperties(omsOrder,orderDetail);
         orderDetail.setOrderItemList(orderItemList);
         return orderDetail;
+    }
+
+    // 다온마켓 2-2: 소유권은 조회 조건에 넣는다. 남의 주문과 없는 주문은 같은 답을 받는다
+    private OmsOrder findOwnOrder(Long orderId) {
+        UmsMember member = memberService.getCurrentMember();
+        OmsOrderExample orderExample = new OmsOrderExample();
+        orderExample.createCriteria().andIdEqualTo(orderId).andMemberIdEqualTo(member.getId()).andDeleteStatusEqualTo(0);
+        List<OmsOrder> orders = orderMapper.selectByExample(orderExample);
+        if (CollUtil.isEmpty(orders)) {
+            // 다온마켓 2-2 ⑤ 탐지: 거부를 보안 이벤트로 남긴다(주문 번호만, 개인정보는 넣지 않는다)
+            SecurityEventLogger.denied("access.denied.not_owner", "2-2")
+                    .actor("member:" + member.getId())
+                    .target("order:" + orderId)
+                    .reason("본인 주문이 아니거나 없는 주문")
+                    .log();
+            Asserts.fail("주문을 찾을 수 없습니다");
+        }
+        return orders.get(0);
     }
 
     @Override

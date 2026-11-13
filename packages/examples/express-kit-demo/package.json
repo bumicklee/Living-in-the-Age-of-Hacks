@@ -1,0 +1,19 @@
+{
+  "name": "express-kit-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "secure-kit 부품 24개를 전부 끼운 작은 Express 예제(계약 시험 test_parts.py 대상)",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@secure-kit/express": "file:../../secure-kit-express",
+    "express": "4.21.2"
+  }
+}

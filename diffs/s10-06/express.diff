@@ -1,0 +1,69 @@
+# 10-6 Express(EverShop)에서 고칠 곳: 결제 시작에 흐름 단위 한도(카드 테스팅, T27)
+# - 새 lib/daon/checkoutLimit.ts: 계정 5회/10분·IP 20회/10분(메모리 카운터, 인스턴스 하나 기준). 여러 대면 Redis로(【실측 예정】).
+#   넘으면 429 + checkout.denied.rate_limit. 카드 지문 축은 Stripe의 card fingerprint로 웹훅에서 센다(그림).
+# - 적용: s10-04 diff 다음. cd express && git apply ../diffs/s10-06/express.diff
+
+diff --git a/packages/evershop/src/lib/daon/checkoutLimit.ts b/packages/evershop/src/lib/daon/checkoutLimit.ts
+new file mode 100644
+--- /dev/null
++++ b/packages/evershop/src/lib/daon/checkoutLimit.ts
+@@ -0,0 +1,37 @@
++/**
++ * 다온마켓 10-6(T27) Express: 결제 시도를 흐름 단위로 센다. Spring DaonCheckoutLimiter와 같은 랩 값.
++ * 메모리 카운터라 앱이 여러 대면 맞지 않는다(그때는 4-3처럼 Redis). 넘으면 checkout.denied.rate_limit.
++ */
++import type { Request } from 'express';
++import { securityEvent } from '../log/securityEvent.js';
++
++const WINDOW_MS = 10 * 60 * 1000;
++const LIMITS = { account: 5, ip: 20 };
++const hits = new Map<string, number[]>();
++
++function bump(key: string): number {
++  const now = Date.now();
++  const list = (hits.get(key) || []).filter((t) => now - t <= WINDOW_MS);
++  list.push(now);
++  hits.set(key, list);
++  return list.length;
++}
++
++/** 통과면 true. 한도를 넘었으면 이벤트를 남기고 false */
++export function checkoutLimit(request: Request, actor: string): boolean {
++  const axes: [string, string, number][] = [
++    ['계정', `acct:${actor}`, LIMITS.account],
++    ['IP', `ip:${request.ip}`, LIMITS.ip]
++  ];
++  for (const [name, key, limit] of axes) {
++    if (bump(key) > limit) {
++      securityEvent.denied('checkout.denied.rate_limit', '10-6', request, {
++        actor,
++        target: 'route:createPaymentIntent',
++        reason: `${name} 축 결제 시도 한도`
++      });
++      return false;
++    }
++  }
++  return true;
++}
+diff --git a/packages/evershop/src/modules/stripe/api/createPaymentIntent/createPaymentIntent.ts b/packages/evershop/src/modules/stripe/api/createPaymentIntent/createPaymentIntent.ts
+--- a/packages/evershop/src/modules/stripe/api/createPaymentIntent/createPaymentIntent.ts
++++ b/packages/evershop/src/modules/stripe/api/createPaymentIntent/createPaymentIntent.ts
+@@ -1,4 +1,5 @@
+ import { select } from '@evershop/postgres-query-builder';
++import { checkoutLimit } from '../../../../lib/daon/checkoutLimit.js';
+ import { securityEvent } from '../../../../lib/log/securityEvent.js';
+ import Stripe from 'stripe';
+ import { error } from '../../../../lib/log/logger.js';
+@@ -24,6 +25,12 @@
+     // 다온마켓 10-4(E26): 주문은 본인 것이어야 한다. 로그인한 고객이면 customer_id, 손님 주문이면 장바구니 세션의 주문만
+     const customer = (request as any).locals?.customer || (request as any).getCurrentCustomer?.();
+     const idemKey = String(request.get('Idempotency-Key') || '').slice(0, 80);
++    // 다온마켓 10-6: 결제사를 부르기 전에 계정·IP 축 한도(Spring DaonCheckoutLimiter와 같은 값)
++    if (!checkoutLimit(request, customer ? `customer:${customer.uuid}` : 'anonymous')) {
++      response.status(429);
++      response.json({ error: { status: 429, message: 'Too many attempts. Please try again later.' } });
++      return;
++    }
+ 
+     // The charge amount MUST come from the order, never from a client-supplied
+     // cart. The order is the frozen, server-owned record of what is owed; a

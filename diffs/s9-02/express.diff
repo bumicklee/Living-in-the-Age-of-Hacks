@@ -1,0 +1,93 @@
+# 9-2 Express(EverShop)에서 고칠 곳: 오류 응답 상태 코드 정리와 본인 확인 fail-closed(T22, F46과 같은 곳)
+# - API 오류 처리기(apiErrorHandler.ts): 상태 코드는 「요청이 잘못됨(4xx, 오류 객체가 들고 온 값)」과 「서버가 실패함(500)」 둘만.
+#   응답 헤더 X-Trace-Id, 500이면 OPS 줄 error.unhandled(Spring과 같은 키). 응답에는 예외 이름·문구 없음(6-5).
+# - 새 lib/daon/verifySmsCode.ts: 같은 가짜 문자 스텁(/v1/verify/check)을 부르고, 확인할 수 없으면 통과가 아니라 DependencyUnavailable(→ 503).
+#   시간 제한 2초(AbortSignal.timeout), auth.fail_closed.dependency_error.
+# - EverShop은 장바구니 가격을 상품 표에서 다시 읽으므로 F46 같은 NPE는 없다(좋은 예, 【실측 예정】).
+# - 적용 순서: 깨끗한 EverShop + diffs/common 두 개 + s2-03 … s8-06(적용되는 것) 다음. s6-05의 apiErrorHandler.ts 변경 위에 얹는다.
+#   cd express && git apply ../diffs/s9-02/express.diff   (이 랩은 Express를 실행하지 않는다. git apply --check로만 확인)
+
+diff --git a/packages/evershop/src/lib/daon/verifySmsCode.ts b/packages/evershop/src/lib/daon/verifySmsCode.ts
+new file mode 100644
+index 0000000..fd95457
+--- /dev/null
++++ b/packages/evershop/src/lib/daon/verifySmsCode.ts
+@@ -0,0 +1,40 @@
++/**
++ * 다온마켓 9-2(T22) Express: 고위험 작업 앞 문자 본인 확인. Spring DaonStepUpClient와 같은 가짜 문자 스텁(/v1/verify/check)을 부른다.
++ *
++ * fail-closed: 확인할 수 없으면(사업자 오류·시간 초과·연결 실패) 통과가 아니라 DependencyUnavailable을 던진다.
++ * 부르는 쪽은 503 「잠시 뒤 다시 시도해 주세요」로 답하고, 번호가 틀렸을 때(400)와 섞지 않는다.
++ *
++ *   try { ok = await verifySmsCode(phone, code, request); } catch (e) { if (e instanceof DependencyUnavailable) → 503 }
++ */
++import type { Request } from 'express';
++import { securityEvent } from '../log/securityEvent.js';
++
++const SMS_URL = process.env.DAON_SMS_URL || 'http://sms-stub:8000';
++const TIMEOUT_MS = 2000;            // 시간 제한을 코드에 적는다(fetch 기본값은 제한이 없다)
++
++export class DependencyUnavailable extends Error {}
++
++export async function verifySmsCode(phone: string, code: string, request?: Request): Promise<boolean> {
++  try {
++    const res = await fetch(`${SMS_URL}/v1/verify/check`, {
++      method: 'POST',
++      headers: { 'Content-Type': 'application/json' },
++      body: JSON.stringify({ to: phone, code }),
++      signal: AbortSignal.timeout(TIMEOUT_MS)
++    });
++    if (res.status !== 200) throw new DependencyUnavailable(`응답 ${res.status}`);
++    const body = await res.json();
++    if (typeof body.valid !== 'boolean') throw new DependencyUnavailable('응답 형식이 다름');
++    return body.valid;
++  } catch (e) {
++    const why = e instanceof DependencyUnavailable ? e.message
++      : (e as Error).name === 'TimeoutError' ? '시간 초과' : '연결 실패';
++    // 예전 코드: catch (e) { return true; } // 장애 때 고객 불편 줄이기  ← fail-open
++    securityEvent.denied('auth.fail_closed.dependency_error', '9-2', request, {
++      actor: (request as any)?.locals?.customer?.uuid ? `customer:${(request as any).locals.customer.uuid}` : 'anonymous',
++      target: 'dependency:sms-stub',
++      reason: `본인 확인 서버 오류로 거부(${why})`
++    });
++    throw e instanceof DependencyUnavailable ? e : new DependencyUnavailable(why);
++  }
++}
+diff --git a/packages/evershop/src/modules/base/api/global/[apiResponse]apiErrorHandler.ts b/packages/evershop/src/modules/base/api/global/[apiResponse]apiErrorHandler.ts
+index 354b555..20b3761 100644
+--- a/packages/evershop/src/modules/base/api/global/[apiResponse]apiErrorHandler.ts
++++ b/packages/evershop/src/modules/base/api/global/[apiResponse]apiErrorHandler.ts
+@@ -12,7 +12,7 @@ export default async (
+   next
+ ) => {
+   // 다온마켓 6-5(E17): 같은 번호(trace_id)를 응답과 서버 로그에 함께 남긴다. 원인은 로그에만
+-  const traceId = String(request.headers['x-trace-id'] || randomUUID());
++  const traceId = String((request as any).traceId || request.headers['x-trace-id'] || randomUUID());
+   if (isDevelopmentMode() || process.argv.includes('--debug')) {
+     error(err);
+   } else {
+@@ -22,12 +22,21 @@ export default async (
+   if (response.headersSent) {
+     // TODO: Write a log message or next(error)?.
+   } else {
++    // 다온마켓 9-2(F46과 같은 곳): 상태 코드는 「요청이 잘못됨(4xx)」과 「서버가 실패함(500)」 둘만.
++    // 오류 객체가 4xx를 들고 오면(body-parser 413 등) 그대로, 나머지는 모두 500. 장애가 다른 상태(200·401)로 둔갑하지 않게
++    const fromErr = Number(err && (err.status || err.statusCode));
+     let status = INTERNAL_SERVER_ERROR;
+-    if (!response.statusCode || response.statusCode === 200) {
+-      response.status(status);
+-    } else {
++    if (fromErr >= 400 && fromErr < 500) {
++      status = fromErr;
++    } else if (response.statusCode >= 400 && response.statusCode < 500) {
+       status = response.statusCode;
+     }
++    response.status(status);
++    response.setHeader('X-Trace-Id', traceId);
++    if (status >= 500) {
++      // 운영 이벤트(Spring의 OPS error.unhandled와 같은 키). 응답에는 예외 이름·문구를 싣지 않는다
++      console.error(`ERROR OPS ${JSON.stringify({ event: 'error.unhandled', lesson: '9-2', target: `path:${String(request.path).slice(0, 120)}`, reason: (err && err.name) || 'Error', ts: new Date().toISOString(), trace_id: traceId })}`);
++    }
+     const expose = isDevelopmentMode() || status < 500;
+     response.json({
+       error: {

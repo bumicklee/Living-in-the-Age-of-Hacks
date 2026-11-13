@@ -1,0 +1,137 @@
+# 다온마켓 랩 · 아키텍처 A11 「불변 백업과 복구」(수업 14-2, 14-4의 make evidence가 이어서 쓴다)
+#
+#   infra/arch.txt에 a11 줄이 있으면 daon 명령이 compose.yml(+ a02 … a10) 위에 이 파일을 함께 쓴다.
+#   14-2 시작 지점의 [회사 설정] 백업 작업(앱 계정·앱 버킷 backups/)을 이 파일로 바꾼다.
+#
+# 바뀌는 것(겹 세 개)
+#   ① 다른 저장소: 백업 전용 MinIO backup-vault(앱 MinIO와 다른 컨테이너·다른 볼륨·다른 루트 계정)
+#      버킷 daon-backup은 만들 때 객체 잠금을 켠다(나중에는 켤 수 없다). 기본 보존: 랩 COMPLIANCE 1일(회사 예시 30일 이상)
+#   ② 다른 계정: backup-writer(올리기만, policy-writer.json) · backup-restorer(읽기만, policy-restorer.json). 지우기 권한을 가진 사용자는 없다
+#      접속 정보는 backup-init이 만들어 전용 볼륨에만 둔다(writer → 백업 작업만, restorer → 복구 훈련 때만 붙인다). 앱 컨테이너에는 없다
+#   ③ 다른 망: backup 망(internal). backup-vault·backup-init·backup-audit·backup-job만. 앱(mall-admin·mall-portal)은 이 망에 없다(6-4 망 분리의 연장)
+#   ④ 탐지: backup-vault의 감사 로그(audit webhook) → backup-audit가 SECURITY 한 줄로 바꾼다(backup.denied.delete · backup.missed)
+#   ⑤ 옛 백업 정리: backup-init이 앱 버킷 backups/의 옛 덤프를 잠금 버킷 legacy/로 옮긴 뒤 앱 버킷에서 지운다(앱 계정이 닿는 사본을 남기지 않는다)
+#
+# 한계(수업에서 말한다)
+#   - PC 한 대라 「떨어진 곳」(3-2-1의 1)을 다른 컨테이너·다른 망으로 흉내 낸다. 디스크가 같으므로 진짜 오프사이트 사본이 아니다.
+#   - 백업 계정 접속 정보는 OpenBao가 아니라 전용 도커 볼륨에 둔다(백업이 금고 장애와 함께 멈추지 않게, 문제 목록 참고).
+#   - 콘솔(9001)은 PC에 열지 않는다(backup 망은 internal이라 포트를 열 수 없다). 상태는 make backup-status로 본다.
+# 메모리: +128MB(backup-vault) +32MB(backup-audit). backup-init은 끝나면 내려간다. 백업 작업은 그대로 128MB.
+
+x-backup-image: &backup-image
+  build:
+    context: ./backup
+    dockerfile: Dockerfile
+  image: daon/backup:dev
+
+services:
+  backup-vault:
+    profiles: [spring]
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${DAON_BACKUP_VAULT_ROOT_USER:-daon-vault-root}                       # 루트는 backup-init만 쓴다(앱·작업에는 주지 않는다)
+      MINIO_ROOT_PASSWORD: ${DAON_BACKUP_VAULT_ROOT_PASSWORD:-lab-fake-vault-root-0001}      # 랩 전용 가짜 값
+      MINIO_AUDIT_WEBHOOK_ENABLE_daon: "on"                                                  # 모든 API 호출을 backup-audit로(지우기 시도 탐지)
+      MINIO_AUDIT_WEBHOOK_ENDPOINT_daon: http://backup-audit:8000/minio-audit
+    volumes: [backup-vault-data:/data]
+    depends_on:
+      backup-audit: { condition: service_healthy }
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [backup]
+
+  backup-audit:
+    # MinIO 감사 로그 → SECURITY 한 줄(앱이 아니라서 SecurityEventLogger를 쓰지 못한다). 수집기(A5)가 이 컨테이너 로그를 읽는다
+    profiles: [spring]
+    image: python:3.14.10-slim-trixie
+    command: ["python", "-u", "/app/audit.py"]
+    user: "65534:65534"
+    read_only: true
+    environment:
+      DAON_BACKUP_MAX_AGE_SECONDS: ${DAON_BACKUP_MAX_AGE_SECONDS:-900}                       # 마지막 백업이 이보다 오래되면 backup.missed(랩 15분, 회사 예시 26시간)
+      TZ: Asia/Seoul
+    volumes: ["./backup:/app:ro"]
+    mem_limit: 32m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [backup]
+
+  backup-init:
+    # 한 번 돌고 끝남(멱등): 잠금 버킷·보존·수명 주기 규칙·정책 둘·계정 둘, 백업 전용 DB 계정, 옛 [회사 설정] 백업 옮기기
+    profiles: [spring]
+    <<: *backup-image
+    user: "0:0"                                                                              # 새 볼륨에 쓰고 백업 작업 사용자(mysql)에게 넘기려고
+    entrypoint: ["/bin/bash", "/backup/backup-init.sh"]
+    environment:
+      VAULT_ROOT_USER: ${DAON_BACKUP_VAULT_ROOT_USER:-daon-vault-root}
+      VAULT_ROOT_PASSWORD: ${DAON_BACKUP_VAULT_ROOT_PASSWORD:-lab-fake-vault-root-0001}
+      DAON_BACKUP_LOCK_MODE: ${DAON_BACKUP_LOCK_MODE:-COMPLIANCE}                            # COMPLIANCE: 보존 기간 안에는 루트도 못 지운다(작성자 검토 포인트)
+      DAON_BACKUP_RETENTION: ${DAON_BACKUP_RETENTION:-1d}                                    # 랩 1일(예시). 회사 예시 30일 이상
+      DAON_BACKUP_EXPIRE_DAYS: ${DAON_BACKUP_EXPIRE_DAYS:-2}                                 # 보존이 끝난 뒤 수명 주기 규칙이 정리(사람·앱이 지우지 않는다)
+      APP_MINIO_ROOT_USER: ${DAON_MINIO_ROOT_USER:?infra/.env에 DAON_MINIO_ROOT_USER가 없습니다(.env.example 참고)}           # 옛 백업 정리용(앱 MinIO 관리자)
+      APP_MINIO_ROOT_PASSWORD: ${DAON_MINIO_ROOT_PASSWORD:?infra/.env에 DAON_MINIO_ROOT_PASSWORD가 없습니다(.env.example 참고)}
+      MYSQL_ROOT_PASSWORD_FOR_INIT: root                                                     # [원본 기본값] 백업 전용 DB 계정을 만들 때만
+      MC_CONFIG_DIR: /tmp/.mc
+    volumes:
+      - ./backup:/backup:ro
+      - backup-writer-creds:/creds/writer
+      - backup-restorer-creds:/creds/restorer
+      - backup-db-creds:/creds/db
+    depends_on:
+      backup-vault: { condition: service_healthy }
+      mysql: { condition: service_healthy }
+      minio-init: { condition: service_completed_successfully }
+    restart: "no"
+    mem_limit: 128m
+    networks: [data, backup]
+
+  backup-job:
+    profiles: [spring]
+    <<: *backup-image
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        while true; do
+          bash /backup/backup.sh || echo "[14-2] 백업 실패: 종료 코드 $$? (backup-audit가 오래된 백업을 backup.missed로 알린다)"
+          sleep $${DAON_BACKUP_INTERVAL:-300}
+        done
+    environment:
+      # ✏️ 14-2: 앱 MinIO 계정(MINIO_ACCESS_KEY) 대신 backup-writer(전용 볼륨의 파일). 앱 버킷 backups/ 쓰기를 멈춘다
+      VAULT_URL: backup-vault:9000
+      WRITER_DIR: /run/backup-writer
+      DB_CREDS_DIR: /run/backup-db
+      TARGET: vault/daon-backup/mysql/
+      DAON_BACKUP_INTERVAL: ${DAON_BACKUP_INTERVAL:-300}
+      MC_CONFIG_DIR: /tmp/.mc
+      TZ: Asia/Seoul
+    volumes:
+      - ./backup:/backup:ro
+      - backup-writer-creds:/run/backup-writer:ro
+      - backup-db-creds:/run/backup-db:ro
+    depends_on:
+      mysql: { condition: service_healthy }
+      backup-init: { condition: service_completed_successfully }
+    restart: unless-stopped
+    mem_limit: 128m
+    networks: [data, backup]                                         # DB에 붙어 덤프하고(data), backup 망으로 올린다. 앱 MinIO 계정은 없다
+
+  mall-portal:
+    environment:
+      SERVER_TOMCAT_THREADS_MAX: "24"                                  # [랩 크기] 14-3 재연용(회사 기본 200). 14장 시작 모습과 같은 값
+
+networks:
+  backup: { internal: true }   # 앱 컨테이너(mall-admin·mall-portal·evershop)는 이 망에 없다
+
+volumes:
+  backup-vault-data: {}
+  backup-writer-creds: {}
+  backup-restorer-creds: {}
+  backup-db-creds: {}

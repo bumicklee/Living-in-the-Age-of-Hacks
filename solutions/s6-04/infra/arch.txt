@@ -1,0 +1,6 @@
+# 지금 켠 아키텍처 단계. 한 줄에 하나: a02 → infra/compose.a02.yml을 compose.yml 위에 함께 쓴다.
+# 수업이 진행되며 한 줄씩 늘어난다(2-5에서 a02, 4-3에서 a03, 5-2에서 a04). 바꾸면 다음 make check·replay·up 때 스택에 반영된다.
+a02
+a03
+a04
+a01   # 6-4: 저장소 포트를 PC에 열지 않는다(infra/compose.a01.yml)

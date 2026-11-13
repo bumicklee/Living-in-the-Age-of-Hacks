@@ -29,6 +29,13 @@ export const constantRouterMap: RouteRecordExt[] = [
         component: () => import('@/views/normal/link/index.vue'),
         meta: { title: '동영상 강의', icon: 'video' },
       },
+      {
+        // [교육용 추가] 다온마켓 상품 후기 목록(3-4·3-5). 메뉴 권한표와 상관없이 로그인한 관리자에게 보이고, 목록 API가 상품 관리 권한을 본다
+        path: 'daon-review',
+        name: 'daonReview',
+        component: () => import('@/views/pms/review/index.vue'),
+        meta: { title: '상품 후기(교육용)', icon: 'product-comment' },
+      },
       // {
       //   path: 'test',
       //   name: 'test',

@@ -1,0 +1,25 @@
+# 8-4 Express(EverShop)에서 고칠 곳: 인증 실패를 남긴다(E18, Spring의 auth.denied.token과 같은 이름)
+# - EverShop은 원래 로그인 없음을 HTTP 401로 보낸다(좋은 예. Spring은 HTTP 200 + 본문 code 401이었다, F32).
+# - SECURITY 줄 형식(「WARN SECURITY {json}」)은 diffs/common/express-security-event.diff가 이미 Spring과 같게 맞췄다.
+#   그래서 수집기(infra/observability/alloy/config.alloy)가 evershop 컨테이너 로그도 같은 규칙으로 읽는다(compose 설정 변화 없음).
+# - 먼저 넣을 것: diffs/common/*.diff, diffs/s2-03/express.diff(같은 파일)
+# - 적용: cd express && git apply ../diffs/s8-04/express.diff
+
+diff --git a/packages/evershop/src/modules/auth/api/global/[getCurrentUser]auth.ts b/packages/evershop/src/modules/auth/api/global/[getCurrentUser]auth.ts
+index 6bcd75c..5fa65e4 100644
+--- a/packages/evershop/src/modules/auth/api/global/[getCurrentUser]auth.ts
++++ b/packages/evershop/src/modules/auth/api/global/[getCurrentUser]auth.ts
+@@ -22,6 +22,13 @@ export default async (request: EvershopRequest, response, next) => {
+   }
+ 
+   if (!currentAdminUser?.uuid) {
++    // 다온마켓 8-4(E18): 운영 모드에서도 인증 실패를 남긴다. Spring과 같은 이름 auth.denied.token, 토큰 값은 넣지 않는다.
++    // EverShop은 원래 401 상태 코드를 쓴다(좋은 예, 점검표 F32의 Spring과 다름)
++    securityEvent.denied('auth.denied.token', '8-4', request, {
++      actor: 'anonymous',
++      target: `route:${currentRoute?.id ?? 'unknown'}`,
++      reason: request.get('authorization') ? '토큰 만료·서명 불일치' : '토큰 없음'
++    });
+     // Response with 401 status code
+     response.status(UNAUTHORIZED);
+     response.json({

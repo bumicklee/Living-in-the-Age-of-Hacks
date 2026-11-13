@@ -1,0 +1,33 @@
+# 다온마켓 A5 · 알림(수업 8-4): 경보가 랩 도구 Mailpit(http://127.0.0.1:8025)의 가짜 받은 편지함으로 온다.
+# 메일 제목 「[다온 경보] <이벤트> <누가>」. 본문에는 찾아볼 질의를 넣고, 개인정보는 넣지 않는다.
+# 8-7에서 등급(severity)별 길·묶기·다시 보내기 간격을 정한다(지금은 한 길).
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: daon-security-mail
+    receivers:
+      - uid: daon-security-mail
+        type: email
+        disableResolveMessage: true
+        settings:
+          addresses: security@daon.example
+          singleEmail: true
+          subject: '[다온 경보] {{ .CommonLabels.alertname }} {{ or .CommonLabels.actor .CommonLabels.ip .CommonLabels.app "-" }}'
+          message: |
+            {{ range .Alerts.Firing }}
+            경보: {{ .Labels.alertname }} (수업 {{ .Labels.lesson }})
+            누가: {{ or .Labels.actor .Labels.ip .Labels.app "-" }}
+            요약: {{ .Annotations.summary }}
+            값: {{ .ValueString }}
+            찾아볼 질의(Grafana 탐색, Loki): {event="{{ .Labels.event }}"} | json{{ if .Labels.actor }} | actor="{{ .Labels.actor }}"{{ end }}
+              → 줄마다 trace_id가 있습니다. 같은 요청의 감사 로그: {stream="audit"} | json | trace_id="<그 값>"
+            {{ end }}
+            Grafana 경보 목록: http://127.0.0.1:3030/alerting/list
+            (교육용 랩 · 127.0.0.1 · 값은 가짜)
+policies:
+  - orgId: 1
+    receiver: daon-security-mail
+    group_by: ['alertname', 'actor', 'ip']
+    group_wait: 10s
+    group_interval: 1m
+    repeat_interval: 4h

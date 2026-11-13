@@ -1,0 +1,8 @@
+# 공개 내보내기 검사 허용 목록(tools/public_scan.py). 한 줄에 「경로 정규식<TAB>줄 정규식<TAB>이유」. 이유가 없으면 무시한다.
+# 실제 비밀·실제 개인정보는 여기 넣지 않는다. 고친다. 허용은 「가짜인 것을 사람이 확인한 모양」만.
+^spring/mall-admin-web/src/apis/	['"]/home/	원본 관리자 웹의 API 경로(/home/advertise 등). 사용자 홈 폴더가 아니다
+^spring/document/sql/mall\.sql$	'/home/[a-zA-Z]+/\*\*'	원본 권한표(ums_resource)의 API 경로. 사용자 홈 폴더가 아니다
+^express/.*/tests?/	.	원본 EverShop 단위·e2e 시험의 가짜 값(테스트 키·미국 예시 번호·예시 경로). 원본 저장소에 이미 공개됨
+^express/tests/e2e/\.env\.example$	/Users/	원본 EverShop 주석의 작성자 경로. 원본 저장소에 이미 공개됨(지우려면 diffs/common에 한 줄)
+^tools/kev/	.	CISA KEV 공개 자료의 숫자(전화번호 모양일 뿐)
+^express/packages/evershop/src/modules/import/services/rules/customerAddressRules\.ts$	\+1415555	원본 EverShop 설명 문자열의 미국 예시 번호(555 가짜 범위)

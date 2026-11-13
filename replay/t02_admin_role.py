@@ -34,6 +34,6 @@ def run(stack: str = "spring") -> Result:
     ev = [f"요청: {ATTACKER}({ADMINS[ATTACKER]['role']}) 토큰으로 GET {PATH}  (슈퍼 관리자용 기능)",
           f"응답: HTTP {status} code={body.get('code')} message={body.get('message')!r}"]
     if isinstance(rows, list) and rows:
-        ev.append(f"보인 정보: 회원 {len(rows)}명, 예) {rows[0].get('username')} 전화={rows[0].get('phone')}")
+        ev.append(f"보인 정보: 회원 {len(rows)}명(전화번호 값은 출력하지 않음)")
         return Result(True, f"{ATTACKER}가 슈퍼 관리자용 고객 목록을 받았다", ev)
     return Result(False, f"{ATTACKER}는 고객 목록을 받을 수 없다", ev)

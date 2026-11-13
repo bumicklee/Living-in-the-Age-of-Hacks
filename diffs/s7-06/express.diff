@@ -1,0 +1,18 @@
+# 7-6 Express(EverShop)에서 고칠 곳: 배포할 이미지를 태그가 아니라 확인한 다이제스트로(점검표 F37 Express 쪽)
+# - 확인 도구(서명·출처 증명 확인)는 두 스택이 같다. tools/deploy/deploy.sh의 확인 대상에 daon/evershop 이미지를 더하고, 통과한 다이제스트를 EVERSHOP_IMAGE 환경 변수로 넘긴다.
+# - 적용: cd express && git apply ../diffs/s7-06/express.diff
+
+diff --git a/docker-compose.yml b/docker-compose.yml
+index a7b1e10..954e0dd 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -2,7 +2,8 @@ version: '3.8'
+ 
+ services:
+   app:
+-    image: evershop/evershop:latest
++    # 7-6: 태그(:latest)가 아니라 배포 스크립트가 서명을 확인한 다이제스트 주소(…@sha256:…)로 띄운다
++    image: ${EVERSHOP_IMAGE:?deploy.sh가 확인한 이미지 주소(…@sha256:…)가 필요합니다}
+     restart: always
+     environment:
+       DB_HOST: database

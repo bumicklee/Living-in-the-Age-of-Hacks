@@ -1,0 +1,89 @@
+# 5-4 Express(EverShop)에서 고칠 곳: 관리자 고객 GraphQL의 전화번호 가리기(교재 5.4 Express)
+# - 이 EverShop의 고객 전화번호는 customer.meta_data.phone(JSON)에 있고, 관리자 Customer 타입에는 phone 필드가 없어
+#   metaData 필드로 원문이 그대로 나간다. 그래서 phone(가린 값)과 phoneRaw(원문)를 새로 두고, metaData에서는 phone 키를 뺀다.
+# - phone: 010-****-0101 꼴로 가린 값(고객 목록·상세는 이것만 쓴다). maskPhone은 modules/customer/services/maskPhone.ts(새 파일).
+# - phoneRaw: roles에 '*' 또는 'pii:reveal'이 있는 관리자만. roles가 비어 있으면 거부(2-3의 기본 거부와 같은 생각).
+#   값은 로그에 남기지 않고 관리자 id와 고객 uuid만 기록한다.
+# - 이 diff에 넣지 않은 것: 사유 입력·하루 호출 상한(Spring 쪽 pii:reveal 설계). 고객 주소의 telephone(addresses)은 그대로 둔다.
+# - 적용: cd express && git apply ../diffs/s5-04/express.diff  (확인: 관리자 GraphQL customers { items { phone phoneRaw } })
+
+diff --git a/packages/evershop/src/modules/customer/graphql/types/Customer/Customer.admin.graphql b/packages/evershop/src/modules/customer/graphql/types/Customer/Customer.admin.graphql
+index ee22a84..2f743d2 100644
+--- a/packages/evershop/src/modules/customer/graphql/types/Customer/Customer.admin.graphql
++++ b/packages/evershop/src/modules/customer/graphql/types/Customer/Customer.admin.graphql
+@@ -3,6 +3,14 @@ extend type Customer {
+   updateApi: String!
+   deleteApi: String!
+   metaData: JSON
++  """
++  다온마켓 5-4: 가린 전화번호(010-****-0101). 목록·상세는 이 값만 쓴다
++  """
++  phone: String
++  """
++  다온마켓 5-4: 전화번호 원문. pii:reveal 권한이 있는 관리자만 받는다
++  """
++  phoneRaw: String
+   updateMetafieldsApi: String!
+ }
+ 
+diff --git a/packages/evershop/src/modules/customer/graphql/types/Customer/Customer.admin.resolvers.js b/packages/evershop/src/modules/customer/graphql/types/Customer/Customer.admin.resolvers.js
+index 313b1d8..4ecab19 100644
+--- a/packages/evershop/src/modules/customer/graphql/types/Customer/Customer.admin.resolvers.js
++++ b/packages/evershop/src/modules/customer/graphql/types/Customer/Customer.admin.resolvers.js
+@@ -1,7 +1,9 @@
++import { info } from '../../../../../lib/log/logger.js';
+ import { buildUrl } from '../../../../../lib/router/buildUrl.js';
+ import { camelCase } from '../../../../../lib/util/camelCase.js';
+ import { CustomerCollection } from '../../../services/CustomerCollection.js';
+ import { getCustomersBaseQuery } from '../../../services/getCustomersBaseQuery.js';
++import { maskPhone } from '../../../services/maskPhone.js';
+ 
+ export default {
+   Query: {
+@@ -22,7 +24,25 @@ export default {
+     editUrl: ({ uuid }) => buildUrl('customerEdit', { id: uuid }),
+     updateApi: (customer) => buildUrl('updateCustomer', { id: customer.uuid }),
+     deleteApi: (customer) => buildUrl('deleteCustomer', { id: customer.uuid }),
+-    metaData: (customer) => customer.metaData ?? {},
++    // 다온마켓 5-4: 전화번호 원문이 metaData로 새지 않게 phone 키는 뺀다
++    metaData: (customer) => {
++      const { phone, ...rest } = customer.metaData ?? {};
++      return rest;
++    },
++    phone: (customer) => maskPhone(customer.metaData?.phone),
++    // 원문은 권한(pii:reveal 또는 '*')을 확인한 뒤에만 준다. roles가 비어 있으면 거부한다
++    phoneRaw: (customer, _, { user }) => {
++      const roles = (user?.roles ?? '')
++        .split(',')
++        .map((r) => r.trim())
++        .filter(Boolean);
++      if (!roles.includes('*') && !roles.includes('pii:reveal')) {
++        throw new Error('Forbidden');
++      }
++      // 값은 남기지 않고 누가 어느 고객을 봤는지만 기록한다
++      info(`pii.reveal admin:${user.admin_user_id} customer:${customer.uuid}`);
++      return customer.metaData?.phone ?? null;
++    },
+     updateMetafieldsApi: (customer) =>
+       buildUrl('updateCustomerMetafields', { id: customer.uuid })
+   }
+diff --git a/packages/evershop/src/modules/customer/services/maskPhone.ts b/packages/evershop/src/modules/customer/services/maskPhone.ts
+new file mode 100644
+index 0000000..bef6a05
+--- /dev/null
++++ b/packages/evershop/src/modules/customer/services/maskPhone.ts
+@@ -0,0 +1,14 @@
++/**
++ * 다온마켓 5-4: 전화번호 가리기. 앞 3자리·뒤 4자리만 남기고 가운데를 *로 바꾼다.
++ * 010-0000-0101 → 010-****-0101. 짧거나 모르는 모양은 전부 가린다.
++ */
++export function maskPhone(value: unknown): string | null {
++  if (typeof value !== 'string' || value.trim() === '') {
++    return null;
++  }
++  const digits = value.replace(/\D/g, '');
++  if (digits.length < 9) {
++    return '*'.repeat(Math.max(digits.length, 4));
++  }
++  return `${digits.slice(0, 3)}-****-${digits.slice(-4)}`;
++}

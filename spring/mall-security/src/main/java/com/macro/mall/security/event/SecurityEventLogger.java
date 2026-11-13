@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * - 한 줄 JSON, 키: event lesson actor target ip ua reason count ts trace_id.
  * - 넣지 않는 것: 개인정보 원문, 토큰·비밀번호, 요청 본문. target에는 ID만 넣는다.
  * - count: 같은 event·actor가 최근 10분 안에 몇 번째인지(이 앱 인스턴스 안에서만 센다).
+ *   묶어서 센 값이 따로 있으면 count(n)으로 넘긴다(예: 4-3 failed_burst는 서로 다른 계정 수).
  */
 public final class SecurityEventLogger {
     private static final Logger LOG = LoggerFactory.getLogger("SECURITY");
@@ -50,6 +51,7 @@ public final class SecurityEventLogger {
     private String actor;
     private String target;
     private String reason;
+    private Integer count;
     private HttpServletRequest request;
 
     private SecurityEventLogger(boolean denied, String event, String lesson) {
@@ -85,6 +87,12 @@ public final class SecurityEventLogger {
         return this;
     }
 
+    /** 이벤트가 직접 센 값(예: 서로 다른 계정 수). 없으면 같은 event·actor의 최근 10분 횟수 */
+    public SecurityEventLogger count(int count) {
+        this.count = count;
+        return this;
+    }
+
     /** 필터처럼 RequestContextHolder가 아직 없는 곳에서는 요청을 직접 넘긴다 */
     public SecurityEventLogger request(HttpServletRequest request) {
         this.request = request;
@@ -99,10 +107,10 @@ public final class SecurityEventLogger {
         e.put("lesson", lesson);
         e.put("actor", who);
         e.put("target", target);
-        e.put("ip", req == null ? null : req.getRemoteAddr());
+        e.put("ip", req == null ? null : com.macro.mall.common.util.ClientIp.of(req));
         e.put("ua", req == null ? null : cut(req.getHeader("User-Agent"), 120));
         e.put("reason", reason);
-        e.put("count", count(event + "|" + who));
+        e.put("count", count != null ? count : count(event + "|" + who));
         e.put("ts", OffsetDateTime.ofInstant(Instant.now(), ZONE).toString());
         e.put("trace_id", traceId(req));
         String line;

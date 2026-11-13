@@ -1,0 +1,129 @@
+# 14-2 Express(EverShop): 같은 A11 잠금 버킷에 PostgreSQL 덤프를 올리는 백업 작업(backup-job-pg)을 더한다
+# - 새 infra/backup/backup-pg.sh: pg_dump → 압축 → sha256 → daon-backup/postgres/ (backup-writer, 올리기만). 해시·복구 시점 메타데이터
+# - 새 infra/backup/Dockerfile.pg: postgres:16.15-alpine + mc(정적 빌드)
+# - infra/compose.a11.yml: backup-vault·backup-audit·backup-init을 express 프로필에도 켜고, backup-init의 MySQL·앱 MinIO 의존을 required: false로
+#   (backup-init.sh는 이름 db·minio가 없으면 그 단계를 건너뛴다). backup-job-pg 서비스 추가
+# - 한계: PostgreSQL 계정은 원본 기본값(postgres)이다. 회사에서는 읽기 전용 역할을 따로 만든다. 복구 훈련(make restore-drill)은 MySQL만 본다
+# - 적용: 14-2 완료 지점의 랩 저장소 맨 위에서(express/ 안이 아니다). git apply diffs/s14-02/express.diff
+
+diff --git a/infra/backup/Dockerfile.pg b/infra/backup/Dockerfile.pg
+new file mode 100644
+index 0000000..b47f404
+--- /dev/null
++++ b/infra/backup/Dockerfile.pg
+@@ -0,0 +1,8 @@
++# 다온마켓 14-2 Express: PostgreSQL 클라이언트(pg_dump) + MinIO 클라이언트(mc, 정적 빌드라 그대로 옮긴다)
++FROM pgsty/minio:RELEASE.2026-08-04T00-00-00Z AS mc
++RUN cp "$(command -v mc)" /tmp/mc
++
++FROM postgres:16.15-alpine
++COPY --from=mc /tmp/mc /usr/local/bin/mc
++ENV MC_CONFIG_DIR=/tmp/.mc
++USER postgres
+diff --git a/infra/backup/backup-pg.sh b/infra/backup/backup-pg.sh
+new file mode 100644
+index 0000000..4ae98ef
+--- /dev/null
++++ b/infra/backup/backup-pg.sh
+@@ -0,0 +1,17 @@
++#!/bin/sh
++# 다온마켓 14-2 Express · EverShop(PostgreSQL) 백업 한 번: pg_dump → 압축 → sha256 → 같은 잠금 버킷 postgres/ (backup-writer, 올리기만)
++# MySQL 쪽 backup.sh와 같은 규칙: 해시·복구 시점 메타데이터, 실패하면 아무것도 올리지 않고 0이 아닌 값으로 끝난다.
++set -eu
++umask 077
++TS=$(date -u +%Y-%m-%dT%H%M%SZ)
++SNAPSHOT_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
++WORK=$(mktemp -d)
++trap 'rm -rf -- "$WORK"' EXIT
++NAME="evershop-$TS.sql.gz"
++pg_dump --no-owner > "$WORK/dump.sql"            # 파이프 대신 파일로: sh에는 pipefail이 없어 pg_dump 실패를 놓칠 수 있다
++gzip -c "$WORK/dump.sql" > "$WORK/$NAME"
++[ -s "$WORK/$NAME" ] || { echo "[14-2] 덤프가 비었습니다" >&2; exit 1; }
++SUM=$(sha256sum "$WORK/$NAME" | cut -d' ' -f1)
++export MC_HOST_vault="http://$(cat "$WRITER_DIR/access_key"):$(cat "$WRITER_DIR/secret_key")@${VAULT_URL}"
++mc cp --quiet --attr "sha256=${SUM};snapshot-at=${SNAPSHOT_AT}" "$WORK/$NAME" "${TARGET}${NAME}" >/dev/null
++echo "[14-2] PostgreSQL 백업 올림: ${TARGET}${NAME} (잠금 버킷, backup-writer)"
+diff --git a/infra/compose.a11.yml b/infra/compose.a11.yml
+index c467fa6..24b6f5e 100644
+--- a/infra/compose.a11.yml
++++ b/infra/compose.a11.yml
+@@ -26,7 +26,7 @@ x-backup-image: &backup-image
+ 
+ services:
+   backup-vault:
+-    profiles: [spring]
++    profiles: [spring, express]                                      # Express(14-2 diff): EverShop 스택에서도 같은 잠금 버킷
+     image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+     command: ["server", "/data", "--console-address", ":9001"]
+     environment:
+@@ -47,7 +47,7 @@ services:
+ 
+   backup-audit:
+     # MinIO 감사 로그 → SECURITY 한 줄(앱이 아니라서 SecurityEventLogger를 쓰지 못한다). 수집기(A5)가 이 컨테이너 로그를 읽는다
+-    profiles: [spring]
++    profiles: [spring, express]                                      # Express(14-2 diff): EverShop 스택에서도 같은 잠금 버킷
+     image: python:3.14.10-slim-trixie
+     command: ["python", "-u", "/app/audit.py"]
+     user: "65534:65534"
+@@ -66,7 +66,7 @@ services:
+ 
+   backup-init:
+     # 한 번 돌고 끝남(멱등): 잠금 버킷·보존·수명 주기 규칙·정책 둘·계정 둘, 백업 전용 DB 계정, 옛 [회사 설정] 백업 옮기기
+-    profiles: [spring]
++    profiles: [spring, express]                                      # Express(14-2 diff): EverShop 스택에서도 같은 잠금 버킷
+     <<: *backup-image
+     user: "0:0"                                                                              # 새 볼륨에 쓰고 백업 작업 사용자(mysql)에게 넘기려고
+     entrypoint: ["/bin/bash", "/backup/backup-init.sh"]
+@@ -89,8 +89,8 @@ services:
+       - backup-db-creds:/creds/db
+     depends_on:
+       backup-vault: { condition: service_healthy }
+-      mysql: { condition: service_healthy }
+-      minio-init: { condition: service_completed_successfully }
++      mysql: { condition: service_healthy, required: false }                       # Express 스택에는 MySQL·앱 MinIO가 없다(그 단계는 건너뛴다)
++      minio-init: { condition: service_completed_successfully, required: false }
+     restart: "no"
+     mem_limit: 128m
+     networks: [data, backup]
+@@ -125,6 +125,41 @@ services:
+     mem_limit: 128m
+     networks: [data, backup]                                         # DB에 붙어 덤프하고(data), backup 망으로 올린다. 앱 MinIO 계정은 없다
+ 
++  backup-job-pg:
++    # Express(EverShop) DB 백업: PostgreSQL 덤프 → 같은 잠금 버킷 postgres/ (backup-writer, 올리기만)
++    profiles: [express]
++    build:
++      context: ./backup
++      dockerfile: Dockerfile.pg
++    image: daon/backup-pg:dev
++    entrypoint: ["/bin/sh", "-c"]
++    command:
++      - |
++        while true; do
++          /backup/backup-pg.sh || echo "[14-2] PostgreSQL 백업 실패: 종료 코드 $$?"
++          sleep $${DAON_BACKUP_INTERVAL:-300}
++        done
++    environment:
++      VAULT_URL: backup-vault:9000
++      WRITER_DIR: /run/backup-writer
++      TARGET: vault/daon-backup/postgres/
++      PGHOST: postgres
++      PGUSER: postgres                                                 # [원본 기본값] 회사에서는 읽기 전용 역할을 따로 둔다
++      PGPASSWORD: postgres
++      PGDATABASE: postgres
++      DAON_BACKUP_INTERVAL: ${DAON_BACKUP_INTERVAL:-300}
++      MC_CONFIG_DIR: /tmp/.mc
++      TZ: Asia/Seoul
++    volumes:
++      - ./backup/backup-pg.sh:/backup/backup-pg.sh:ro
++      - backup-writer-creds:/run/backup-writer:ro
++    depends_on:
++      postgres: { condition: service_healthy }
++      backup-init: { condition: service_completed_successfully }
++    restart: unless-stopped
++    mem_limit: 128m
++    networks: [data, backup]
++
+   mall-portal:
+     environment:
+       SERVER_TOMCAT_THREADS_MAX: "24"                                  # [랩 크기] 14-3 재연용(회사 기본 200). 14장 시작 모습과 같은 값

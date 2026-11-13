@@ -84,3 +84,9 @@ td.num, th.num { text-align: right; }
   position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%);
   background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 8px;
 }
+
+/* 상품 검색(3-2·3-3) */
+form.search { display: flex; gap: 8px; margin: 0 0 16px; }
+form.search input { flex: 1; }
+form.login + form.login { margin-top: 16px; }
+form.login h2 { font-size: 16px; margin: 0; }

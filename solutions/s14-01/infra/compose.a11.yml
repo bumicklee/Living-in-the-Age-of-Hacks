@@ -1,0 +1,49 @@
+# 다온마켓 랩 · 14장 시작 모습: [회사 설정] 백업 작업 (수업 14-2 시작 지점, T36)
+#
+#   infra/arch.txt에 a11 줄이 있으면 daon 명령이 compose.yml(+ a02 … a10) 위에 이 파일을 함께 쓴다.
+#   14-1 사고 수업이 끝나면 랩이 이 파일을 세워 준다(A0에는 백업 작업이 아예 없다, 작성자 결정 #18).
+#   ✏️ 14-2에서 이 파일을 A11 「불변 백업」으로 바꾼다(정답: make solution L=14-2).
+#
+# 지금 모습([회사 설정], 많은 회사의 출발점)
+#   - 백업 작업 backup-job이 5분마다 MySQL 덤프를 압축해 「앱 버킷 안」 backups/mysql/에 올린다.
+#   - 앱이 쓰는 MinIO 계정(앱 전용 접근 키)을 그대로 같이 쓴다. 이 키는 버킷 mall의 목록·읽기·쓰기·삭제를 가진다.
+#     → 이 계정 하나를 가진 사람(앱이 뚫린 공격자 포함)은 상품 사진과 백업을 둘 다 지울 수 있다.
+#   - 덤프는 DB root 계정으로 뜬다. 해시도, 실패 알림도 없다(파이프 앞 단계가 실패해도 빈 파일이 올라갈 수 있다).
+#
+# 14-3 준비([랩 크기]): 고객 앱의 요청 처리 스레드를 랩 크기로 줄인다(회사 기본 200). PC 한 대에서 「느린 결제사가 스레드를 다 붙잡는」
+#   장면을 적은 요청 수로 보이려는 값이다. 14-2 정답 파일에도 같은 줄이 있다.
+
+services:
+  backup-job:
+    profiles: [spring]
+    build:
+      context: ./backup
+      dockerfile: Dockerfile
+    image: daon/backup:dev
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        while true; do
+          bash /backup/backup.sh || echo "[14장] 백업 실패(알림 없음)"
+          sleep $${DAON_BACKUP_INTERVAL:-300}
+        done
+    environment:
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${DAON_MINIO_APP_ACCESS_KEY:?infra/.env에 DAON_MINIO_APP_ACCESS_KEY가 없습니다(.env.example 참고)}   # ✏️ 14-2: [회사 설정] 앱 계정을 같이 쓴다
+      MINIO_SECRET_KEY: ${DAON_MINIO_APP_SECRET_KEY:?infra/.env에 DAON_MINIO_APP_SECRET_KEY가 없습니다(.env.example 참고)}
+      TARGET: app/mall/backups/mysql/                                  # ✏️ 14-2: 앱 버킷 안에 둔다
+      DAON_BACKUP_INTERVAL: ${DAON_BACKUP_INTERVAL:-300}
+      MC_CONFIG_DIR: /tmp/.mc
+      TZ: Asia/Seoul
+    volumes:
+      - ./backup:/backup:ro
+    depends_on:
+      mysql: { condition: service_healthy }
+      minio-init: { condition: service_completed_successfully }
+    restart: unless-stopped
+    mem_limit: 128m
+    networks: [data]                                                   # 앱 MinIO와 DB가 있는 망
+
+  mall-portal:
+    environment:
+      SERVER_TOMCAT_THREADS_MAX: "24"                                  # [랩 크기] 14-3 재연용(회사 기본 200)

@@ -1,0 +1,27 @@
+# 공개 내보내기 전용 gitleaks 설정(tools/sync_public_repo.sh가 쓴다, 2026-11-13).
+# 수업 규칙(.gitleaks.toml, 6-2)은 그대로 두고, 「사람이 가짜라고 확인한 실습 값」만 정확한 값으로 허용한다.
+# 이 값들은 수강생이 6-2에서 직접 찾아내는 일부러 둔 취약점·데모 기본값·시험용 가짜 값이다. 실제 비밀은 여기에 넣지 않는다. 고친다.
+title = "다온마켓 공개 내보내기 규칙"
+
+[extend]
+path = ".gitleaks.toml"
+
+[allowlist]
+description = "확인된 실습 가짜 값(2026-11-13 검토: 163건 모두 아래 값)"
+regexTarget = "secret"
+regexes = [
+  # 원본 데모 기본값(6-2·6-3·6-4 수업에서 찾고 바꾸는 값)
+  '''^(postgres|minioadmin|root|druid|123456|mall|test|mall-admin-secret|mall-portal-secret)$''',
+  # 랩 전용 가짜 값(이름에 lab-fake가 들어 있다)
+  '''lab-fake''',
+  # EverShop e2e 시험의 가짜 키(원본 저장소에 이미 공개)
+  '''^e2e-(admin|customer)-(secret|refresh)-0123456789abcdef$''',
+  # secure-kit 약한 비밀번호 목록·계약 시험 예시 값
+  '''^qwerty123456$''',
+  '''^k-7f3a9c2e1b4d8a60$''',
+  # 값이 아니라 설명 문장·경로를 잡은 것(오탐)
+  '''^\?infra/\.env에$''',
+  '''^/daon/password:ro$''',
+  '''^같은$''',
+  '''^publishing$''',
+]

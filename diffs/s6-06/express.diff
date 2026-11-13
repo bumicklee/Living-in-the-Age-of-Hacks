@@ -1,0 +1,47 @@
+# 6-6 Express(EverShop)에서 고칠 곳: 상태를 바꾸는 요청의 Origin 검사(점검표 E19)
+# - 새 파일 originCheck.js: POST·PUT·PATCH·DELETE의 Origin이 같은 출처나 허용 목록(DAON_ALLOWED_ORIGINS)이 아니면 403 + csrf.denied_origin.
+# - E02·E03·E20(쿠키 Secure·SameSite, 빈 세션, X-Powered-By, 보안 헤더)은 3-5 diff(diffs/s3-05)에서 이미 고쳤다. 6-6에서는 겹치지 않게 Origin 검사만 더한다.
+#   (Spring은 같은 헤더를 SecurityHeadersFilter, CORS를 허용 출처 목록으로 고친다.)
+# - 적용: cd express && git apply ../diffs/s6-06/express.diff
+# - 2026-11-12 격리 통합 이미지 실측: 다른 Origin의 교육용 가짜 계정 로그인은 원본 HTTP 200 → 통합 HTTP 403. 근거 course/_captures/evershop-integrated-check/http-smoke.json
+
+diff --git a/packages/evershop/src/modules/base/pages/global/originCheck.js b/packages/evershop/src/modules/base/pages/global/originCheck.js
+new file mode 100644
+--- /dev/null
++++ b/packages/evershop/src/modules/base/pages/global/originCheck.js
+@@ -0,0 +1,35 @@
++// 다온마켓 6-6(E19): 상태를 바꾸는 요청(POST·PUT·PATCH·DELETE)의 Origin이 허용 목록에 없으면 거부한다.
++// 허용 목록은 환경 변수 DAON_ALLOWED_ORIGINS(쉼표 구분, 정확히 같은 출처만). 값이 없으면 같은 출처(Host와 같은 것)만 허용한다.
++// 쿠키 속성(SameSite·Secure)·보안 헤더는 3-5 diff에서 이미 고쳤다(여기서는 겹치지 않게 Origin 검사만).
++import { error } from '../../../../lib/log/logger.js';
++
++const SAFE = new Set(['GET', 'HEAD', 'OPTIONS']);
++
++export default (request, response, next) => {
++  if (SAFE.has(request.method)) {
++    return next();
++  }
++  const origin = request.headers.origin;
++  if (!origin) {
++    return next(); // 브라우저가 아닌 호출(서버끼리)은 Origin이 없다. 쿠키를 쓰는 브라우저 요청은 항상 Origin을 보낸다
++  }
++  const allowed = (process.env.DAON_ALLOWED_ORIGINS || '')
++    .split(',')
++    .map((s) => s.trim())
++    .filter(Boolean);
++  const sameOrigin = origin === `${request.protocol}://${request.headers.host}`;
++  if (sameOrigin || allowed.includes(origin)) {
++    return next();
++  }
++  // 한 줄 이벤트(값은 120자까지)
++  error(
++    JSON.stringify({
++      event: 'csrf.denied_origin',
++      lesson: '6-6',
++      target: `origin:${String(origin).slice(0, 120)}`,
++      reason: '상태를 바꾸는 요청의 Origin이 허용 목록 밖',
++      ts: new Date().toISOString()
++    })
++  );
++  response.status(403).json({ error: { status: 403, message: '허용되지 않는 요청입니다' } });
++};

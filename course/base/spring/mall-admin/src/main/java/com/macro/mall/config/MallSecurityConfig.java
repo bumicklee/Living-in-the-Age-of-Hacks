@@ -43,6 +43,12 @@ public class MallSecurityConfig {
                     map.put(resource.getUrl(), new org.springframework.security.access.SecurityConfig(resource.getId() + ":" + resource.getName()));
                 }
                 // ✏️ 2-3: 다온마켓이 새로 만든 관리자 기능(/daon/customer/**)도 권한표에 올린다(다온마켓 교육용 표시)
+                // [교육용 추가] 다온마켓 상품 기능(상품 후기 목록 3-4, 상품 사진 업로드 3-6)은 상품 관리(/product/**)와 같은 권한으로 연다
+                ConfigAttribute goods = map.get("/product/**");
+                if (goods != null) {
+                    map.put("/daon/review/**", goods);
+                    map.put("/minio/**", goods);
+                }
                 return map;
             }
         };

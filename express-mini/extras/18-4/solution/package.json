@@ -1,0 +1,9 @@
+{
+  "name": "daon-dependency-after",
+  "version": "1.0.0",
+  "private": true,
+  "description": "의존성 점검 수업의 고친 뒤 예제.",
+  "dependencies": {
+    "express": "5.1.0"
+  }
+}

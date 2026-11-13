@@ -1,0 +1,26 @@
+# 다온마켓 6-2: 저장소 시크릿 규칙. 기본 규칙(useDefault) 위에 규칙 두 개를 더했다. 기본 규칙은 yml 평문 비밀번호를 놓친다.
+title = "다온마켓 시크릿 규칙"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "daon-config-plain-credential"
+description = "설정 파일(yml·properties)의 password·secret·access-key 칸에 값이 그대로 적혀 있다"
+path = '''(?i)\.(ya?ml|properties)$'''
+regex = '''(?i)(?:password|passwd|secret|secret-?key|access-?key)["']?\s*[:=]\s*["']?([^\s"'#$\{][^\s"'#]*)'''
+secretGroup = 1
+keywords = ["password", "passwd", "secret", "key"]
+
+[[rules]]
+id = "daon-known-demo-default"
+description = "원본 데모 기본값 목록(spring/mall-security/.../known-default-secrets.txt)과 정확히 같은 값"
+path = '''(?i)\.(ya?ml|properties)$'''
+regex = '''(?i)[:=]\s*["']?(mall-portal-secret|mall-admin-secret|minioadmin|123456|root|mall|druid|postgres|macro123)["']?\s*(?:#.*)?$'''
+secretGroup = 1
+keywords = ["mall", "minioadmin", "123456", "root", "druid", "postgres", "macro123"]
+
+# 허용은 지문(.gitleaksignore) 단위로 하나씩, 이유를 적어서 한다. 여기 경로 허용은 「점검할 필요가 없는 곳」뿐이다.
+[allowlist]
+description = "빌드 산출물과 받은 소스는 점검하지 않는다"
+paths = ['''(^|/)node_modules/''', '''(^|/)target/''', '''(^|/)_upstream/''']

@@ -1,0 +1,279 @@
+{
+  "uid": "daon-attack-signals",
+  "title": "공격 징후(다온마켓)",
+  "tags": [
+    "daon",
+    "8-4"
+  ],
+  "timezone": "Asia/Seoul",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "30s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "description": "교육용 랩 · 127.0.0.1 · 값은 가짜. 섹션 2~7의 SECURITY 줄, 8-3의 AUDIT 줄, 섹션 7의 도구 이벤트를 한 화면에",
+  "panels": [
+    {
+      "id": 1,
+      "title": "수업별 공격 징후(고른 기간)",
+      "type": "bargauge",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (lesson) (count_over_time({stream=~\"security|tool\"} [$__interval]))",
+          "queryType": "range",
+          "legendFormat": "{{lesson}}",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "values": false,
+          "fields": ""
+        }
+      },
+      "description": "섹션 2~7에서 수업마다 한 줄씩 심은 SECURITY 이벤트. 새 수업이 이벤트를 만들면 여기 저절로 나타난다"
+    },
+    {
+      "id": 2,
+      "title": "이벤트별 줄 수(고른 기간)",
+      "type": "bargauge",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 16,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (event) (count_over_time({stream=~\"security|tool\"} [$__interval]))",
+          "queryType": "range",
+          "legendFormat": "{{event}}",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "values": false,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "시간대별 공격 징후(1분)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (event) (count_over_time({stream=~\"security|tool\"} [1m]))",
+          "queryType": "range",
+          "legendFormat": "{{event}}",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "인증 실패 HTTP 401(1분, auth.denied.token)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum(count_over_time({event=\"auth.denied.token\"} [1m]))",
+          "queryType": "range",
+          "legendFormat": "401",
+          "editorMode": "code"
+        }
+      ],
+      "description": "8-4(F32) 전에는 실패가 HTTP 200으로 나가 이 칸이 늘 0이었다"
+    },
+    {
+      "id": 5,
+      "title": "감사 로그: 계정별 조회 건수(10분 합계)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (actor) (sum_over_time({stream=\"audit\"} | json actor=\"actor\", count=\"count\" | unwrap count | __error__=\"\" [10m]))",
+          "queryType": "range",
+          "legendFormat": "{{actor}}",
+          "editorMode": "code"
+        }
+      ],
+      "description": "8-4 계정별 한도 규칙(rules/bulk.yaml)의 재료. 랩 기준 30건"
+    },
+    {
+      "id": 6,
+      "title": "수집기가 가린 줄(8-5)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "sum by (app) (count_over_time({masked_at_collector=\"true\"} [1m]))",
+          "queryType": "range",
+          "legendFormat": "{{app}}",
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "최근 SECURITY·도구 이벤트",
+      "type": "logs",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 24,
+        "h": 10
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{stream=~\"security|tool\"}",
+          "queryType": "range",
+          "legendFormat": "",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      }
+    },
+    {
+      "id": 8,
+      "title": "최근 감사 로그(AUDIT)",
+      "type": "logs",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 35,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{stream=\"audit\"}",
+          "queryType": "range",
+          "legendFormat": "",
+          "editorMode": "code"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      }
+    }
+  ]
+}

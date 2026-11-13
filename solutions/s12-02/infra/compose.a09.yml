@@ -1,0 +1,21 @@
+# 다온마켓 랩 · 아키텍처 A9 「파트너 입구」(수업 12-2·12-3·12-4)
+#
+#   infra/arch.txt에 a09 줄이 있으면 daon 명령이 compose.yml(+ a02 · a03 · a04 · a01 · a08 · a05 · a06 · a07) 위에 이 파일을 함께 쓴다.
+#
+# 바뀌는 것
+#   ① 게이트웨이(6-4의 nginx)에 파트너 입구 8087을 연다: 파트너 앱 → gateway:8087 /partner/ → mall-portal:8085
+#      고객 입구(웹 8088·API 8086)와 관리자 입구(8443)와 나눈다. 입구가 셋이 된다(고객·관리자·파트너)
+#   ② 앱은 소켓 주소가 게이트웨이(DAON_PARTNER_GATEWAY)일 때만 /partner/** 를 받는다. 앱 직접 주소(8085)로 온 파트너 요청은 404
+#   ③ 파트너 토큰은 앱(mall-portal)이 발급한다(POST /partner/token, 15분). 따로 인가 서버 컨테이너를 두지 않았다(메모리·제작 시간)
+#
+# 12-3에서 이 파일에 랩 내부 CA(OpenBao PKI)로 인증서를 만드는 partner-pki와 게이트웨이 인증서 볼륨이 더해진다(mTLS).
+# 메모리: 새 컨테이너 없음(게이트웨이 64MB 그대로).
+
+services:
+  gateway:
+    ports:
+      - "${DAON_BIND:-127.0.0.1}:${DAON_GATEWAY_PARTNER_PORT:-8087}:8087"      # 파트너 입구(A9)
+
+  mall-portal:
+    environment:
+      DAON_PARTNER_GATEWAY: gateway                                            # 이 이름의 주소에서 온 요청만 파트너 경로로 받는다

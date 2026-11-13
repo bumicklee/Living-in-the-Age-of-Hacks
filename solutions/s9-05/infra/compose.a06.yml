@@ -1,0 +1,21 @@
+# 다온마켓 랩 · 아키텍처 A6 「재시도 큐와 DLQ」(수업 9-5)
+#
+#   infra/arch.txt에 a06 줄이 있으면 daon 명령이 compose.yml(+ a02 · a03 · a04 · a01 · a08 · a05) 위에 이 파일을 함께 쓴다.
+#
+# 바뀌는 것
+#   - 새 컨테이너는 없다(추가 메모리 0). 이미 있는 RabbitMQ가 뜰 때 정의 파일 하나를 읽는다(rabbitmq/a06-definitions.json).
+#       daon.pay.retry  재시도 큐. 메시지마다 expiration(앱이 1·2·4초 + 지터로 정함)이 지나면 기본 익스체인지로 daon.pay.request에 돌아간다
+#       daon.pay.dlx    죽은 편지 익스체인지(direct)
+#       daon.pay.dlq    끝내 실패한 결제 요청이 쌓이는 곳(최대 1000개)
+#       정책 daon-pay-dlx  daon.pay.request에서 거절된(requeue 없음) 메시지를 daon.pay.dlx로 → daon.pay.dlq
+#   - 큐 구조는 앱이 아니라 RabbitMQ 쪽(운영 설정)에 둔다. 앱은 daon.pay.request만 선언하고, 재시도 큐·DLQ에는 보내기만 한다.
+#     정의 파일을 바꾸면 RabbitMQ를 다시 띄워야 읽는다(make up이 인프라 지문으로 알아서 다시 맞춘다).
+#   - 관리 화면(큐·바인딩·DLQ 메시지 헤더의 X-Trace-Id)은 6-4의 관리자 입구 http://127.0.0.1:8443/rabbitmq/ (daon-ops 계정, infra/.env).
+#
+# 주의: 정의 파일을 부팅 때 읽게 하면 RabbitMQ는 기본 계정·기본 vhost를 만들지 않는다. 계정은 6-4의 rabbitmq/entrypoint.sh가 만든다(a01이 있어야 한다).
+
+services:
+  rabbitmq:
+    volumes:
+      - ./rabbitmq/a06.conf:/etc/rabbitmq/conf.d/30-daon-a06.conf:ro
+      - ./rabbitmq/a06-definitions.json:/etc/rabbitmq/daon-a06-definitions.json:ro

@@ -1,0 +1,17 @@
+; 다온마켓 DNS 영역 파일 [교육용 추가, 가짜 도메인 *.example] (11-5)
+; 실제 DNS 서버에 올리지 않는다. 회사가 DNS 레코드를 코드로 관리한다고 보고, 이 파일을 점검 스크립트(make audit-dns)만 읽는다.
+; 주소는 문서용 예약 대역(192.0.2.0/24, RFC 5737)만 쓴다. 바깥 이름은 모두 .example(RFC 2606)이다.
+$ORIGIN daon.example.
+$TTL 3600
+@          IN SOA   ns1.daon.example. hostmaster.daon.example. 2026111101 3600 600 1209600 300
+@          IN NS    ns1.daon.example.
+ns1        IN A     192.0.2.53
+@          IN A     192.0.2.10
+shop       IN A     192.0.2.10
+shop-lb    IN A     192.0.2.10
+www        IN CNAME shop-lb.daon.example.
+api        IN A     192.0.2.11
+; 11-5: event2025(지운 행사 페이지를 가리키던 CNAME)를 지웠다. 자원을 지울 때는 레코드부터(inventory.yaml 런북)
+@          IN MX    10 mx.mailer-now.example.
+@          IN TXT   "v=spf1 include:_spf.mailer-now.example -all"   ; 11-5: 계약 끝난 mailer-old를 뺐다
+_dmarc     IN TXT   "v=DMARC1; p=reject; rua=mailto:dmarc@daon.example"   ; 11-5: 보고만 받던 정책(none)을 거부(reject)로

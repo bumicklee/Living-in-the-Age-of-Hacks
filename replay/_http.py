@@ -17,6 +17,11 @@ ADMINS = {
     "admin": {"password": "macro123", "role": "슈퍼 관리자"},
     "staff_goods": {"password": "daon-pass-1!", "role": "상품 관리자"},
     "staff_order": {"password": "daon-pass-1!", "role": "주문 관리자"},
+    # 13장(앱이 뜰 때 DaonStaffSeed가 맞춘다, 13-1이 끝나면 생긴다). 모두 가짜 값
+    "staff_finance": {"password": "daon-pass-1!", "role": "재무 담당"},
+    "staff_lead": {"password": "daon-pass-1!", "role": "운영 책임"},
+    "daon_ops": {"password": "lab-fake-ops-1!", "role": "슈퍼 관리자"},     # [회사 설정] 공용 운영 계정(T35, 13-6에서 닫힘)
+    "macro": {"password": "macro123", "role": "슈퍼 관리자"},              # [원본 기본값] 원본 데모 관리자(F19, 13-6에서 닫힘)
 }
 
 

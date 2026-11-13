@@ -1,0 +1,26 @@
+# [랩 도구] 시크릿 점검의 기준 규칙(T15 재연과 make scan-secrets의 기본값). 수업에서 손으로 고치는 파일은 저장소 맨 위 .gitleaks.toml 이다.
+# .gitleaks.toml이 있으면 그것을, 없으면 이 파일을 쓴다(6-2 시작 지점에서도 재연이 같은 기준으로 잰다).
+title = "다온마켓 시크릿 규칙(기준)"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "daon-config-plain-credential"
+description = "설정 파일(yml·properties)의 password·secret·access-key 칸에 값이 그대로 적혀 있다"
+path = '''(?i)\.(ya?ml|properties)$'''
+regex = '''(?i)(?:password|passwd|secret|secret-?key|access-?key)["']?\s*[:=]\s*["']?([^\s"'#$\{][^\s"'#]*)'''
+secretGroup = 1
+keywords = ["password", "passwd", "secret", "key"]
+
+[[rules]]
+id = "daon-known-demo-default"
+description = "원본 데모 기본값 목록(spring/mall-security/.../known-default-secrets.txt)과 정확히 같은 값"
+path = '''(?i)\.(ya?ml|properties)$'''
+regex = '''(?i)[:=]\s*["']?(mall-portal-secret|mall-admin-secret|minioadmin|123456|root|mall|druid|postgres|macro123)["']?\s*(?:#.*)?$'''
+secretGroup = 1
+keywords = ["mall", "minioadmin", "123456", "root", "druid", "postgres", "macro123"]
+
+[allowlist]
+description = "빌드 산출물·받은 소스는 점검하지 않는다"
+paths = ['''(^|/)node_modules/''', '''(^|/)target/''', '''(^|/)_upstream/''']

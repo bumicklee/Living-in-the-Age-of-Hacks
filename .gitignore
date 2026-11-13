@@ -7,4 +7,14 @@ target/
 infra/.env
 __pycache__/
 scoreboard/*.json
-solutions/
+
+# 7장: 도구가 만드는 결과(SBOM·보안 이벤트 파일). 시험은 DAON_REPORTS_DIR로 따로 쓴다
+/build/
+/reports/
+
+# 12-3: 파트너 mTLS 인증서·개인키는 랩을 띄울 때 만든다(OpenBao PKI → 볼륨 → make partner-certs가 .daon/partner-pki/로). 저장소에 넣지 않는다
+*.key
+partner-pki/
+# 13-3: 승인 토큰 서명 키는 금고(OpenBao transit daon-approval) 안에서만 만든다. 승인 서비스 AppRole 접속 정보는 도커 볼륨(approval-creds)에만 있다. 저장소에 넣지 않는다
+*.pem
+approval-creds/

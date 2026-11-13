@@ -1,0 +1,12 @@
+# 다온마켓 주문 메일 발송 서버(Postfix) 설정 사본 [회사 설정, 교육용 가짜] (11-5, T31)
+#
+# 랩에는 이 서버가 없다(Mailpit은 메일을 받는 쪽 도구다). 회사의 실제 메일 서버 설정을 저장소에 사본으로 두고 점검만 한다(make audit-mail).
+# 아래 버전 줄은 서버에서 `postconf mail_version`으로 읽어 적어 둔 값이다(점검 스크립트가 읽는다).
+# mail_version: 3.8.3
+
+myhostname = mail.daon.example
+mydomain = daon.example
+mynetworks = 127.0.0.0/8 10.20.0.0/16
+smtpd_banner = $myhostname ESMTP
+# 메일 끝 처리: 이 버전에는 smtpd_forbid_bare_newline 설정이 없거나 기본값이 꺼짐(no)이다
+smtpd_data_restrictions =

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useUserStore } from '@/stores/user'
 import { ossPolicyAPI } from '@/apis/oss' // 이것이 API 파일의 올바른 경로라고 가정
 import { Plus } from '@element-plus/icons-vue'
 import {
@@ -43,6 +44,9 @@ const useOss = import.meta.env.VITE_USE_OSS === 'true'
 const ossUploadUrl = import.meta.env.VITE_OSS_UPLOAD_URL
 // minio업로드 경로
 const minioUploadUrl = import.meta.env.VITE_BASE_SERVER_URL + import.meta.env.VITE_MINIO_UPLOAD_URL
+// 다온마켓 3-6: 업로드 주소에 로그인이 필요해졌으니 다른 API 요청처럼 토큰을 싣는다
+const userStore = useUserStore()
+const uploadHeaders = computed(() => ({ Authorization: userStore.userInfo.token }))
 // 업로드 파일 목록
 const fileList = ref<UploadUserFile[]>([])
 // 팝업에 표시할 이미지 경로
@@ -164,6 +168,7 @@ const handleUploadSuccess: UploadProps['onSuccess'] = (res, file) => {
   <div>
     <el-upload
       :action="useOss ? ossUploadUrl : minioUploadUrl"
+      :headers="useOss ? undefined : uploadHeaders"
       list-type="picture-card"
       :file-list="fileList"
       :limit="maxCount"

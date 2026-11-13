@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useUserStore } from '@/stores/user'
 import { ossPolicyAPI } from '@/apis/oss' // 이것이 API 파일의 올바른 경로라고 가정
 import {
   ElMessage,
@@ -37,6 +38,9 @@ const useOss = import.meta.env.VITE_USE_OSS === 'true'
 const ossUploadUrl = import.meta.env.VITE_OSS_UPLOAD_URL
 // minio업로드 경로
 const minioUploadUrl = import.meta.env.VITE_BASE_SERVER_URL + import.meta.env.VITE_MINIO_UPLOAD_URL
+// 다온마켓 3-6: 업로드 주소에 로그인이 필요해졌으니 다른 API 요청처럼 토큰을 싣는다
+const userStore = useUserStore()
+const uploadHeaders = computed(() => ({ Authorization: userStore.userInfo.token }))
 // 업로드 파일 목록
 const fileList = ref<UploadUserFile[]>([])
 
@@ -149,6 +153,7 @@ const handleUploadSuccess: UploadProps['onSuccess'] = (res, file) => {
   <div>
     <el-upload
       :action="useOss ? ossUploadUrl : minioUploadUrl"
+      :headers="useOss ? undefined : uploadHeaders"
       list-type="picture"
       :multiple="false"
       :show-file-list="props.modelValue ? true : false"
@@ -161,7 +166,7 @@ const handleUploadSuccess: UploadProps['onSuccess'] = (res, file) => {
     >
       <el-button size="small" type="primary">클릭하여 업로드</el-button>
       <template #tip>
-        <div class="el-upload__tip">jpg/png 파일만 업로드할 수 있으며, 크기는 다음을 넘을 수 없습니다:10MB</div>
+        <div class="el-upload__tip">jpg/png 파일만 업로드할 수 있으며, 크기는 다음을 넘을 수 없습니다:{{ useOss ? '10MB' : '2MB' }}</div>
       </template>
     </el-upload>
     <el-dialog v-model="dialogVisible">

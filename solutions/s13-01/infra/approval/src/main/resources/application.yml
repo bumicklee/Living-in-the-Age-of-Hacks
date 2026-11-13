@@ -1,0 +1,15 @@
+server:
+  port: 8097
+spring:
+  application:
+    name: approval
+  main:
+    banner-mode: "off"
+  jackson:
+    time-zone: Asia/Seoul
+logging:
+  pattern:
+    # 일반 로그 줄에도 요청 추적 번호를 [..]로 붙인다(관리자 앱과 같은 모양, 랩-설계 11절)
+    correlation: "[%X{trace_id:-}] "
+  level:
+    root: INFO

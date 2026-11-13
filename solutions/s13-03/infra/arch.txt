@@ -1,0 +1,12 @@
+# 지금 켠 아키텍처 단계. 한 줄에 하나: a02 → infra/compose.a02.yml을 compose.yml 위에 함께 쓴다.
+# 수업이 진행되며 한 줄씩 늘어난다(2-5에서 a02, 4-3에서 a03, 5-2에서 a04, 6-4에서 a01, 7-5에서 a08, 8-4에서 a05, 9-5에서 a06, 11-3에서 a07, 12-2에서 a09, 13-3에서 a10). 바꾸면 다음 make check·replay·up 때 스택에 반영된다.
+a02
+a03
+a04
+a01   # 6-4: 저장소 포트를 PC에 열지 않는다(infra/compose.a01.yml)
+a08   # 7-5: 로컬 CI(Gitea·러너·레지스트리, infra/compose.a08.yml). 7-4 사고 수업이 끝나면 랩이 세워 준다
+a05   # 8-4: 기록 모으기와 경보(Loki·수집기 Alloy·Grafana, infra/compose.a05.yml, infra/observability/). 알림은 랩 도구 Mailpit으로
+a06   # 9-5: 결제 요청 재시도 큐·DLQ(RabbitMQ 정의 파일, infra/compose.a06.yml). 추가 컨테이너 없음
+a07   # 11-3: 캐시와 게이트웨이 강화(고객 API 입구 8086 → Varnish → 앱, 모호한 요청 거절, 이미지 다이제스트 고정, infra/compose.a07.yml)
+a09   # 12-2: 파트너 입구(게이트웨이 8087 → mall-portal /partner/**, 파트너 토큰 15분·범위·회전, infra/compose.a09.yml)
+a10   # 13-3: 승인 서비스 분리(승인 서비스 127.0.0.1:8097 · 서명된 승인 토큰 transit daon-approval · 전용 DB 계정, infra/compose.a10.yml, infra/approval/)

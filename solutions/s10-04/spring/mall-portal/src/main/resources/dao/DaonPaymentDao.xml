@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- [다온마켓 10-4] 웹훅 멱등 기록·단방향 상태 전이. 표는 DaonMoneySchema가 만든다 -->
+<mapper namespace="com.macro.mall.portal.dao.DaonPaymentDao">
+    <insert id="insertEvent">
+        INSERT INTO oms_payment_event (payment_id, event, order_sn, amount, result, received_at)
+        VALUES (#{paymentId}, #{event}, #{orderSn}, #{amount}, 'received', NOW())
+    </insert>
+
+    <update id="markResult">
+        UPDATE oms_payment_event SET result = #{result}
+        WHERE payment_id = #{paymentId} AND event = #{event}
+    </update>
+
+    <update id="markPaid">
+        UPDATE oms_order
+        SET status = 1, payment_time = NOW(), pay_type = #{payType}
+        WHERE order_sn = #{orderSn} AND status = 0 AND delete_status = 0
+    </update>
+</mapper>

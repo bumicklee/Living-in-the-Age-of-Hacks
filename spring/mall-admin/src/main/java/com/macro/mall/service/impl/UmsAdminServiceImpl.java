@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.PageHelper;
 import com.macro.mall.bo.AdminUserDetails;
+import com.macro.mall.common.exception.ApiException;
 import com.macro.mall.common.exception.Asserts;
 import com.macro.mall.common.util.RequestUtil;
 import com.macro.mall.dao.UmsAdminRoleRelationDao;
@@ -13,6 +14,10 @@ import com.macro.mall.mapper.UmsAdminLoginLogMapper;
 import com.macro.mall.mapper.UmsAdminMapper;
 import com.macro.mall.mapper.UmsAdminRoleRelationMapper;
 import com.macro.mall.model.*;
+import com.macro.mall.security.password.PasswordPolicy;
+import com.macro.mall.security.ratelimit.LoginRateLimiter;
+import com.macro.mall.security.ratelimit.UnknownAccountWatch;
+import com.macro.mall.security.securekit.SecureKitSwitch;
 import com.macro.mall.security.util.JwtTokenUtil;
 import com.macro.mall.security.util.SpringUtil;
 import com.macro.mall.service.UmsAdminCacheService;
@@ -49,6 +54,10 @@ public class UmsAdminServiceImpl implements UmsAdminService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
+    private LoginRateLimiter loginRateLimiter;
+    @Autowired
+    private UnknownAccountWatch unknownAccountWatch;
+    @Autowired
     private UmsAdminMapper adminMapper;
     @Autowired
     private UmsAdminRoleRelationMapper adminRoleRelationMapper;
@@ -56,6 +65,8 @@ public class UmsAdminServiceImpl implements UmsAdminService {
     private UmsAdminRoleRelationDao adminRoleRelationDao;
     @Autowired
     private UmsAdminLoginLogMapper loginLogMapper;
+    @Autowired
+    private PasswordPolicy passwordPolicy;
 
     @Override
     public UmsAdmin getAdminByUsername(String username) {
@@ -99,10 +110,19 @@ public class UmsAdminServiceImpl implements UmsAdminService {
     public String login(String username, String password) {
         String token = null;
         //비밀번호는 클라이언트에서 암호화한 뒤 전달해야 함
+        // 다온마켓 4-3: 관리자 로그인에도 같은 제한기(고객 로그인과 같은 키 규칙)
+        loginRateLimiter.check(username);
         try {
-            UserDetails userDetails = loadUserByUsername(username);
+            // 다온마켓 4-4: 없는 계정도 더미 해시와 비교하고, 틀린 비밀번호와 같은 문구로 답한다
+            UserDetails userDetails;
+            try {
+                userDetails = loadUserByUsername(username);
+            } catch (UsernameNotFoundException e) {
+                unknownAccountWatch.equalizeAndCount(password);
+                throw e;
+            }
             if(!passwordEncoder.matches(password,userDetails.getPassword())){
-                Asserts.fail("비밀번호가 올바르지 않습니다");
+                Asserts.fail(SecureKitSwitch.on("login-timing") ? "아이디 또는 비밀번호가 올바르지 않습니다" : "비밀번호가 올바르지 않습니다");
             }
             if(!userDetails.isEnabled()){
                 Asserts.fail("계정이 사용 중지되었습니다");
@@ -112,8 +132,13 @@ public class UmsAdminServiceImpl implements UmsAdminService {
             token = jwtTokenUtil.generateToken(userDetails);
 //            updateLoginTimeByUsername(username);
             insertLoginLog(username);
+            loginRateLimiter.succeeded(username);
         } catch (AuthenticationException e) {
             LOGGER.warn("로그인 예외:{}", e.getMessage());
+            loginRateLimiter.failed(username);
+        } catch (ApiException e) {
+            loginRateLimiter.failed(username);   // 틀린 비밀번호·사용 중지 계정(Asserts.fail)
+            throw e;
         }
         return token;
     }
@@ -171,6 +196,13 @@ public class UmsAdminServiceImpl implements UmsAdminService {
     public int update(Long id, UmsAdmin admin) {
         admin.setId(id);
         UmsAdmin rawAdmin = adminMapper.selectByPrimaryKey(id);
+        // 다온마켓 4-7(F11): 관리자 정보 수정으로는 비밀번호를 바꾸지 않는다. 비밀번호는 현재 비밀번호를 요구하는 updatePassword로만
+        if (SecureKitSwitch.on("step-up")) {
+            admin.setPassword(null);
+            int count = adminMapper.updateByPrimaryKeySelective(admin);
+            getCacheService().delAdmin(id);
+            return count;
+        }
         if(rawAdmin.getPassword().equals(admin.getPassword())){
             //기존 암호화 비밀번호와 같으면 수정 불필요
             admin.setPassword(null);
@@ -255,6 +287,10 @@ public class UmsAdminServiceImpl implements UmsAdminService {
         if(!passwordEncoder.matches(param.getOldPassword(),umsAdmin.getPassword())){
             return -3;
         }
+        // 다온마켓 4-2: 관리자 비밀번호 변경에도 같은 규칙(공개 가입은 2-3에서 닫았다)
+        if (SecureKitSwitch.on("password-policy")) {
+            passwordPolicy.check(param.getNewPassword(), "admin:" + umsAdmin.getUsername());
+        }
         umsAdmin.setPassword(passwordEncoder.encode(param.getNewPassword()));
         adminMapper.updateByPrimaryKey(umsAdmin);
         getCacheService().delAdmin(umsAdmin.getId());
@@ -279,6 +315,7 @@ public class UmsAdminServiceImpl implements UmsAdminService {
 
     @Override
     public void logout(String username) {
+        // 다온마켓 4-8: 토큰 폐기는 컨트롤러가 TokenService로 한다(액세스 토큰 jti를 폐기 목록에). 여기서는 캐시를 비운다
         //캐시의 사용자 관련 데이터 비우기
         UmsAdmin admin = getCacheService().getAdmin(username);
         getCacheService().delAdmin(admin.getId());

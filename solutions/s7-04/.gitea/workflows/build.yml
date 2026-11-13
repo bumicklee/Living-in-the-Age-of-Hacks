@@ -1,0 +1,21 @@
+# 다온마켓 로컬 CI(A8): 이미지를 로컬 레지스트리에 올린다. 교육용 랩 전용.
+# 7-5 시작 지점의 모습: 외부 단계가 태그(@v1)로만 적혀 있고, 레지스트리에 올리는 장기 키가 저장소 비밀값(REGISTRY_PASSWORD)에 있다.
+name: build
+on:
+  push:
+    branches: [main]
+jobs:
+  publish:
+    runs-on: lab
+    steps:
+      - name: 외부 점검 단계
+        uses: daon-lab/scan-step@v1            # 태그로만 고정한 외부 단계(T18) # ✏️ 7-5: 40자 커밋 해시로 고정하고 ci/pins.lock에 적는다. 첫 작업으로 고정 검사(tools/ci/check_pins.py)를 둔다
+        env:
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}   # 저장소 비밀값에 둔 장기 키
+      - name: 이미지를 레지스트리에 올리기
+        env:
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}   # ✏️ 7-5: 장기 키를 지우고, 작업마다 ci-broker에서 받는 단기 계정으로 올린다
+        run: |
+          skopeo copy --dest-tls-verify=false --dest-creds "ci-push:$REGISTRY_PASSWORD" \
+            docker-archive:/ci-in/mall-portal.tar docker://registry:5000/daon/mall-portal:lesson
+          echo "올렸습니다: daon/mall-portal:lesson"

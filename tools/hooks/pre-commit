@@ -1,0 +1,14 @@
+#!/bin/sh
+# 다온마켓 6-2: 커밋 전에 올리려는 변경(staged)에 시크릿이 있는지 gitleaks로 본다. 설치: make hooks
+# 값은 화면에 찍지 않는다(--redact). 규칙은 저장소 맨 위 .gitleaks.toml.
+top=$(git rev-parse --show-toplevel) || exit 1
+cfg="$top/.gitleaks.toml"
+[ -f "$cfg" ] || cfg="$top/tools/gitleaks-reference.toml"
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "gitleaks가 없어 시크릿 점검을 건너뛸 수 없습니다. 설치 뒤 다시 커밋하세요(brew install gitleaks)." >&2
+  exit 1
+fi
+gitleaks git --pre-commit --staged --redact --no-banner --config "$cfg" "$top" || {
+  echo "커밋을 멈췄습니다: 시크릿으로 보이는 값이 있습니다. 값을 설정 밖(${DAON_…} 자리 표시)으로 빼세요." >&2
+  exit 1
+}

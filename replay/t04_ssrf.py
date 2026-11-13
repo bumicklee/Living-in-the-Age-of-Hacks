@@ -48,11 +48,11 @@ def run(stack: str = "spring") -> Result:
         msg = blocked_message(r)
         if msg is None:
             leaked += 1
-            shown = r.text[:120]
+            shown = f"HTTP {r.status_code} · 본문 {len(r.content)}바이트(값은 출력하지 않음)"
             try:
                 body = r.json()
                 if isinstance(body, dict) and "jwt.secret" in body:
-                    shown = f"운영 도구 설정 값 {len(body) - 1}개, 그중 jwt.secret={body['jwt.secret']!r}(관리자 토큰 서명값)"
+                    shown = f"운영 도구 설정 값 {len(body) - 1}개, 그중 관리자 토큰 서명값 포함(값은 출력하지 않음)"
             except ValueError:
                 pass
             ev.append(f"요청: {url} → 내부 응답이 돌아옴: {shown}")

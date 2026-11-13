@@ -2,6 +2,8 @@ package com.macro.mall.security.component;
 
 import cn.hutool.core.collection.CollUtil;
 import com.macro.mall.security.config.IgnoreUrlsConfig;
+import com.macro.mall.security.event.SecurityEventLogger;
+import com.macro.mall.security.securekit.SecureKitSwitch;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -58,11 +60,15 @@ public class DynamicAuthorizationManager implements AuthorizationManager<Request
                 .map(ConfigAttribute::getAttribute)
                 .collect(Collectors.toList());
         Authentication currentAuth = authentication.get();
-        // ✏️ 2-3: 권한표에 없는 주소를 어떻게 다룰지 정한다(다온마켓 교육용 표시)
-        // [교육용 추가] 원본은 권한표에 없는 주소도 거부한다. 다온마켓은 새 기능을 빨리 열려고 "로그인만 했으면 통과"로 바꿨다
+        // 다온마켓 2-3: 기본 거부. 권한표에 없는 주소는 누구에게도 열지 않는다
         if (needAuthorities.isEmpty()) {
-            return new AuthorizationDecision(currentAuth != null && currentAuth.isAuthenticated()
-                    && !(currentAuth instanceof AnonymousAuthenticationToken));
+            if (!SecureKitSwitch.on("admin-default-deny")) {
+                // [랩 스위치] secure-kit.admin-default-deny.enabled=false: 고치기 전처럼 로그인만 했으면 통과(영상용)
+                return new AuthorizationDecision(currentAuth != null && currentAuth.isAuthenticated()
+                        && !(currentAuth instanceof AnonymousAuthenticationToken));
+            }
+            denied(currentAuth, request, path, "권한표에 없는 주소(기본 거부)");
+            return new AuthorizationDecision(false);
         }
         //로그인 인증이 이미 구현되었는지 판단
         if(currentAuth.isAuthenticated()){
@@ -73,10 +79,24 @@ public class DynamicAuthorizationManager implements AuthorizationManager<Request
             if(CollUtil.isNotEmpty(hasAuth)){
                 return new AuthorizationDecision(true);
             }else{
+                denied(currentAuth, request, path, "역할에 이 주소 권한이 없음");
                 return new AuthorizationDecision(false);
             }
         }else{
             return new AuthorizationDecision(false);
         }
+    }
+
+    // 다온마켓 2-3 ⑤ 탐지: 로그인한 관리자가 권한 밖 기능을 부르면 남긴다(익명 요청은 401로 따로 끝난다)
+    private void denied(Authentication auth, HttpServletRequest request, String path, String reason) {
+        if (auth == null || auth instanceof AnonymousAuthenticationToken) {
+            return;
+        }
+        SecurityEventLogger.denied("access.denied.no_permission", "2-3")
+                .actor("admin:" + auth.getName())
+                .target("path:" + path)
+                .reason(reason)
+                .request(request)
+                .log();
     }
 }

@@ -72,7 +72,7 @@ public class AlipayServiceImpl implements AlipayService {
         try {
             formHtml = alipayClient.pageExecute(request).getBody();
         } catch (AlipayApiException e) {
-            e.printStackTrace();
+            org.slf4j.LoggerFactory.getLogger(AlipayServiceImpl.class).error("처리 중 오류", e);
         }
         return formHtml;
     }
@@ -86,7 +86,7 @@ public class AlipayServiceImpl implements AlipayService {
             signVerified = AlipaySignature.rsaCheckV1(params, alipayConfig.getAlipayPublicKey(), alipayConfig.getCharset(), alipayConfig.getSignType());
         } catch (AlipayApiException e) {
             log.error("결제 콜백 서명 검증 중 예외 발생!",e);
-            e.printStackTrace();
+            org.slf4j.LoggerFactory.getLogger(AlipayServiceImpl.class).error("처리 중 오류", e);
         }
         if (signVerified) {
             String tradeStatus = params.get("trade_status");
@@ -170,7 +170,7 @@ public class AlipayServiceImpl implements AlipayService {
         try {
             formHtml = alipayClient.pageExecute(request).getBody();
         } catch (AlipayApiException e) {
-            e.printStackTrace();
+            org.slf4j.LoggerFactory.getLogger(AlipayServiceImpl.class).error("처리 중 오류", e);
         }
         return formHtml;
     }

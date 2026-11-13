@@ -75,13 +75,13 @@ public class SmsHomeAdvertiseServiceImpl implements SmsHomeAdvertiseService {
             try {
                 start = sdf.parse(startStr);
             } catch (ParseException e) {
-                e.printStackTrace();
+                org.slf4j.LoggerFactory.getLogger(SmsHomeAdvertiseServiceImpl.class).error("처리 중 오류", e);
             }
             Date end = null;
             try {
                 end = sdf.parse(endStr);
             } catch (ParseException e) {
-                e.printStackTrace();
+                org.slf4j.LoggerFactory.getLogger(SmsHomeAdvertiseServiceImpl.class).error("처리 중 오류", e);
             }
             if (start != null && end != null) {
                 criteria.andEndTimeBetween(start, end);

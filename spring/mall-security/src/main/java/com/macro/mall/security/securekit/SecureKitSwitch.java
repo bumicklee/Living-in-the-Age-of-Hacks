@@ -1,5 +1,6 @@
 package com.macro.mall.security.securekit;
 
+import com.macro.mall.security.event.SecurityEventLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -26,8 +27,19 @@ import java.util.Locale;
 @Component
 public class SecureKitSwitch implements EnvironmentAware {
     private static final Logger LOG = LoggerFactory.getLogger("DAON-LAB");
-    /** 섹션 2에서 쓰는 이름(daon/lab.py의 SWITCHES와 같다) */
-    public static final List<String> KNOWN = List.of("ownership", "admin-default-deny", "request-dto", "egress", "host-allowlist");
+    /** 섹션 2·3·4에서 쓰는 이름(daon/lab.py의 SWITCHES와 같다). headers는 관리자 화면 nginx가 읽는다(infra/lab-banner) */
+    public static final List<String> KNOWN = List.of("ownership", "admin-default-deny", "request-dto", "egress", "host-allowlist",
+            "query-binding", "sort-allowlist", "html-sanitize", "upload",
+            "password-policy", "login-ratelimit", "login-timing", "reset-flow", "token-revoke", "step-up", "pii-encrypt", "pii-mask", "jwt-hardening",
+            "secret-canary", "startup-check", "error-mask", "docs-closed", "cors-allowlist", "sec-headers", "cache-hmac", "ip-trust",
+            "cache-type-allowlist", "signed-switches",
+            "audit-log", "status-codes", "log-mask", "audit-chain",
+            "fail-closed", "error-path", "input-limits", "resilience",
+            "money-race", "pay-webhook", "reconcile", "checkout-limits", "sms-budget", "server-price",
+            "safe-redirect", "private-cache",
+            "partner-scope", "token-binding", "partner-revoke",
+            "approval", "dual-approval", "ops-elevation",
+            "degraded-mode");
 
     private static volatile Environment env;
 
@@ -47,11 +59,29 @@ public class SecureKitSwitch implements EnvironmentAware {
             // 빈이 만들어지기 전(@PostConstruct 등)에도 같은 값을 읽도록 환경 변수를 직접 본다
             v = System.getenv("SECUREKIT_" + name.toUpperCase(Locale.ROOT).replace('-', '_') + "_ENABLED");
         }
-        return v == null || !v.trim().equalsIgnoreCase("false");
+        boolean enabled = v == null || !v.trim().equalsIgnoreCase("false");
+        if (!enabled && !trustOffValues()) {
+            return true;                                   // 7-미션: 서명이 맞지 않는 꺼짐 값은 믿지 않는다(기본값 켜짐)
+        }
+        return enabled;
+    }
+
+    /** 꺼짐 값을 믿어도 되나: 서명이 맞거나, 랩 스위치 signed-switches 를 껐을 때(영상용. 이 스위치만은 스스로 지켜지지 않는다) */
+    private static boolean trustOffValues() {
+        if (SwitchSignature.valid()) {
+            return true;
+        }
+        String own = System.getenv("SECUREKIT_SIGNED_SWITCHES_ENABLED");
+        return own != null && own.trim().equalsIgnoreCase("false");
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void report() {
+        if (SwitchSignature.hasOffSwitch(System.getenv()) && !trustOffValues()) {
+            LOG.warn("[랩 스위치] 서명이 맞지 않아 꺼짐 값을 믿지 않습니다: 모든 보호를 기본값(켜짐)으로 띄웁니다");
+            SecurityEventLogger.denied("config.signature.invalid", "7-mission")
+                    .actor("system:startup").target("config:switches.env").reason("서명이 맞지 않아 꺼짐 값을 믿지 않음").log();
+        }
         List<String> off = KNOWN.stream().filter(n -> !on(n)).toList();
         if (!off.isEmpty()) {
             LOG.warn("[랩 스위치] 꺼진 보호: {} (make switch K=<이름> V=on 으로 다시 켭니다)", String.join(", ", off));

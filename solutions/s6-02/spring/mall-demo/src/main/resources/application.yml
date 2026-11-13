@@ -1,0 +1,50 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: mall-demo
+  datasource:
+    url: jdbc:mysql://localhost:3306/mall?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: ${DAON_DB_USER}
+    password: ${DAON_DB_PASSWORD}
+  thymeleaf:
+    mode: HTML5
+    encoding: utf-8
+    servlet:
+      content-type: text/html
+    cache: false #개발 중에는 캐시를 끔, 그렇지 않으면 실시간 페이지를 볼 수 없음
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+mybatis:
+  mapper-locations:
+    - classpath:mapper/*.xml
+    - classpath*:com/**/mapper/*.xml
+
+logging:
+  level:
+    root: info
+    com.macro.mall: debug
+
+host:
+  mall:
+   admin: http://localhost:8080
+
+springdoc:
+  swagger-ui:
+    # Swagger UI 경로 변경
+    path: /swagger-ui.html
+    # Swagger UI 화면 활성화
+    enabled: true
+    # tag와 operation의 펼침 방식 설정용, 여기서는 모두 펼치지 않도록 설정
+    doc-expansion: 'none'
+  api-docs:
+    # api-docs 경로 변경
+    path: /v3/api-docs
+    # 켜기api-docs
+    enabled: true
+  group-configs:
+    - group: 'mall-demo'
+      packages-to-scan: com.macro.mall.demo.controller

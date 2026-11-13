@@ -1,0 +1,4 @@
+# 다온마켓 6-3: 앱이 시작될 때(설정이 만들어지는 순간) 시크릿 저장소에서 값을 읽고, 알려진 기본값이면 시작을 멈춘다.
+org.springframework.boot.env.EnvironmentPostProcessor=\
+com.macro.mall.security.secret.DaonVaultPostProcessor,\
+com.macro.mall.security.secret.StartupSecretCheck

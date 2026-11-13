@@ -1,0 +1,109 @@
+// 다온마켓 A5 · 수집기(Grafana Alloy) 설정. 수업 8-4.
+//
+// 읽는 곳 세 군데 → Loki 한 곳
+//   ① 다온 컨테이너 로그(도커 문지기 docker-proxy를 거쳐 읽기만) → SECURITY 줄은 stream=security, 나머지는 stream=app
+//   ② 감사 로그 파일(mall-admin /var/logs/daon/audit.jsonl, 8-3)                 → stream=audit
+//   ③ 도구 이벤트 파일(reports/security-events.jsonl, 섹션 7·8)                   → stream=tool
+//
+// 레이블은 app·stream·event·level·lesson만 붙인다. actor·target·trace_id처럼 값이 많은 것은 레이블로 두지 않는다(Loki가 느려진다).
+// SECURITY 줄을 못 찾으면: 앱 로그 형식(로거 이름 칸)이 바뀐 것이다. make collector-test 로 샘플 줄을 넣어 본다.
+
+discovery.docker "daon" {
+  host             = "tcp://docker-proxy:2375"
+  refresh_interval = "10s"
+  filter {
+    name   = "label"
+    values = ["com.docker.compose.project=daon"]
+  }
+}
+
+discovery.relabel "daon" {
+  targets = []
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "app"
+  }
+  // 수집 장치 자신의 로그는 모으지 않는다
+  rule {
+    source_labels = ["app"]
+    regex         = "loki|alloy|grafana|docker-proxy"
+    action        = "drop"
+  }
+}
+
+loki.source.docker "daon" {
+  host             = "tcp://docker-proxy:2375"
+  targets          = discovery.docker.daon.targets
+  relabel_rules    = discovery.relabel.daon.rules
+  refresh_interval = "10s"
+  forward_to       = [loki.process.containers.receiver]
+}
+
+loki.process "containers" {
+  // Spring 줄의 수준: "2026-11-10T10:00:00.000+09:00  WARN 1 --- [...] ..."
+  stage.regex {
+    expression = "^\\S+\\s+(?P<lvl>TRACE|DEBUG|INFO|WARN|ERROR)\\s"
+  }
+  // Express 줄의 수준: "WARN SECURITY {...}" (diffs/common/express-security-event.diff)
+  stage.regex {
+    expression = "^(?P<lvl>INFO|WARN|ERROR) SECURITY "
+  }
+  // SECURITY 줄: Spring은 로거 칸 "SECURITY<공백> : {json}", Express는 "SECURITY {json}"
+  stage.regex {
+    expression = "\\sSECURITY\\s+(?::\\s+)?(?P<payload>\\{.*\\})\\s*$"
+  }
+  stage.json {
+    source      = "payload"
+    expressions = { event = "event", lesson = "lesson" }
+  }
+  stage.template {
+    source   = "stream"
+    template = "{{ if .payload }}security{{ else }}app{{ end }}"
+  }
+  stage.labels {
+    values = { level = "lvl", event = "", lesson = "", stream = "" }
+  }
+  // SECURITY 줄은 JSON 부분만 줄로 남긴다(질의에서 | json 으로 바로 꺼내게). 나머지 줄은 그대로
+  stage.output {
+    source = "payload"
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+// ② 감사 로그 파일(이미 한 줄 JSON)
+local.file_match "audit" {
+  path_targets = [{"__path__" = "/daon/audit/daon/*.jsonl", "app" = "mall-admin", "stream" = "audit"}]
+  sync_period  = "10s"
+}
+
+loki.source.file "audit" {
+  targets    = local.file_match.audit.targets
+  forward_to = [loki.write.default.receiver]
+}
+
+// ③ 도구 이벤트 파일(make kev·upstream-status·ci-lint·deploy·audit-verify …)
+local.file_match "tool" {
+  path_targets = [{"__path__" = "/daon/reports/security-events.jsonl", "app" = "daon-tool", "stream" = "tool"}]
+  sync_period  = "10s"
+}
+
+loki.source.file "tool" {
+  targets    = local.file_match.tool.targets
+  forward_to = [loki.process.tool.receiver]
+}
+
+loki.process "tool" {
+  stage.json {
+    expressions = { event = "event", lesson = "lesson" }
+  }
+  stage.labels {
+    values = { event = "", lesson = "" }
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

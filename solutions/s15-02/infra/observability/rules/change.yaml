@@ -1,0 +1,43 @@
+# 다온마켓 A5 · 손으로 쓴 경보 규칙(15-2, 캡스톤 회고에서 나온 할 일). SECURITY_EVENTS.md 표에서 만들지 않는다(감사 로그 합계라서).
+#
+#   data.change.receiver_bulk  한 직원이 1시간 동안 주문 받는 사람 정보를 10건 넘게 바꿈(감사 로그 change.order.receiver, 15장 시작 모습)
+#
+# 캡스톤에서 막힌 것은 환불·권한 상승이고, 배송지 바꾸기는 정상 권한의 정상 기능이라 「막을 지점」이 없었다.
+# 그래서 남는 것은 탐지다. 랩 기준 10건/1시간은 고정값이다. 운영에서는 직원별 평소 건수를 기준선으로 쓴다.
+apiVersion: 1
+groups:
+- orgId: 1
+  name: data-change
+  folder: 다온마켓 경보
+  interval: 30s
+  rules:
+  - uid: change-order-receiver-bulk
+    title: data.change.receiver_bulk
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange: {from: 3600, to: 0}
+      datasourceUid: loki
+      model:
+        refId: A
+        queryType: instant
+        editorMode: code
+        expr: sum by (actor) (count_over_time({stream="audit"} | json actor="actor", action="action", result="result" | action="change.order.receiver" | result="ok" | __error__="" [1h]))
+    - refId: C
+      relativeTimeRange: {from: 0, to: 0}
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator: {type: gt, params: [10]}
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels: {event: data.change.receiver_bulk, severity: P2, lesson: 15-2, source: change.yaml}
+    annotations:
+      summary: 'data.change.receiver_bulk: 한 직원이 1시간에 주문 받는 사람 정보를 10건 넘게 바꿈'
+      description: '감사 로그 change.order.receiver(result ok) 건수, actor별 1시간. 바꾼 주문 ID는 감사 로그 target에 있다(값은 없다)'
+      runbook_url: docs/runbooks/01-first-hour.md
+    isPaused: false

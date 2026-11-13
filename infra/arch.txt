@@ -1,2 +1,8 @@
 # 지금 켠 아키텍처 단계. 한 줄에 하나: a02 → infra/compose.a02.yml을 compose.yml 위에 함께 쓴다.
-# 수업이 진행되며 한 줄씩 늘어난다(2-5에서 a02). 바꾸면 다음 make check·replay·up 때 스택에 반영된다.
+# 수업이 진행되며 한 줄씩 늘어난다(2-5에서 a02, 4-3에서 a03, 5-2에서 a04, 6-4에서 a01, 7-5에서 a08, 8-4에서 a05). 바꾸면 다음 make check·replay·up 때 스택에 반영된다.
+a02
+a03
+a04
+a01   # 6-4: 저장소 포트를 PC에 열지 않는다(infra/compose.a01.yml)
+a08   # 7-5: 로컬 CI(Gitea·러너·레지스트리, infra/compose.a08.yml). 7-4 사고 수업이 끝나면 랩이 세워 준다
+a05   # 8-4: 기록 모으기와 경보(Loki·수집기 Alloy·Grafana, infra/compose.a05.yml, infra/observability/). 알림은 랩 도구 Mailpit으로

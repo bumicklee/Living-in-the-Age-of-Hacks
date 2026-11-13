@@ -12,7 +12,7 @@ const US = {
   administrative_area: 'US-CA',
   postal_code: '94043',
   country: 'US',
-  telephone: '+16502530000'
+  telephone: '+16505550100'
 };
 
 describe('PayPal shipping address mapping (spec § 3.10)', () => {

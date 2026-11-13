@@ -1,0 +1,137 @@
+# 12-3 Express(EverShop): 같은 지문 비교를 kit.partnerScope(scope, { bind: true }) 옵션 하나로 켠다
+# - 토큰 발급은 파트너 입구가 넘긴 클라이언트 인증서(X-Daon-Client-Cert, CN = client_id)가 있어야 하고, 지문을 cnf {"x5t#S256"}에 넣는다
+# - 지문 = base64url(SHA-256(DER)) = Node crypto.X509Certificate.raw. 헤더는 파트너 입구(소켓 주소)에서 온 요청에서만 읽는다
+# - 적용: diffs/s12-02/express.diff 다음. cd express && git apply ../diffs/s12-03/express.diff
+
+diff --git a/packages/evershop/src/lib/secureKit/partnerScope.ts b/packages/evershop/src/lib/secureKit/partnerScope.ts
+index 6d5e60b..84d5897 100644
+--- a/packages/evershop/src/lib/secureKit/partnerScope.ts
++++ b/packages/evershop/src/lib/secureKit/partnerScope.ts
+@@ -8,10 +8,12 @@
+  * ② 토큰   Bearer, HS256 하나만, aud=daon-partner, partner_id             아니면 401
+  * ③ 만료   exp(15분)                                                    지났으면 401 + partner.denied.token_expired(INFO)
+  * ④ 범위   요구 범위가 토큰 scope에 있나                                 없으면 403 + partner.denied.scope(WARN)
++ * ③' 바인딩 12-3: kit.partnerScope(scope, { bind: true }) → 토큰 cnf.x5t#S256 = 게이트웨이가 넘긴 인증서(X-Daon-Client-Cert) 지문
++ *          다르거나 없으면 401 + token.denied.binding_mismatch(WARN). 헤더는 ①을 지난 요청에서만 읽는다(게이트웨이가 밖의 같은 헤더를 지운다)
+  * 범위는 「무슨 기능」, 조회 조건(daon_partner_order.app_id)은 「누구의 데이터」. 둘 다 쓴다.
+  * 서명 키는 DAON_PARTNER_TOKEN_KEY(32자 이상, 랩 값은 .env). Spring은 OpenBao transit(ES256, kid)을 쓴다【실측 예정: Express 키 체계는 5-2 diff와 맞출지 작성자 결정】.
+  */
+-import { randomUUID } from 'crypto';
++import { createHash, randomUUID, timingSafeEqual, X509Certificate } from 'crypto';
+ import { promises as dns } from 'dns';
+ import jwt from 'jsonwebtoken';
+ import type { Request, Response } from 'express';
+@@ -56,6 +58,20 @@ export async function fromPartnerGateway(request: Request): Promise<boolean> {
+   return gateways.has(clientAddress(request));
+ }
+ 
++/** 12-3: 파트너 입구가 확인한 클라이언트 인증서의 지문(x5t#S256 = base64url(SHA-256(DER)))과 CN. 없거나 못 읽으면 null */
++export async function clientCert(request: Request): Promise<{ thumbprint: string; cn: string | null } | null> {
++  if (!(await fromPartnerGateway(request))) return null;
++  const header = request.get('x-daon-client-cert');
++  if (!header) return null;
++  try {
++    const cert = new X509Certificate(decodeURIComponent(header));
++    const cn = (cert.subject.split('\n').find((l) => l.startsWith('CN=')) || '').slice(3) || null;
++    return { thumbprint: createHash('sha256').update(cert.raw).digest('base64url'), cn };
++  } catch (e) {
++    return null;
++  }
++}
++
+ export function signPartnerToken(appId: string, scopes: string[], extra: Record<string, unknown> = {}): { token: string; jti: string } {
+   const jti = randomUUID();
+   const token = jwt.sign({ partner_id: appId, scope: scopes.join(' '), ...extra }, tokenKey(), {
+@@ -72,7 +88,7 @@ function reject(response: Response, status: number, error: string, description?:
+ }
+ 
+ export const kit = {
+-  partnerScope(scope: string) {
++  partnerScope(scope: string, opts: { bind?: boolean } = {}) {
+     return async (request: Request, response: Response): Promise<PartnerPrincipal | null> => {
+       if (!(await fromPartnerGateway(request))) return reject(response, 404, 'not_found');
+       const path = `path:${request.originalUrl.split('?')[0]}`;
+@@ -93,6 +109,19 @@ export const kit = {
+       }
+       if (!claims || !claims.partner_id) return reject(response, 401, 'invalid_token', '파트너 토큰이 아님');
+       const actor = `partner:${claims.partner_id}`;
++      if (opts.bind) {
++        const cnf = claims.cnf && claims.cnf['x5t#S256'] ? String(claims.cnf['x5t#S256']) : null;
++        const cert = await clientCert(request);
++        const same = !!cnf && !!cert && cnf.length === cert.thumbprint.length
++          && timingSafeEqual(Buffer.from(cnf), Buffer.from(cert.thumbprint));
++        if (!same) {
++          securityEvent.denied('token.denied.binding_mismatch', '12-3', request, {
++            actor, target: path,
++            reason: !cnf ? '인증서에 묶이지 않은 토큰' : !cert ? '요청에 확인된 클라이언트 인증서 없음' : '토큰에 묶인 인증서와 요청 인증서가 다름'
++          });
++          return reject(response, 401, 'invalid_token', '인증서 바인딩 불일치');
++        }
++      }
+       const scopes = String(claims.scope || '').split(' ').filter(Boolean);
+       if (!scopes.includes(scope)) {
+         securityEvent.denied('partner.denied.scope', '12-2', request, {
+diff --git a/packages/evershop/src/modules/oms/api/daonPartnerExport/daonPartnerExport.ts b/packages/evershop/src/modules/oms/api/daonPartnerExport/daonPartnerExport.ts
+index 5045b65..786839f 100644
+--- a/packages/evershop/src/modules/oms/api/daonPartnerExport/daonPartnerExport.ts
++++ b/packages/evershop/src/modules/oms/api/daonPartnerExport/daonPartnerExport.ts
+@@ -5,7 +5,7 @@ import { kit } from '../../../../lib/secureKit/partnerScope.js';
+  * 다온마켓 12-2(T33) · GET /api/partner/orders/export  배정된 주문 한 번에(최대 1000). 범위 orders:export(기본 발급에서 빠짐).
+  */
+ export default async (request, response) => {
+-  const partner = await kit.partnerScope('orders:export')(request, response);
++  const partner = await kit.partnerScope('orders:export', { bind: true })(request, response);   // 12-3: 인증서 바인딩
+   if (!partner) return;
+   const items = (await pool.query(
+     `SELECT o.order_id AS id, o.order_number AS "orderSn", o.shipment_status AS status, o.meta_data ->> 'delivery_sn' AS "deliverySn"
+diff --git a/packages/evershop/src/modules/oms/api/daonPartnerOrders/daonPartnerOrders.ts b/packages/evershop/src/modules/oms/api/daonPartnerOrders/daonPartnerOrders.ts
+index 6d9b843..f51349a 100644
+--- a/packages/evershop/src/modules/oms/api/daonPartnerOrders/daonPartnerOrders.ts
++++ b/packages/evershop/src/modules/oms/api/daonPartnerOrders/daonPartnerOrders.ts
+@@ -6,7 +6,7 @@ import { kit } from '../../../../lib/secureKit/partnerScope.js';
+  * 범위(kit.partnerScope)와 조회 조건(daon_partner_order.app_id = 토큰의 partner_id)을 둘 다 쓴다.
+  */
+ export default async (request, response) => {
+-  const partner = await kit.partnerScope('orders:read:assigned')(request, response);
++  const partner = await kit.partnerScope('orders:read:assigned', { bind: true })(request, response);   // 12-3: 인증서 바인딩
+   if (!partner) return;
+   const page = Math.max(1, parseInt(String(request.query.page || '1'), 10) || 1);
+   const size = Math.min(100, Math.max(1, parseInt(String(request.query.size || '50'), 10) || 50));
+diff --git a/packages/evershop/src/modules/oms/api/daonPartnerToken/daonPartnerToken.ts b/packages/evershop/src/modules/oms/api/daonPartnerToken/daonPartnerToken.ts
+index 5d7ab15..b930adc 100644
+--- a/packages/evershop/src/modules/oms/api/daonPartnerToken/daonPartnerToken.ts
++++ b/packages/evershop/src/modules/oms/api/daonPartnerToken/daonPartnerToken.ts
+@@ -1,12 +1,13 @@
+ import { createHash, timingSafeEqual } from 'crypto';
+ import { pool } from '../../../../lib/postgres/connection.js';
+ import { securityEvent } from '../../../../lib/log/securityEvent.js';
+-import { fromPartnerGateway, signPartnerToken, TOKEN_SECONDS } from '../../../../lib/secureKit/partnerScope.js';
++import { clientCert, fromPartnerGateway, signPartnerToken, TOKEN_SECONDS } from '../../../../lib/secureKit/partnerScope.js';
+ 
+ /**
+  * 다온마켓 12-2(T33) · POST /api/partner/token  grant_type=client_credentials&client_id=…&client_secret=…[&scope=…]
+  * 15분 토큰(aud daon-partner). 요청 범위는 대장(daon_partner_app.scopes) 안에서만, orders:export는 기본 발급에서 뺀다.
+  * 비밀값은 SHA-256만 비교(상수 시간), 겹침 기간(retire_at_ms)이 지난 옛 값은 거부. Spring DaonPartnerTokenController와 같다.
++ * 12-3: 파트너 입구의 클라이언트 인증서(CN = client_id)가 있어야 발급하고, 그 지문을 cnf {"x5t#S256": …}에 넣는다.
+  */
+ const sha256 = (s: string) => createHash('sha256').update(s, 'utf8').digest('hex');
+ 
+@@ -35,8 +36,16 @@ export default async (request, response) => {
+   const allowed = String(app.scopes).split(' ').filter(Boolean);
+   const wanted = String(scope || 'orders:read:assigned').split(' ').filter(Boolean);
+   if (!wanted.length || !wanted.every((s) => allowed.includes(s))) return response.status(400).json({ error: 'invalid_scope' });
+-  const { token, jti } = signPartnerToken(clientId, wanted);
++  const cert = await clientCert(request);
++  if (!cert || cert.cn !== clientId) {
++    securityEvent.denied('token.denied.binding_mismatch', '12-3', request, {
++      actor: `partner:${clientId}`, target: 'path:/partner/token',
++      reason: !cert ? '발급 요청에 확인된 클라이언트 인증서 없음' : '인증서 주인(CN)과 client_id가 다름'
++    });
++    return response.status(401).json({ error: 'invalid_client' });
++  }
++  const { token, jti } = signPartnerToken(clientId, wanted, { cnf: { 'x5t#S256': cert.thumbprint } });
+   await pool.query('INSERT INTO daon_partner_token (jti, app_id, scopes, cnf, issued_ms, expires_ms) VALUES ($1, $2, $3, $4, $5, $6)',
+-    [jti, clientId, wanted.join(' '), null, now, now + TOKEN_SECONDS * 1000]);
++    [jti, clientId, wanted.join(' '), cert.thumbprint, now, now + TOKEN_SECONDS * 1000]);
+   return response.status(200).json({ access_token: token, token_type: 'Bearer', expires_in: TOKEN_SECONDS, scope: wanted.join(' ') });
+ };

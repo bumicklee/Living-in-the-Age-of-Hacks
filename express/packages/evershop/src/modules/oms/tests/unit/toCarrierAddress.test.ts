@@ -17,7 +17,7 @@ const US = {
   postal_code: '94043',
   sorting_code: null,
   country: 'US',
-  telephone: '+16502530000',
+  telephone: '+16505550100',
   extra: null
 };
 
@@ -33,7 +33,7 @@ describe('toCarrierAddress (spec § 3.10, D-15)', () => {
       province: 'US-CA',
       postcode: '94043',
       country: 'US',
-      phone: '+16502530000'
+      phone: '+16505550100'
     });
   });
 

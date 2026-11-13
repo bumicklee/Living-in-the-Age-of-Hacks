@@ -12,29 +12,48 @@ mybatis:
     - classpath:dao/*.xml
     - classpath*:com/**/mapper/*.xml
 
+daon:
+  cors:
+    allowed-origins: http://127.0.0.1:8088,http://localhost:8088 # 6-6: 교차 출처 호출을 받는 화면(정확히 같은 출처만)
+  jwt:
+    audience: daon-portal #5-2: 토큰을 받는 대상(회원 앱과 관리자 앱이 서로의 토큰을 못 쓰게)
+
 jwt:
   tokenHeader: Authorization #JWT저장된 요청 헤더
-  secret: mall-portal-secret #JWT암복호화에 사용하는 키
-  expiration: 604800 #JWT만료 시간(60*60*24*7)
+  # ✏️ 5-2: jwt.secret 설정을 지웠다. 서명 키는 금고(OpenBao)에 있고 앱은 공개키로 확인만 한다
+  expiration: 604800 #JWT만료 시간(60*60*24*7) ✏️ 4-8: 토큰 하나가 7일 동안 통한다(다온마켓 교육용 표시)
   tokenHead: 'Bearer '  #JWT페이로드에서 시작 부분 가져오기
+
+management:                        # 6-5: 관리용 엔드포인트는 별도 포트(8081)로. compose는 이 포트를 PC에 열지 않는다(컨테이너 안·같은 망에서만)
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health                # 노출 목록은 health 하나(설정 한 줄이 바뀌어도 env·heapdump가 열리지 않게)
+  endpoint:
+    health:
+      show-details: never
 
 secure:
   ignored:
     urls: #보안 경로 화이트리스트
       - /swagger-ui/
+      - /.well-known/jwks.json
       - /v3/api-docs/*
       - /*/*.html
       - /*/*.js
       - /*/*.css
       - /*/*.png
       - /favicon.ico
-      - /actuator/**
-      - /druid/**
       - /sso/**
       - /home/**
       - /product/**
       - /brand/**
       - /alipay/**
+      - /daon/product/search # [교육용 추가] 다온마켓 상품 검색(로그인 없이, 3-2·3-3)
+      - /daon/go # [교육용 추가] 로그인 뒤 이동(로그인 전에도 부른다, 11-1·11-2)
+      - /partner/** # [교육용 추가] 파트너 API(12-2). 고객 토큰이 아니라 파트너 토큰·파트너 입구로 지킨다(PartnerScopeInterceptor)
 
 springdoc:
   swagger-ui:

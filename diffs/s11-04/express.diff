@@ -1,0 +1,32 @@
+# 11-4 Express(EverShop): kit.noStoreAuthenticated() — 로그인한 고객의 응답에 Cache-Control: private, no-store
+# - 화면(pages/frontStore/all/[context]auth.js)과 API(api/global/[context]getCurrentCustomer[auth].js) 두 곳. 고객을 찾은 바로 그 자리에서
+# - 캐시(VCL) 고치기는 Spring 랩에서만 한다(A7 Varnish 뒤에는 mall-portal만 있다). 원칙은 같다: 인증 요청 pass, 오리진 헤더 존중, 오류 저장 안 함
+# - 적용: cd express && git apply ../diffs/s11-04/express.diff
+
+diff --git a/packages/evershop/src/modules/customer/api/global/[context]getCurrentCustomer[auth].js b/packages/evershop/src/modules/customer/api/global/[context]getCurrentCustomer[auth].js
+index 7da3cdd..d36a16f 100644
+--- a/packages/evershop/src/modules/customer/api/global/[context]getCurrentCustomer[auth].js
++++ b/packages/evershop/src/modules/customer/api/global/[context]getCurrentCustomer[auth].js
+@@ -58,5 +58,9 @@ export default async (request, response, next) => {
+   } else {
+     setContextValue(request, 'customer', currentCustomer);
+   }
++  // 다온마켓 11-4(kit.noStoreAuthenticated): 로그인한 고객의 API 응답은 공유 캐시에 남기지 않는다(캐시 키에 「누가」가 없다)
++  if (request.locals.customer || currentCustomer) {
++    response.set('Cache-Control', 'private, no-store');
++  }
+   next();
+ };
+diff --git a/packages/evershop/src/modules/customer/pages/frontStore/all/[context]auth.js b/packages/evershop/src/modules/customer/pages/frontStore/all/[context]auth.js
+index 3d44fa5..09eea55 100644
+--- a/packages/evershop/src/modules/customer/pages/frontStore/all/[context]auth.js
++++ b/packages/evershop/src/modules/customer/pages/frontStore/all/[context]auth.js
+@@ -37,6 +37,8 @@ export default async (request, response, next) => {
+       // Delete the password field
+       delete customer.password;
+       request.locals.customer = customer;
++      // 다온마켓 11-4(kit.noStoreAuthenticated): 로그인한 고객의 화면은 공유 캐시·브라우저 모두 저장하지 않는다
++      response.set('Cache-Control', 'private, no-store');
+       next();
+     }
+   }

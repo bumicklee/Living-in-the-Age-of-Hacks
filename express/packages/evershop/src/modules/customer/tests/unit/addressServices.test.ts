@@ -24,7 +24,7 @@ const SEED_ADDRESS = {
   postal_code: '94043',
   sorting_code: null,
   country: 'US',
-  telephone: '+16502530000',
+  telephone: '+16505550100',
   extra: { tax_id: 'A', note: 'keep me' },
   is_default: true,
   created_at: new Date('2026-01-01'),
@@ -79,7 +79,7 @@ registerAddressField({ id: 'note', type: 'text', label: 'Delivery note' });
 
 const VALID_US = {
   recipient: 'Jane Smith',
-  telephone: '(650) 253-0000',
+  telephone: '(650) 555-0100',
   address_line_1: '1600 Amphitheatre Pkwy',
   locality: 'Mountain View',
   administrative_area: 'US-CA',
@@ -123,7 +123,7 @@ describe('createCustomerAddress', () => {
     expect(table).toBe('customer_address');
     expect(data).toMatchObject({
       recipient: 'Jane Smith',
-      telephone: '+16502530000',
+      telephone: '+16505550100',
       administrative_area: 'US-CA',
       postal_code: '94043',
       country: 'US',
@@ -192,8 +192,8 @@ describe('updateCustomerAddress', () => {
   afterEach(() => resetAddressRuntime());
 
   it('validates the merged row, updates only the payload columns and leaves `extra` alone', async () => {
-    await updateCustomerAddress('addr-1', { telephone: '650 253 0001' }, {});
-    expect(lastUpdate().data).toEqual({ telephone: '+16502530001' });
+    await updateCustomerAddress('addr-1', { telephone: '650 555 0101' }, {});
+    expect(lastUpdate().data).toEqual({ telephone: '+16505550101' });
   });
 
   it('merges `extra` key by key: a value replaces, null deletes, absent keys are kept (D-11)', async () => {
@@ -216,8 +216,8 @@ describe('updateCustomerAddress', () => {
     configureAddressRuntime({
       getSettings: () => ({ ...ADDRESS_SETTINGS_DEFAULTS, nameFormat: 'split' })
     });
-    await updateCustomerAddress('addr-1', { telephone: '650 253 0002' }, {});
-    expect(lastUpdate().data).toEqual({ telephone: '+16502530002' });
+    await updateCustomerAddress('addr-1', { telephone: '650 555 0102' }, {});
+    expect(lastUpdate().data).toEqual({ telephone: '+16505550102' });
   });
 
   it('split mode: touching one name part requires the other, and both recompose recipient', async () => {

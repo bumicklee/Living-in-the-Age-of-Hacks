@@ -1,0 +1,44 @@
+# 다온마켓 로컬 CI(A8): 이미지를 로컬 레지스트리에 올린다. 교육용 랩 전용.
+# 7-6 완료 지점: 7-5(커밋 해시 고정·고정 검사·단기 계정)에 더해, 올린 이미지에 서명하고 출처 증명(커밋·작업 번호·시각)을 붙인다.
+# 서명 키는 저장소에 없다(러너에 읽기 전용으로 주는 랩 키 한 쌍. 회사에서는 KMS·시크릿 저장소의 키로 서명한다).
+name: build
+on:
+  push:
+    branches: [main]
+jobs:
+  lint:
+    runs-on: lab
+    steps:
+      - name: 이 커밋 가져오기와 고정 검사
+        run: |
+          git clone -q http://gitea:3000/daon/market.git src
+          git -C src checkout -q ${{ gitea.sha }}
+          cd src && python3 tools/ci/check_pins.py
+  publish:
+    needs: lint
+    runs-on: lab
+    steps:
+      - name: 외부 점검 단계
+        uses: daon-lab/scan-step@5a5d19082b7b6c817bfc96d2f08c6f28c7f3a39f   # v1, 확인 2026-11-09
+      - name: 이미지를 레지스트리에 올리고 서명한다(작업 동안만 쓰는 단기 계정)
+        env:
+          JOB_TOKEN: ${{ gitea.token }}
+          COMMIT: ${{ gitea.sha }}
+          RUN_NO: ${{ gitea.run_number }}
+        run: |
+          J=$(curl -fsS -X POST -H "Authorization: token $JOB_TOKEN" http://ci-broker:8000/token)
+          U=$(echo "$J" | python3 -c 'import sys,json;print(json.load(sys.stdin)["username"])')
+          P=$(echo "$J" | python3 -c 'import sys,json;print(json.load(sys.stdin)["password"])')
+          echo "단기 계정 $U 로 올립니다(비밀번호는 출력하지 않습니다)"
+          skopeo copy --dest-tls-verify=false --dest-creds "$U:$P" \
+            docker-archive:/ci-in/mall-portal.tar docker://registry:5000/daon/mall-portal:lesson
+          D=$(skopeo inspect --tls-verify=false --creds "$U:$P" docker://registry:5000/daon/mall-portal:lesson --format '{{.Digest}}')
+          echo "올렸습니다: daon/mall-portal@$D"
+          # 서명과 출처 증명: 투명성 로그(인터넷)는 쓰지 않는다. 확인은 deploy.sh가 공개 키로 한다
+          export DOCKER_CONFIG=$(mktemp -d)
+          printf '{"auths":{"registry.local:5000":{"auth":"%s"}}}' "$(printf '%s:%s' "$U" "$P" | base64 | tr -d '\n')" > "$DOCKER_CONFIG/config.json"
+          REF=registry.local:5000/daon/mall-portal@$D
+          cosign sign --key /keys/cosign.key --tlog-upload=false -y "$REF"
+          printf '{"commit":"%s","run":"%s","builtAt":"%s","repo":"daon/market","image":"daon/mall-portal"}' "$COMMIT" "$RUN_NO" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$DOCKER_CONFIG/provenance.json"
+          cosign attest --key /keys/cosign.key --tlog-upload=false -y --type custom --predicate "$DOCKER_CONFIG/provenance.json" "$REF"
+          echo "서명했습니다: $D (커밋 ${COMMIT%${COMMIT#????????????}})"

@@ -4,6 +4,7 @@
 #   - 고객 웹(A7): web/ 정적 파일 + /api/ → mall-portal. http://127.0.0.1:8088
 #   - 「교육용 랩」 띠(A10): 관리자 화면 nginx 설정에 띠 한 줄을 끼운다(infra/lab-banner/)
 #   - 가짜 외부 서비스(A11): 결제사·문자·택배·메일(Mailpit). 설명은 stubs/README.md
+#   - 섹션 4 랩 도구: 시간 건너뛰기(A13, DAON_LAB_CLOCK), 랩 유출 비밀번호 목록(seed/password, 가짜 목록), 앱이 부를 문자·메일 주소
 #
 # 모든 포트는 127.0.0.1에만 연다(DAON_BIND). 스텁은 두 스택 어느 쪽을 켜도 함께 뜬다.
 
@@ -26,6 +27,29 @@ services:
     volumes:
       - ../seed/spring/30-daon-bulk.sql:/docker-entrypoint-initdb.d/30-daon-bulk.sql:ro
 
+  # 섹션 4(로그인과 계정)가 쓰는 랩 설정. 앱 코드는 값이 없으면 같은 기본값을 쓴다
+  mall-portal:
+    environment:
+      DAON_LAB_CLOCK: "true"                                   # [랩 도구 A13] 시험이 시각을 앞으로 민다(LabClock)
+      DAON_PASSWORD_BREACHED_LIST: /daon/password/breached-top.txt
+      DAON_PUBLIC_BASE_URL: http://127.0.0.1:${DAON_WEB_PORT:-8088}   # 고객 웹 공개 주소(재설정 링크, 4-5)
+      DAON_SMS_URL: http://sms-stub:8000                       # 가짜 문자(4-5)
+      DAON_AUTHAPP_URL: http://authapp-stub:8000               # 가짜 인증 앱(4-7)
+      DAON_SMTP_HOST: mailpit                                  # 가짜 메일(4-5)
+      DAON_SMTP_PORT: "1025"
+      DAON_PII_MIGRATE: "true"                                 # 섹션 5(5-3): 이 앱 하나가 뜰 때 평문 개인정보 칸을 한 번 잠근다(랩 전용, 코드가 있을 때만 돈다)
+      DAON_LAB_BOOM: "true"                                    # [랩 도구 9-2] 일부러 예외를 내는 /daon/lab/boom을 등록(랩에서만)
+    cpus: 2                                                    # [랩 안전 9-1·9-4] 느린 정규식·재시도 측정 중에도 PC 전체가 멈추지 않게 CPU 2개까지
+    volumes:
+      - ../seed/password:/daon/password:ro
+
+  mall-admin:
+    environment:
+      DAON_LAB_CLOCK: "true"
+      DAON_PASSWORD_BREACHED_LIST: /daon/password/breached-top.txt
+    volumes:
+      - ../seed/password:/daon/password:ro
+
   web:
     profiles: [spring]
     image: nginx:1.30.6-alpine
@@ -42,13 +66,19 @@ services:
     networks: [daon]
 
   admin-web:
+    # nginx 공식 이미지는 templates/*.template의 ${환경 변수}를 채워 conf.d로 옮긴다(정의된 변수만).
+    # 방어 스위치(make switch, 3-5 headers)를 이 설정이 읽을 수 있게 템플릿으로 넣는다
+    env_file:
+      - path: ../.daon/switches.env
+        required: false
     volumes:
-      - ./lab-banner/admin-web.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./lab-banner/admin-web.conf:/etc/nginx/templates/default.conf.template:ro
+      - ./lab-banner/15-daon-switches.envsh:/docker-entrypoint.d/15-daon-switches.envsh:ro
 
   payment-stub:
     <<: *stub
     environment:
-      PAYMENT_WEBHOOK_SECRET: lab-fake-webhook-secret     # 랩 전용 가짜 값
+      PAYMENT_WEBHOOK_SECRET: ${DAON_PAYMENT_WEBHOOK_SECRET:-lab-fake-webhook-secret}     # 랩 전용 가짜 값(10-4: 앱은 OpenBao KV에서 같은 값을 읽는다)
     volumes: ["../stubs/payment:/app:ro"]
     ports: ["${DAON_BIND:-127.0.0.1}:${DAON_PAYMENT_PORT:-9101}:8000"]
 
@@ -56,6 +86,11 @@ services:
     <<: *stub
     volumes: ["../stubs/sms:/app:ro"]
     ports: ["${DAON_BIND:-127.0.0.1}:${DAON_SMS_PORT:-9102}:8000"]
+
+  authapp-stub:                                             # [랩 도구] 가짜 「다온 인증 앱」(4-7 번호 일치)
+    <<: *stub
+    volumes: ["../stubs/authapp:/app:ro"]
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_AUTHAPP_PORT:-9104}:8000"]
 
   courier-stub:
     <<: *stub

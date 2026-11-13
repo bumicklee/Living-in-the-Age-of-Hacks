@@ -1,0 +1,51 @@
+# 6-3 Express(EverShop)에서 고칠 곳: 시크릿을 저장소에서 읽고, 알려진 기본값이면 시작하지 않는다(점검표 E01·F23)
+# - E01: getCookieSecret.ts의 공개 고정 문자열 기본값('keyboard cat')을 지운다. 설정이 없거나 알려진 기본값이면 시작 실패.
+# - lib/util/secrets.ts(새 파일): 시작할 때 OpenBao KV에서 시크릿을 읽는 도우미(cookieSecret 등). PostgreSQL 연결 계정은 database 엔진 역할(동적 계정)로 같은 방식.
+# - 적용: cd express && git apply ../diffs/s6-03/express.diff  (확인: system.session.cookieSecret 없이 띄우면 시작 실패)
+# - 이 랩은 Express를 실행하지 않는다(적용 가능 여부만 git apply --check로 확인).
+
+diff --git a/packages/evershop/src/modules/auth/services/getCookieSecret.ts b/packages/evershop/src/modules/auth/services/getCookieSecret.ts
+--- a/packages/evershop/src/modules/auth/services/getCookieSecret.ts	2026-11-09 09:54:36
++++ b/packages/evershop/src/modules/auth/services/getCookieSecret.ts	2026-11-09 09:54:36
+@@ -1,4 +1,15 @@
+ import { getConfig } from '../../../lib/util/getConfig.js';
+ 
+-export const getCookieSecret = (): string =>
+-  getConfig('system.session.cookieSecret', 'keyboard cat');
++// 다온마켓 6-3(E01): 공개된 고정 문자열을 기본값으로 두지 않는다. 설정이 없거나 알려진 기본값이면 시작을 멈춘다
++const KNOWN_DEFAULTS = ['keyboard cat', 'changeme', 'secret', '123456'];
++
++export const getCookieSecret = (): string => {
++  const value = getConfig('system.session.cookieSecret', '') as string;
++  if (!value || KNOWN_DEFAULTS.includes(value.toLowerCase())) {
++    // 값은 적지 않는다(설정 키 이름만)
++    throw new Error(
++      'system.session.cookieSecret가 없거나 알려진 기본값이라 시작하지 않습니다(시크릿 저장소에서 받으세요)'
++    );
++  }
++  return value;
++};
+diff --git a/packages/evershop/src/lib/util/secrets.ts b/packages/evershop/src/lib/util/secrets.ts
+new file mode 100644
+--- /dev/null
++++ b/packages/evershop/src/lib/util/secrets.ts
+@@ -0,0 +1,19 @@
++// 다온마켓 6-3(E01): 시작할 때 시크릿 저장소(OpenBao KV v2)에서 앱 시크릿을 읽는다. 값은 어디에도 찍지 않는다.
++// 환경 변수: DAON_OPENBAO_ADDR(주소), DAON_OPENBAO_TOKEN_FILE(AppRole 로그인 대신 랩이 파일로 넣어 주는 짧은 토큰), DAON_OPENBAO_KV_PATH(예: secret/data/daon/evershop)
++import { readFileSync } from 'fs';
++
++export async function loadSecrets(): Promise<Record<string, string>> {
++  const addr = process.env.DAON_OPENBAO_ADDR;
++  const tokenFile = process.env.DAON_OPENBAO_TOKEN_FILE;
++  const path = process.env.DAON_OPENBAO_KV_PATH || 'secret/data/daon/evershop';
++  if (!addr || !tokenFile) {
++    return {};
++  }
++  const token = readFileSync(tokenFile, 'utf8').trim();
++  const res = await fetch(`${addr}/v1/${path}`, { headers: { 'X-Vault-Token': token } });
++  if (!res.ok) {
++    throw new Error(`시크릿 저장소 읽기 실패: HTTP ${res.status}`);
++  }
++  const body = (await res.json()) as { data?: { data?: Record<string, string> } };
++  return body.data?.data ?? {};
++}

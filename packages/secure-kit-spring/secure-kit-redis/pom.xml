@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.securekit</groupId>
+        <artifactId>secure-kit-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>secure-kit-redis</artifactId>
+    <name>secure-kit-redis</name>
+    <description>Redis 카운터 저장소(선택). 여러 대로 늘릴 때 속도 제한·멱등·폐기 목록을 공유한다</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.securekit</groupId>
+            <artifactId>secure-kit-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

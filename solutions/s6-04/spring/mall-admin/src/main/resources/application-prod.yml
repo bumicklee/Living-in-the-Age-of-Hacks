@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: jdbc:mysql://db:3306/mall?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: ${DAON_DB_USER}
+    password: ${DAON_DB_PASSWORD}
+    druid:
+      initial-size: 5 #커넥션 풀 초기 크기
+      min-idle: 10 #최소 유휴 연결 수
+      max-active: 20 #최대 연결 수
+      web-stat-filter:
+        exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*" #이 요청 데이터는 집계하지 않음
+      stat-view-servlet: #모니터링 웹 페이지 접속용 로그인 사용자 이름과 비밀번호
+        login-username: druid
+        login-password: ${DAON_DRUID_PASSWORD}
+  data:
+    redis:
+      host: redis # Redis서버 주소
+      database: 0 # Redis데이터베이스 인덱스(기본값 0)
+      port: 6379 # Redis서버 접속 포트
+      password: # Redis서버 접속 비밀번호(기본값 비어 있음)
+      timeout: 300ms # 연결 타임아웃(밀리초)
+
+minio:
+  endpoint: http://192.168.3.101:9090 #MinIO서비스 위치 주소
+  bucketName: mall #버킷 이름
+  # ✏️ 6-4: 앱 전용 접근 키(버킷 mall만)도 시크릿 저장소(OpenBao KV)에서 받는다. minio.accessKey·secretKey 설정 칸은 두지 않는다
+
+logging:
+  file:
+    path: /var/logs
+  level:
+    root: info
+    com.macro.mall: info
+
+logstash:
+  host: logstash

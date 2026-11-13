@@ -2,6 +2,7 @@ package com.macro.mall.controller;
 
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.api.CommonResult;
+import com.macro.mall.security.audit.Audited;
 import com.macro.mall.model.SmsCouponHistory;
 import com.macro.mall.service.SmsCouponHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +30,7 @@ public class SmsCouponHistoryController {
     @Operation(summary = "쿠폰 id, 사용 상태, 주문 번호로 발급 내역 페이징 조회")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
+    @Audited(action = "coupon.history.list", resource = "couponHistory")   // 다온마켓 8-미션: 쿠폰 사용 내역(회원 이름·주문 번호)
     public CommonResult<CommonPage<SmsCouponHistory>> list(@RequestParam(value = "couponId", required = false) Long couponId,
                                                            @RequestParam(value = "useStatus", required = false) Integer useStatus,
                                                            @RequestParam(value = "orderSn", required = false) String orderSn,

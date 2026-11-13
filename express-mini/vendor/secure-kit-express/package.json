@@ -1,0 +1,32 @@
+{
+  "name": "@secure-kit/express",
+  "version": "0.1.0",
+  "description": "막을 내용 하나 = 부품 하나. Express 4/5용 보안 미들웨어 24개(다온마켓 랩 secure-kit)",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node --check index.js && for f in src/*.js; do node --check \"$f\" || exit 1; done"
+  },
+  "keywords": ["express", "security", "middleware", "secure-kit"],
+  "license": "MIT",
+  "private": true,
+  "dependencies": {}
+}

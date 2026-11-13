@@ -1,0 +1,40 @@
+# 다온마켓 A5 · 수집기가 가린 줄 경보(수업 8-5). 손으로 쓴 규칙(SECURITY_EVENTS.md 표의 log.leak.masked_at_collector 줄).
+# 수집기(alloy/config.alloy)는 가린 줄에 masked_at_collector="true"·leak=<무엇> 레이블을 붙인다.
+# 앱 단계(WebLogAspect·MaskingConverter)가 놓쳤다는 뜻이다: 원천을 고친다. 한 번이라도 울린다.
+apiVersion: 1
+groups:
+- orgId: 1
+  name: collector
+  folder: 다온마켓 경보
+  interval: 30s
+  rules:
+  - uid: col-log-leak-masked
+    title: log.leak.masked_at_collector
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange: {from: 600, to: 0}
+      datasourceUid: loki
+      model:
+        refId: A
+        queryType: instant
+        editorMode: code
+        expr: sum by (app, leak) (count_over_time({masked_at_collector="true"} [10m]))
+    - refId: C
+      relativeTimeRange: {from: 0, to: 0}
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator: {type: gt, params: [0]}
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels: {event: log.leak.masked_at_collector, severity: P2, lesson: 8-5, source: collector.yaml}
+    annotations:
+      summary: 'log.leak.masked_at_collector: 수집기가 {{ .Labels.app }} 줄에서 {{ .Labels.leak }} 모양 값을 가림(앱 마스킹이 놓침)'
+      description: '앱 단계가 놓쳤다. 원천(어느 로그 줄이 값을 찍었나)을 고친다. 값은 남기지 않는다'
+      runbook_url: docs/runbooks/log.leak.masked_at_collector.md
+    isPaused: false

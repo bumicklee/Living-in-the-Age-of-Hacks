@@ -268,7 +268,7 @@ const SPLIT: ResolvedAddressSchema = {
 
 const validUS: AddressRow = {
   recipient: 'Jane Smith',
-  telephone: '+1 650 253 0000',
+  telephone: '+1 650 555 0100',
   address_line_1: '1600 Amphitheatre Pkwy',
   locality: 'Mountain View',
   administrative_area: 'US-CA',
@@ -609,7 +609,7 @@ describe('validateAddressAgainstSchema — split names (§ 3.12)', () => {
 
   it('lets a legacy row update that touches only the telephone pass', async () => {
     const previous: AddressRow = { ...validUS, given_name: null, family_name: null };
-    const merged: AddressRow = { ...previous, telephone: '+1 650 253 0001' };
+    const merged: AddressRow = { ...previous, telephone: '+1 650 555 0101' };
     const result = await validateAddressAgainstSchema(merged, SPLIT, { previous });
     expect(result.valid).toBe(true);
   });
@@ -857,7 +857,7 @@ describe('validateAddress', () => {
   it('forwards previous for the split-name rule', async () => {
     resolveAddressSchema.mockReturnValue(SPLIT);
     const previous: AddressRow = { ...validUS, given_name: null, family_name: null };
-    const result = await validateAddress({ ...previous, telephone: '+1 650 253 0002' }, { previous });
+    const result = await validateAddress({ ...previous, telephone: '+1 650 555 0102' }, { previous });
     expect(result.valid).toBe(true);
     resolveAddressSchema.mockReturnValue(US);
   });

@@ -1,0 +1,19 @@
+# 7-3 Express(EverShop)에서 고칠 곳: 원본 보안 패치 반영 기록 표(spring/UPSTREAM.md와 같은 칸)
+# - EverShop은 GPL-3.0이라 포크 소스 전체를 공개 저장소에 둔다(express/UPSTREAM.md 3행). 원본이 보안 패치를 내면 같은 절차로 들여오고 표에 한 줄을 더한다.
+# - 적용: cd express && git apply ../diffs/s7-03/express.diff
+
+diff --git a/UPSTREAM.md b/UPSTREAM.md
+index 0382626..f2fee8a 100644
+--- a/UPSTREAM.md
++++ b/UPSTREAM.md
+@@ -10,3 +10,10 @@
+ 
+ - 아직 없습니다. 랩 이미지는 `../infra/docker/evershop.Dockerfile`(원본 `Dockerfile`과 같은 순서, 기반 이미지만 `node:20.19.5-alpine`으로 고정)로 만듭니다.
+ - 수업별로 고칠 곳은 `../course/diffs/<수업>/express.diff`로 줍니다(교육용-소스-설계 9절).
++
++## 원본 보안 패치 반영 기록 (7-3)
++
++원본이 낸 보안 패치는 포크로 저절로 오지 않습니다. 패치를 들여올 때마다 한 줄을 더합니다. 목표는 공개 뒤 72시간 안에 반영입니다(법정 기준이 아니라 운영 목표).
++
++| 원본 커밋 | 공개 시각 | 반영 시각 | 걸린 시간 | 충돌 |
++|---|---|---|---|---|

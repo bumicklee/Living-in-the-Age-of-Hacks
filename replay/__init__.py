@@ -41,8 +41,14 @@ def all_modules() -> dict[str, object]:
     return dict(sorted(out.items()))
 
 
+EXTRA = {"T18D": "deserialize_cache_type", "T20X": "audit_tamper", "T46": "f46_error_path",   # 새 T 번호를 주지 않는 방어 확인 재연(점수판에 세지 않는다)
+         "T14-3": "r14_03_slow_dependency", "TR14-3": "r14_03_slow_dependency"}                  # 14-3 회귀 재연(make replay R=14-3)
+
+
 def get(t: str):
     key = "T" + str(t).upper().lstrip("T").zfill(2)
+    if key in EXTRA:
+        return importlib.import_module(f"replay.{EXTRA[key]}")
     mods = all_modules()
     if key not in mods:
         have = ", ".join(mods) or "없음"

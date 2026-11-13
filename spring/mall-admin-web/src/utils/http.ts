@@ -54,6 +54,29 @@ http.interceptors.response.use(
     }
   },
   error => {
+    // 다온마켓 8-4(F32): 서버가 이제 로그인 필요를 HTTP 401, 권한 없음을 HTTP 403으로 보낸다(본문 모양은 그대로).
+    // axios는 2xx가 아니면 여기로 오므로, 위와 같은 안내(다시 로그인)를 여기서도 한다
+    const res: CommonResult<unknown> | undefined = error.response?.data
+    const status: number | undefined = error.response?.status
+    if (status === 401 || status === 403) {
+      ElMessage({
+        message: res?.message || (status === 401 ? '로그인이 필요합니다' : '권한이 없습니다'),
+        type: 'error',
+        duration: 3 * 1000,
+      })
+      if (status === 401) {
+        ElMessageBox.confirm('로그아웃되었습니다. 취소하고 이 페이지에 계속 머물거나 다시 로그인할 수 있습니다', '로그아웃 확인', {
+          confirmButtonText: '다시 로그인',
+          cancelButtonText: '취소',
+          type: 'warning',
+        }).then(() => {
+          const userStore = useUserStore()
+          userStore.fedLogout()
+          location.reload()
+        })
+      }
+      return Promise.reject('error')
+    }
     // 요청 예외 전역 처리
     console.log('error' + error)
     ElMessage({

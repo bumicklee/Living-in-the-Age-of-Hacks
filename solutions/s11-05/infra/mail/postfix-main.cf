@@ -1,0 +1,16 @@
+# 다온마켓 주문 메일 발송 서버(Postfix) 설정 사본 [회사 설정, 교육용 가짜] (11-5, T31)
+#
+# 랩에는 이 서버가 없다(Mailpit은 메일을 받는 쪽 도구다). 회사의 실제 메일 서버 설정을 저장소에 사본으로 두고 점검만 한다(make audit-mail).
+# 아래 버전 줄은 서버에서 `postconf mail_version`으로 읽어 적어 둔 값이다(점검 스크립트가 읽는다).
+# mail_version: 3.9.1
+# 11-5: 패치된 버전으로 올렸다(SMTP 밀반입 대응이 들어간 판). 버전 기준은 Postfix 공식 안내(smtp-smuggling)【출처 확인】
+
+myhostname = mail.daon.example
+mydomain = daon.example
+mynetworks = 127.0.0.0/8 10.20.0.0/16
+smtpd_banner = $myhostname ESMTP
+# 11-5: 메일 끝을 「CR LF . CR LF」 하나로만 보게 한다. 줄 끝이 LF 하나뿐인 줄은 고쳐 읽고(normalize), 우리 망 안쪽은 예외
+smtpd_forbid_bare_newline = normalize
+smtpd_forbid_bare_newline_exclusions = $mynetworks
+# 11-5: 응답을 기다리지 않고 명령을 몰아 보내는 클라이언트를 거부(공식 안내의 짧은 대책)
+smtpd_data_restrictions = reject_unauth_pipelining

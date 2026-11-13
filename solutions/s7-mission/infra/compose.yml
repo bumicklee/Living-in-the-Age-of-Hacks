@@ -1,0 +1,290 @@
+# 다온마켓 랩 · 아키텍처 A0 「시작」(교육용-소스-설계.md 3.1절)
+#
+#   make up STACK=spring    → MySQL·Redis·RabbitMQ·MongoDB·MinIO + mall-admin·mall-portal(+관리자 화면)
+#   make up STACK=express   → PostgreSQL + EverShop
+#
+# A0는 "많은 회사의 출발점"이다. 일부러 이렇게 둔다(course/BASELINE.md의 출처 표시):
+#   - [회사 설정] DB·Redis·RabbitMQ·MongoDB·MinIO 포트가 전부 PC에 열려 있다(T16).
+#   - [회사 설정] Redis·MongoDB는 비밀번호가 없다. MySQL·RabbitMQ·MinIO는 원본 기본값(root/root, mall/mall, minioadmin).
+#   - [회사 설정] 관리자 API(8080)와 고객 API(8085)가 같은 망·같은 PC 입구에 있다.
+#   - 망은 하나(daon). A1에서 edge·app·data·admin으로 나눈다.
+# 단, PC 밖(같은 와이파이)에서는 닿지 않도록 기본 바인드 주소는 127.0.0.1이다(infra/.env의 DAON_BIND).
+#
+# 모든 이미지는 버전을 고정했고 amd64·arm64가 둘 다 있다(2026-11-07 확인).
+# mem_limit 합계: spring 약 3.6GB, express 약 1.3GB(8GB PC에서는 STACK을 하나만 켠다).
+
+name: daon
+
+x-app-env: &spring-app-env
+  # 원본 application-prod.yml을 그대로 쓰고(호스트 이름 db·redis·mongo·rabbit), 랩에서 달라야 하는 값만 덮는다.
+  SPRING_PROFILES_ACTIVE: prod
+  # MySQL 8.4의 기본 인증(caching_sha2_password)은 TLS 없이 공개키 조회가 필요하다
+  SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/mall?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true
+  MINIO_ENDPOINT: http://minio:9000
+  LOGSTASH_HOST: 127.0.0.1
+  TZ: Asia/Seoul
+  # 6-2: 설정 파일의 자리 표시를 채우는 값. 값은 infra/.env(가짜 값, git에 넣지 않음)에서 온다. 6-3에서 시크릿 저장소로 옮긴다
+  # 6-3: DB 계정·모니터링 비밀번호는 환경 변수로 넘기지 않는다. 앱이 시작할 때 시크릿 저장소(OpenBao)에서 받는다
+  # 6-4: 메시지 큐·MongoDB·파일 창고 접속 비밀도 환경 변수로 넘기지 않는다. 시크릿 저장소(OpenBao KV)에서 받는다
+  # [다온마켓 추가] 일반 로그 줄에도 요청 추적 번호를 [..]로 붙인다(TraceIdFilter가 MDC trace_id에 넣는다, 랩-설계.md 11절)
+  LOGGING_PATTERN_CORRELATION: "[%X{trace_id:-}] "
+  # 7-미션: 방어 스위치 파일의 서명 키(랩 전용 가짜 값). 파일(.daon/switches.env) 밖에 둔다. 앱은 서명이 맞지 않는 꺼짐 값을 믿지 않는다
+  DAON_SWITCH_SIGN_KEY: ${DAON_SWITCH_SIGN_KEY:-lab-fake-switch-sign-0001}
+
+# [다온마켓 추가] 방어 스위치(make switch, 랩-설계.md 12절). 파일이 없으면 모든 보호가 켜진 상태(기본)
+x-switches: &switches
+  env_file:
+    - path: ../.daon/switches.env
+      required: false
+
+services:
+  # ───────────────────────── Spring 스택(mall 포크) ─────────────────────────
+  mysql:
+    profiles: [spring]
+    image: mysql:8.4.13
+    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    environment:
+      MYSQL_ROOT_PASSWORD: root          # [원본 기본값] mall 개발 설정
+      MYSQL_DATABASE: mall
+      TZ: Asia/Seoul
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init/00-users.sql:/docker-entrypoint-initdb.d/00-users.sql:ro
+      - ../spring/document/sql/mall.sql:/docker-entrypoint-initdb.d/10-mall.sql:ro
+      - ../seed/spring/20-daon-accounts.sql:/docker-entrypoint-initdb.d/20-daon-accounts.sql:ro
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_MYSQL_PORT:-3306}:3306"]
+    mem_limit: 768m
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -uroot -proot -e 'SELECT 1 FROM mall.ums_member LIMIT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 20s
+    networks:
+      daon: { aliases: [db] }
+
+  redis:
+    profiles: [spring]
+    image: redis:7.4.12
+    command: ["redis-server", "--appendonly", "yes", "--protected-mode", "no"]   # [회사 설정] 비밀번호 없음(T16)
+    volumes: [redis-data:/data]
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_REDIS_PORT:-6379}:6379"]
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [daon]
+
+  rabbitmq:
+    profiles: [spring]
+    image: rabbitmq:4.2.9-management
+    hostname: rabbit
+    # healthcheck(docker exec)도 같은 사용자로 돌게 한다. root로 돌면 .erlang.cookie를 root 소유로 먼저 만들어 서버가 못 뜬다
+    user: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: mall        # [원본 기본값] application-prod.yml의 mall/mall
+      RABBITMQ_DEFAULT_PASS: mall
+      RABBITMQ_DEFAULT_VHOST: /mall
+    volumes: [rabbit-data:/var/lib/rabbitmq]
+    ports:
+      - "${DAON_BIND:-127.0.0.1}:${DAON_RABBIT_PORT:-5672}:5672"
+      - "${DAON_BIND:-127.0.0.1}:${DAON_RABBIT_UI_PORT:-15672}:15672"
+    mem_limit: 384m
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 20s
+    networks:
+      daon: { aliases: [rabbit] }
+
+  mongo:
+    profiles: [spring]
+    image: mongo:7.0.28
+    command: ["mongod", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]   # [회사 설정] 인증 없음(T16)
+    volumes: [mongo-data:/data/db]
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_MONGO_PORT:-27017}:27017"]
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+    networks: [daon]
+
+  minio:
+    profiles: [spring]
+    # MinIO 공식 이미지(minio/minio)는 Docker Hub에서 내려갔다. 같은 MinIO 소스를 빌드해 올리는
+    # 커뮤니티 이미지(Pigsty, AGPL-3.0, 관리 화면 포함)를 고정 버전으로 쓴다.
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: minioadmin        # [원본 기본값] mall 설정의 accessKey/secretKey
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes: [minio-data:/data]
+    ports:
+      - "${DAON_BIND:-127.0.0.1}:${DAON_MINIO_PORT:-9000}:9000"
+      - "${DAON_BIND:-127.0.0.1}:${DAON_MINIO_UI_PORT:-9001}:9001"
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [daon]
+
+  minio-init:
+    profiles: [spring]
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    entrypoint: ["/bin/sh", "/init.sh"]
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes: ["./minio/init.sh:/init.sh:ro"]
+    depends_on:
+      minio: { condition: service_healthy }
+    restart: "no"
+    mem_limit: 64m
+    networks: [daon]
+
+  mall-admin:
+    profiles: [spring]
+    build:
+      context: ../spring
+      dockerfile: ../infra/docker/mall.Dockerfile
+      target: mall-admin
+    image: daon/mall-admin:dev
+    <<: *switches
+    environment:
+      <<: *spring-app-env
+      # [교육용 추가] 다온 운영 도구(8095)를 부를 때 쓰는 이름. 2-6에서 Host 허용 목록으로 쓴다
+      MINIO_PUBLIC_ENDPOINT: "http://127.0.0.1:${DAON_MINIO_PORT:-9000}"
+      DAON_OPS_HOSTS: "127.0.0.1:${DAON_OPS_PORT:-8095},localhost:${DAON_OPS_PORT:-8095}"
+    ports:
+      - "${DAON_BIND:-127.0.0.1}:${DAON_ADMIN_API_PORT:-8080}:8080"   # [회사 설정] 관리자 API가 고객 API와 같은 입구
+      - "${DAON_BIND:-127.0.0.1}:${DAON_OPS_PORT:-8095}:8095"         # [교육용 추가] 다온 운영 도구(로그인 없음, 2-6)
+    # 랩 안의 「인터넷」에 있는 가짜 이미지 공급사 이름(공개 DNS 흉내)
+    extra_hosts: ["img.partner-cdn.example:203.0.113.20"]
+    mem_limit: 768m
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:8081/actuator/health"]   # 6-5: 관리 포트(PC에 열지 않음)
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 20s
+    # A0: 관리자 앱이 랩의 「인터넷」(internet 망)으로 바로 나간다. A2(2-5)에서 이그레스 프록시로만 나가게 바꾼다
+    networks: [daon, internet]
+
+  mall-portal:
+    profiles: [spring]
+    build:
+      context: ../spring
+      dockerfile: ../infra/docker/mall.Dockerfile
+      target: mall-portal
+    image: daon/mall-portal:dev
+    <<: *switches
+    environment: *spring-app-env
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_PORTAL_API_PORT:-8085}:8085"]
+    mem_limit: 768m
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      mongo: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:8081/actuator/health"]   # 6-5: 관리 포트(PC에 열지 않음)
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 20s
+    networks: [daon]
+
+  admin-web:
+    profiles: [spring]
+    build:
+      context: ../spring/mall-admin-web
+      dockerfile: ../../infra/docker/mall-admin-web.Dockerfile
+      args:
+        VITE_BASE_SERVER_URL: http://127.0.0.1:${DAON_ADMIN_API_PORT:-8080}
+    image: daon/mall-admin-web:dev
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_ADMIN_WEB_PORT:-8090}:80"]
+    mem_limit: 64m
+    networks: [daon]
+
+  partner-cdn:
+    # 가짜 이미지 공급사(랩 안의 「인터넷」). 2-5의 정상 요청이 여기서 상품 이미지를 받는다
+    profiles: [spring]
+    image: nginx:1.30.6-alpine
+    volumes: ["../stubs/partner-cdn/html:/usr/share/nginx/html:ro"]
+    mem_limit: 32m
+    networks:
+      internet: { ipv4_address: 203.0.113.20 }
+
+  # ───────────────────────── Express 스택(EverShop 포크) ─────────────────────────
+  postgres:
+    profiles: [express]
+    image: postgres:16.15-alpine
+    environment:
+      POSTGRES_USER: postgres            # [원본 기본값] EverShop docker-compose.yml
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      TZ: Asia/Seoul
+    volumes: [pg-data:/var/lib/postgresql/data]
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_PG_PORT:-5432}:5432"]
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [daon]
+
+  evershop:
+    profiles: [express]
+    build:
+      context: ../express
+      dockerfile: ../infra/docker/evershop.Dockerfile
+    image: daon/evershop:dev
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: postgres
+      DB_SSLMODE: disable
+    volumes: [evershop-media:/app/media]
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_EVERSHOP_PORT:-3000}:3000"]
+    mem_limit: 1024m
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+    networks: [daon]
+
+networks:
+  daon: {}
+  # 랩 안의 「인터넷」. 사설 대역이 아닌 문서용 주소(203.0.113.0/24, RFC 5737 TEST-NET-3)를 써서 「밖」처럼 보이게 한다
+  internet:
+    ipam:
+      config: [{ subnet: 203.0.113.0/24 }]
+
+volumes:
+  mysql-data: {}
+  redis-data: {}
+  rabbit-data: {}
+  mongo-data: {}
+  minio-data: {}
+  pg-data: {}
+  evershop-media: {}

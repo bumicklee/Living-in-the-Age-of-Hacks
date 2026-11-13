@@ -1,0 +1,19 @@
+{
+  "name": "express-shop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "15-4 수업용 회사 서비스 흉내(Express). 완료 지점: secure-kit 부품 셋(error-response·rate-limit.login·audit)",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@secure-kit/express": "file:../../secure-kit-express",
+    "express": "4.21.2"
+  }
+}

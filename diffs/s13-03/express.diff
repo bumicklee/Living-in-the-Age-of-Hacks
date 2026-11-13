@@ -1,0 +1,128 @@
+# 13-3 Express(EverShop): 환불(createOrderRefund)이 refundOrder()를 바로 부르지 않고 승인 서비스(A10)에 요청 → 서명된 승인 토큰 확인 → 토큰 속 금액으로만 실행
+# - 새 lib/secureKit/approval.ts: requestApproval(관리자 토큰·X-Trace-Id를 그대로 넘김) · verifyApprovalToken(ES256 공개키 DAON_APPROVAL_PUBLIC_KEY, 종류·대상·만료·1회용 번호)
+# - EverShop 원본 refundOrder()는 이미 「남은 결제 금액 이하」를 확인한다(좋은 예). 바뀌는 것은 「누가 실행을 허락하느냐」
+# - 이벤트: refund.denied.no_approval(Spring과 같은 이름, target order:<uuid>)
+# - 적용: diffs/common/express-security-event.diff·express-trace-id.diff 다음. cd express && git apply ../diffs/s13-03/express.diff
+# - 실행 랩 전 확인할 것: 승인 서비스에 EverShop 주문(uuid)용 입구 POST /approvals/refund-order와 EverShop 관리자 토큰 확인이 아직 없다(Spring 관리자 토큰만 확인).
+#   공개키는 금고 transit/keys/daon-approval에서 읽어 DAON_APPROVAL_PUBLIC_KEY로 넣는다
+
+diff --git a/packages/evershop/src/lib/secureKit/approval.ts b/packages/evershop/src/lib/secureKit/approval.ts
+new file mode 100644
+index 0000000..effc122
+--- /dev/null
++++ b/packages/evershop/src/lib/secureKit/approval.ts
+@@ -0,0 +1,67 @@
++/**
++ * 다온마켓 13-3(Express): 승인 서비스(A10)에 「요청」만 하고, 승인 서비스가 서명한 승인 토큰을 확인해야만 실행한다.
++ * Spring의 DaonApprovalClient·DaonApprovalToken·DaonRefundExecutor와 같은 일(course/SECURITY_EVENTS.md 같은 이벤트 이름).
++ *
++ *   const a = await requestApproval(request, { orderId, amount });             // 요청만(관리자 토큰·X-Trace-Id를 그대로 넘긴다)
++ *   const p = a.status === 'APPROVED' ? verifyApprovalToken(a.token, 'refund', orderId) : null;
++ *
++ * - 확인은 승인 서비스 서명 키의 공개키(DAON_APPROVAL_PUBLIC_KEY, PEM)로 앱 안에서 한다. 서명은 승인 서비스만 한다(키는 금고 안).
++ * - 1회용 번호(jti)는 이 프로세스 메모리에 둔다(인스턴스 하나 기준. 여러 대면 DB 유니크 키로 옮긴다).
++ * - 승인 서비스가 안 닿으면 거부로 본다(fail-closed).
++ */
++import { createPublicKey, verify } from 'crypto';
++import type { Request } from 'express';
++
++const BASE = process.env.DAON_APPROVAL_URL || '';
++const PUBLIC_KEY = process.env.DAON_APPROVAL_PUBLIC_KEY || '';
++const used = new Map<string, number>();
++
++export type ApprovalResult = { status: string; id?: string; token?: string; reason?: string };
++
++export async function requestApproval(request: Request, body: Record<string, unknown>): Promise<ApprovalResult> {
++  if (!BASE) {
++    return { status: 'DENIED', reason: '승인 서비스 주소 없음(A10)' };
++  }
++  try {
++    const res = await fetch(`${BASE}/approvals/refund-order`, {
++      method: 'POST',
++      headers: {
++        'Content-Type': 'application/json',
++        Authorization: request.get('authorization') || '',
++        'X-Trace-Id': (request as any).traceId || ''
++      },
++      body: JSON.stringify(body),
++      signal: AbortSignal.timeout(5000)
++    });
++    if (res.status >= 500) {
++      return { status: 'DENIED', reason: `승인 서비스 HTTP ${res.status}` };
++    }
++    return (await res.json()) as ApprovalResult;
++  } catch (e) {
++    return { status: 'DENIED', reason: '승인 서비스에 닿지 않음' };
++  }
++}
++
++/** 서명·종류·대상·만료·1회용 번호를 본다. 맞으면 내용, 아니면 null */
++export function verifyApprovalToken(token: string | undefined, kind: string, target: string): Record<string, any> | null {
++  try {
++    if (!token || !PUBLIC_KEY) return null;
++    const [h, p, s] = token.split('.');
++    if (!h || !p || !s) return null;
++    const header = JSON.parse(Buffer.from(h, 'base64url').toString());
++    if (header.alg !== 'ES256' || header.typ !== 'daon-approval') return null;
++    const ok = verify('sha256', Buffer.from(`${h}.${p}`), { key: createPublicKey(PUBLIC_KEY), dsaEncoding: 'ieee-p1363' },
++      Buffer.from(s, 'base64url'));
++    if (!ok) return null;
++    const body = JSON.parse(Buffer.from(p, 'base64url').toString());
++    if (body.kind !== kind || String(body.order_uuid ?? body.group) !== target) return null;
++    const now = Math.floor(Date.now() / 1000);
++    if (!(Number(body.exp) > now)) return null;
++    for (const [k, exp] of used) if (exp < now) used.delete(k);
++    if (used.has(body.jti)) return null;
++    used.set(body.jti, Number(body.exp));
++    return body;
++  } catch (e) {
++    return null;
++  }
++}
+diff --git a/packages/evershop/src/modules/oms/api/createOrderRefund/createOrderRefund.ts b/packages/evershop/src/modules/oms/api/createOrderRefund/createOrderRefund.ts
+index f365a1c..d7e547a 100644
+--- a/packages/evershop/src/modules/oms/api/createOrderRefund/createOrderRefund.ts
++++ b/packages/evershop/src/modules/oms/api/createOrderRefund/createOrderRefund.ts
+@@ -1,5 +1,7 @@
+ import { error } from '../../../../lib/log/logger.js';
+-import { INTERNAL_SERVER_ERROR, OK } from '../../../../lib/util/httpStatus.js';
++import { securityEvent } from '../../../../lib/log/securityEvent.js';
++import { requestApproval, verifyApprovalToken } from '../../../../lib/secureKit/approval.js';
++import { FORBIDDEN, INTERNAL_SERVER_ERROR, OK } from '../../../../lib/util/httpStatus.js';
+ import { EvershopRequest } from '../../../../types/request.js';
+ import { EvershopResponse } from '../../../../types/response.js';
+ import { refundOrder } from '../../services/refundOrder.js';
+@@ -8,6 +10,10 @@ import { refundOrder } from '../../services/refundOrder.js';
+  * The one, core refund endpoint. Any payment method whose provider registered a
+  * `refund` handler is refundable through here — no per-gateway route. The uuid
+  * is in the path; the amount is in the body.
++ *
++ * 다온마켓 13-3: refundOrder()를 바로 부르지 않는다. 승인 서비스(A10)에 「요청」만 하고, 승인 서비스가 서명한
++ * 승인 토큰을 확인한 뒤 토큰 속 금액으로만 실행한다. refundOrder()가 이미 「남은 결제 금액 이하」를 확인하는 것은 좋은 예다.
++ * 바뀌는 것은 「누가 실행을 허락하느냐」다.
+  */
+ export default async (
+   request: EvershopRequest,
+@@ -16,7 +22,21 @@ export default async (
+ ) => {
+   try {
+     const { amount } = request.body;
+-    const result = await refundOrder(String(request.params.id), Number(amount));
++    const orderUuid = String(request.params.id);
++    const user = request.getCurrentUser();
++    const approval = await requestApproval(request, { orderUuid, amount: String(amount) });
++    const approved = approval.status === 'APPROVED' ? verifyApprovalToken(approval.token, 'refund', orderUuid) : null;
++    if (!approved) {
++      securityEvent.denied('refund.denied.no_approval', '13-3', request, {
++        actor: `admin:${user?.uuid ?? 'unknown'}`,
++        target: `order:${orderUuid}`,
++        reason: approval.reason || '승인 토큰이 없거나 확인되지 않음'
++      });
++      response.status(FORBIDDEN);
++      response.json({ error: { status: FORBIDDEN, message: '승인 서비스가 승인하지 않았습니다' } });
++      return;
++    }
++    const result = await refundOrder(orderUuid, Number(approved.amount));   // 요청 금액이 아니라 토큰 속 금액
+     response.status(OK);
+     response.json({
+       data: { paymentStatus: result.status, isFullRefund: result.isFullRefund }

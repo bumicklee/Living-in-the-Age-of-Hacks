@@ -24,7 +24,7 @@ const ROW = {
   order_address_id: 1,
   uuid: 'a1',
   recipient: 'Jane Smith',
-  telephone: '+16502530000',
+  telephone: '+16505550100',
   address_line_1: '1600 Amphitheatre Pkwy',
   address_line_2: 'Suite 200',
   locality: 'Mountain View',

@@ -1,0 +1,20 @@
+{
+  "vhosts": [{"name": "/mall"}],
+  "exchanges": [
+    {"name": "daon.pay.dlx", "vhost": "/mall", "type": "direct", "durable": true, "auto_delete": false, "internal": false, "arguments": {}}
+  ],
+  "queues": [
+    {"name": "daon.pay.retry", "vhost": "/mall", "durable": true, "auto_delete": false,
+     "arguments": {"x-dead-letter-exchange": "", "x-dead-letter-routing-key": "daon.pay.request", "x-max-length": 1000}},
+    {"name": "daon.pay.dlq", "vhost": "/mall", "durable": true, "auto_delete": false,
+     "arguments": {"x-max-length": 1000}}
+  ],
+  "bindings": [
+    {"source": "daon.pay.dlx", "vhost": "/mall", "destination": "daon.pay.dlq", "destination_type": "queue",
+     "routing_key": "daon.pay.request", "arguments": {}}
+  ],
+  "policies": [
+    {"vhost": "/mall", "name": "daon-pay-dlx", "pattern": "^daon\\.pay\\.request$", "apply-to": "queues", "priority": 10,
+     "definition": {"dead-letter-exchange": "daon.pay.dlx"}}
+  ]
+}

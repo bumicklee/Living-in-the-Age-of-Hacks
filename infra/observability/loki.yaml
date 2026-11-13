@@ -1,0 +1,67 @@
+# 다온마켓 A5 · Loki 설정(한 덩어리 모드, 랩 PC 한 대). 수업 8-4.
+# - 저장은 컨테이너 볼륨(loki-data)의 파일 시스템. 보관 7일(랩).
+# - 삭제 API는 끈다(deletion_mode: disabled). 앱 망에서는 닿지도 않는다(compose.a05.yml의 obs 망).
+#   8-6: 감사 로그의 머리 해시(마지막 seq·hash)를 이 저장소의 사본과 맞춰 본다. 운영에서는 객체 잠금 저장소(14-2)도 함께 쓴다.
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+  log_level: warn
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+
+schema_config:
+  configs:
+    - from: 2026-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+limits_config:
+  retention_period: 168h
+  deletion_mode: disabled
+  reject_old_samples: true
+  reject_old_samples_max_age: 168h
+  max_label_names_per_series: 8      # 레이블은 app·stream·event·level·lesson(+수집기 표시)만
+  ingestion_rate_mb: 4
+  ingestion_burst_size_mb: 8
+  allow_structured_metadata: true
+  volume_enabled: true
+
+# 수집기가 처음 뜰 때 컨테이너 로그를 처음부터 읽는다(섹션 2~7에서 쌓인 줄 「거두기」). 같은 레이블의 줄이 여러 컨테이너에서
+# 시간 순서가 섞여 들어오므로, 받아 주는 과거 폭(max_chunk_age의 절반)을 하루로 넓힌다. 랩은 양이 적어 메모리 부담이 작다
+ingester:
+  max_chunk_age: 48h
+  chunk_idle_period: 30m
+
+compactor:
+  working_directory: /loki/compactor
+  retention_enabled: true
+  delete_request_store: filesystem
+
+query_range:
+  results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 32
+
+pattern_ingester:
+  enabled: false
+
+analytics:
+  reporting_enabled: false

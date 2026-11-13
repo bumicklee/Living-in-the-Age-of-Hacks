@@ -1,0 +1,990 @@
+# 최종 점검표(15-3) · make audit 이 읽는다. 최초 점검(course 밖 최초-코드-점검.md)의 74행(Spring·인프라 F01~F48 + Express E01~E26)
+# 행마다 「다시 확인하는 방법」(check)과 「처리 결과」(result: 고침·완화·수용·확인 필요)·근거(evidence)·남은 위험(residual).
+#   check.kind  replay = 재연 T 번호가 그린인지 · tests = 수업 시험 파일 · config = 설정 파일 글자 · deps = 의존성 오늘 날짜 재조회(ONLINE=1)
+#               diff = Express diff 파일 · doc = 근거 문서만
+# 수용(고치지 않기로 함)은 residual에 이유와 「다시 볼 날」을 적는다. 점수판(T01~T37)은 이 표의 일부만 센다(결정 #1·#2).
+- id: F01
+  title: 주문 번호로만 조회하고 회원을 확인하지 않는다(같은 파일의 취소·삭제는 확인한다)
+  severity: 치명
+  category: A01
+  lesson: 2-1·2-2
+  check:
+    kind: replay
+    t:
+    - T01
+    tests:
+    - test_s2_02_order_owner.py
+    - test_s2_02_trace_id.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F02
+  title: 로그인한 회원 누구나 paySuccess에 주문 번호를 넣으면 그 주문이 「결제 완료」가 되고 재고가 빠진다. 소유자 확인,…
+  severity: 치명
+  category: A01·A06(L6)
+  lesson: 2-2 미션 + 10-4
+  check:
+    kind: tests
+    tests:
+    - test_s10_04_webhook.py
+    - test_s2_02_order_owner.py
+    - test_s2_02_trace_id.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F03
+  title: 전체 주문을 대상으로 하는 배치 작업을 회원 누구나 부를 수 있다
+  severity: 중간
+  category: A01
+  lesson: 2-3
+  check:
+    kind: replay
+    t:
+    - T02
+    tests:
+    - test_s2_03_admin_role.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F04
+  title: 아무 주문 번호로나 지연 취소 메시지를 보낼 수 있다. 남의 결제 대기 주문이 취소된다
+  severity: 중간
+  category: A01
+  lesson: 2-미션
+  check:
+    kind: replay
+    t:
+    - T01
+    tests:
+    - test_s2_mission_return_owner.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F05
+  title: 반품 신청의 주문 번호, 회원 이름, 상품 금액을 요청에서 그대로 받는다
+  severity: 중간
+  category: A01·A06
+  lesson: T03 · 2-미션·2-4
+  check:
+    kind: replay
+    t:
+    - T01
+    - T03
+    tests:
+    - test_s2_04_member_dto.py
+    - test_s2_mission_return_owner.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F06
+  title: 관리자 계정을 누구나 만들 수 있고(바로 활성), 응답에 비밀번호 해시가 들어 있다. 역할이 없어 권한표가 막아 주지만, 화…
+  severity: 높음
+  category: A01·A07
+  lesson: 2-3
+  check:
+    kind: replay
+    t:
+    - T02
+    tests:
+    - test_s2_03_admin_role.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F07
+  title: 로그인 없이 업로드할 수 있다. 원래 파일 이름을 그대로 객체 이름으로 쓰고, 형식은 클라이언트가 보낸 Content-Typ…
+  severity: 높음
+  category: A01·A05
+  lesson: 3-6 (+2-3)
+  check:
+    kind: replay
+    t:
+    - T08
+    tests:
+    - test_s2_03_admin_role.py
+    - test_s3_06_upload.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F08
+  title: 로그인 없이 클라우드 저장소 업로드 서명을 발급한다(지금은 가짜 키 test라 쓸모가 없지만, 실제 키를 넣으면 높음이 된다)
+  severity: 중간
+  category: A01
+  lesson: 3-6
+  check:
+    kind: replay
+    t:
+    - T08
+    tests:
+    - test_s3_06_upload.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F09
+  title: 장바구니 항목을 ID로만 삭제 처리한다. 남의 장바구니 항목을 지울 수 있다. 본문은 엔티티를 그대로 받는다
+  severity: 낮음
+  category: A01
+  lesson: T03 · 2-미션
+  check:
+    kind: replay
+    t:
+    - T01
+    - T03
+    tests:
+    - test_s2_mission_return_owner.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F10
+  title: 회원·관리자 엔티티를 그대로 응답해 비밀번호 해시가 나간다
+  severity: 중간
+  category: A01(응답 과다 노출)
+  lesson: 2-4 확장
+  check:
+    kind: tests
+    tests:
+    - test_s2_04_member_dto.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F11
+  title: 관리자 수정 API로 다른 관리자의 비밀번호를 재인증 없이 바꿀 수 있다. 비교는 해시 문자열로 한다
+  severity: 중간
+  category: A01·A07
+  lesson: T35 · 4-7·13-6
+  check:
+    kind: replay
+    t:
+    - T12
+    - T35
+    tests:
+    - test_s13_06_ops_access.py
+    - test_s4_07_step_up.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F12
+  title: 관리자 토큰을 JS가 읽을 수 있는 쿠키(js-cookie, HttpOnly 불가)에 둔다. 상품 상세 HTML 편집기(Ti…
+  severity: 중간
+  category: A05·A07
+  lesson: 3-4·3-5
+  check:
+    kind: replay
+    t:
+    - T07
+    tests:
+    - test_s3_04_review_xss.py
+    - test_s3_05_csp.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F13
+  title: getAuthCode가 인증 번호를 응답에 담아 준다. updatePassword는 전화번호와 그 번호만 있으면 비밀번호를 …
+  severity: 치명
+  category: A07
+  lesson: T12 · 4-5·4-7
+  check:
+    kind: replay
+    t:
+    - T11
+    - T12
+    tests:
+    - test_s4_05_reset_flow.py
+    - test_s4_07_step_up.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F14
+  title: 로그인 실패 제한, 비밀번호 규칙, 유출 비밀번호 확인이 없다
+  severity: 높음
+  category: A07
+  lesson: 4-2·4-3
+  check:
+    kind: replay
+    t:
+    - T09
+    tests:
+    - test_s4_02_password_policy.py
+    - test_s4_03_rate_limit.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F15
+  title: 없는 회원은 bcrypt 비교를 하지 않아 응답이 빠르다. 회원인지가 시간으로 샌다
+  severity: 중간
+  category: L8
+  lesson: 4-4
+  check:
+    kind: replay
+    t:
+    - T10
+    tests:
+    - test_s4_04_login_timing.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F16
+  title: 관리자 로그인은 「비밀번호가 올바르지 않습니다」와 「사용자 이름 또는 비밀번호 오류」로 문구가 갈린다. 비밀번호 재설정은 「…
+  severity: 낮음
+  category: A07
+  lesson: 4-4
+  check:
+    kind: replay
+    t:
+    - T10
+    tests:
+    - test_s4_04_login_timing.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F17
+  title: 검증할 때 쓰는 서명 방식을 토큰 머리글의 alg 값으로 고른다. alg가 「none」이면 서명이 빈 토큰이 통과하는 경로가…
+  severity: 치명
+  category: A07·A04
+  lesson: 5-2(확장)
+  check:
+    kind: replay
+    t:
+    - T13
+    tests:
+    - test_s5_02_token_signing.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F18
+  title: 고정 서명값(mall-portal-secret·mall-admin-secret), 수명 7일, 만료 전이면 계속 갱신할 수 …
+  severity: 높음
+  category: A04·A07
+  lesson: 4-8·5-2
+  check:
+    kind: replay
+    t:
+    - T13
+    tests:
+    - test_s4_08_token_lifetime.py
+    - test_s5_02_token_signing.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F19
+  title: 원본 데모 관리자 8개(admin 등)와 회원 10명이 시드에 그대로 있다. 여러 계정이 같은 해시를 쓴다
+  severity: 중간
+  category: A07
+  lesson: T35 · 4-2·13-6
+  check:
+    kind: replay
+    t:
+    - T09
+    - T35
+    tests:
+    - test_s13_06_ops_access.py
+    - test_s4_02_password_policy.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F20
+  title: 전화번호·주소·수령인을 평문으로 저장한다. Redis 회원 캐시에도 평문이 있다
+  severity: 중간
+  category: A04
+  lesson: 5-3·5-4
+  check:
+    kind: replay
+    t:
+    - T14
+    tests:
+    - test_s5_03_encrypt_at_rest.py
+    - test_s5_04_pii_search_mask.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F21
+  title: 앱과 DB 사이에 TLS가 없다
+  severity: 낮음
+  category: A04
+  lesson: 5-5
+  check:
+    kind: doc
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F22
+  title: 저장소가 인증 없이, 또는 기본 계정으로 열려 있다. Redis에는 회원·관리자 객체와 권한 목록 캐시가 들어 있다
+  severity: 높음
+  category: A02
+  lesson: 6-4
+  check:
+    kind: replay
+    t:
+    - T16
+    tests:
+    - test_s6_04_store_auth.py
+    - test_s6_04_stores_closed.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F23
+  title: 설정 파일과 문서에 자격증명이 있다
+  severity: 높음
+  category: A02
+  lesson: 6-2·6-3
+  check:
+    kind: replay
+    t:
+    - T15
+    tests:
+    - test_s6_02_secret_scan.py
+    - test_s6_03_secret_store.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F24
+  title: activateDefaultTyping(LaissezFaireSubTypeValidator, NON_FINAL). Redis…
+  severity: 높음(F22와 엮이면 치명)
+  category: A08
+  lesson: 7-7(+6-4)
+  check:
+    kind: replay
+    t:
+    - T18
+    tests:
+    - test_s6_04_store_auth.py
+    - test_s6_04_stores_closed.py
+    - test_s7_07_cache_type.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F25
+  title: 관리자 권한 목록을 Redis에 캐시하고 그대로 믿는다. 인증 없는 Redis에 쓸 수 있으면 권한이 바뀐다
+  severity: 높음(F22와 엮일 때)
+  category: A01·A08
+  lesson: 6-4
+  check:
+    kind: replay
+    t:
+    - T16
+    tests:
+    - test_s6_04_store_auth.py
+    - test_s6_04_stores_closed.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F26
+  title: 버킷 객체를 누구나 읽고, 목록까지 볼 수 있다
+  severity: 중간
+  category: A01·A02
+  lesson: T16 · 3-6·6-4
+  check:
+    kind: replay
+    t:
+    - T08
+    - T16
+    tests:
+    - test_s3_06_upload.py
+    - test_s6_04_store_auth.py
+    - test_s6_04_stores_closed.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F27
+  title: 이름은 reader인데 mall.* 전체 권한이다
+  severity: 중간
+  category: A02·A01
+  lesson: 6-3
+  check:
+    kind: replay
+    t:
+    - T15
+    tests:
+    - test_s6_03_secret_store.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F28
+  title: 모든 출처에 자격증명을 허용한다(지금은 Bearer 헤더라 피해가 작지만, 쿠키 인증으로 바꾸는 순간 위험해진다)
+  severity: 중간
+  category: A02
+  lesson: 6-6
+  check:
+    kind: tests
+    tests:
+    - test_s6_06_cors_headers.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F29
+  title: 노출 설정 하나만 바뀌어도 관리용 엔드포인트가 로그인 없이 열린다
+  severity: 낮음
+  category: A02
+  lesson: 6-5
+  check:
+    kind: replay
+    t:
+    - T17
+    tests:
+    - test_s6_05_error_endpoints.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F30
+  title: 운영 프로필에서도 API 문서 화면이 켜져 있다
+  severity: 낮음
+  category: A02
+  lesson: 6-5
+  check:
+    kind: replay
+    t:
+    - T17
+    tests:
+    - test_s6_05_error_endpoints.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F31
+  title: SQL 문법 오류 메시지를 응답에 그대로 담는다. 공통 예외 처리기가 없다
+  severity: 낮음
+  category: A10
+  lesson: 6-5
+  check:
+    kind: replay
+    t:
+    - T17
+    tests:
+    - test_s6_05_error_endpoints.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F32
+  title: 인증 실패를 HTTP 200으로 보낸다. 게이트웨이와 모니터링이 실패를 세지 못한다
+  severity: 낮음
+  category: A09·A10
+  lesson: 8-4(새 내용)
+  check:
+    kind: tests
+    tests:
+    - test_s8_04_alerts.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F33
+  title: 'OSV 조회(56개 패키지)에서 권고가 나온 것: tomcat-embed-core 10.1.54(14건), jackson-d…'
+  severity: 중간(적용 여부 확인 필요)
+  category: A03
+  lesson: 7-2
+  check:
+    kind: deps
+    source: osv
+    tests:
+    - test_s7_02_sbom_kev.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F34
+  title: 대부분 빌드 도구에 걸린 것이다. 브라우저 번들에 들어가는 것만 보면 tinymce, axios(GHSA-3p68-rc4w-…
+  severity: 중간
+  category: A03
+  lesson: 7-2
+  check:
+    kind: deps
+    source: npm-audit
+    tests:
+    - test_s7_02_sbom_kev.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F35
+  title: 모든 컨트롤러의 @RequestParam·@RequestBody와 응답 전체를 INFO로 남긴다. 비밀번호, 토큰, 회원 정…
+  severity: 높음
+  category: A09·A04
+  lesson: 8-5
+  check:
+    kind: replay
+    t:
+    - T21
+    tests:
+    - test_s8_05_log_masking.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F36
+  title: 코드 생성 도구가 운영 jar에 들어 있다
+  severity: 낮음
+  category: A03
+  lesson: 7-2
+  check:
+    kind: config
+    file: spring/mall-mbg/pom.xml
+    must: mybatis-generator-core</artifactId>\s*<scope>provided</scope>
+    tests:
+    - test_s7_02_sbom_kev.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F37
+  title: 이미지를 태그로만 고정하고 서명을 확인하지 않는다
+  severity: 중간
+  category: A08
+  lesson: 7-6
+  check:
+    kind: replay
+    t:
+    - T19
+    tests:
+    - test_s7_06_signed_deploy.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F38
+  title: 포인트를 캐시된 현재 값 - 사용량으로 계산해 덮어쓴다. 동시 주문에서 포인트가 덜 깎인다(같은 문제가 취소 환원 290·3…
+  severity: 높음
+  category: A06·L1
+  lesson: 10-1·10-2
+  check:
+    kind: replay
+    t:
+    - T25
+    tests:
+    - test_s10_02_race.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F39
+  title: 검증에 실패한 토큰을 통째로 로그에 남기고, 요청마다 사용자 이름을 INFO로 찍는다
+  severity: 중간
+  category: A09
+  lesson: 8-5
+  check:
+    kind: replay
+    t:
+    - T21
+    tests:
+    - test_s8_05_log_masking.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F40
+  title: 관리자의 회원·주문 조회와 내보내기에 감사 로그가 없다
+  severity: 중간
+  category: A09
+  lesson: 8-2·8-3
+  check:
+    kind: replay
+    t:
+    - T20
+    tests:
+    - test_s8_02_audit_schema.py
+    - test_s8_03_admin_audit.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F41
+  title: 페이지 크기에 상한이 없다(PageHelper에 그대로 넘긴다)
+  severity: 낮음
+  category: A10·P8
+  lesson: 9-3
+  check:
+    kind: replay
+    t:
+    - T23
+    tests:
+    - test_s9_03_input_limits.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F42
+  title: 수량이 0 이하인지 검사하지 않는다. 금액 계산에 어떤 영향을 주는지는 확인 필요하다(다른 상태를 바꾸므로 실행 확인은 하지…
+  severity: 낮음(확인 필요)
+  category: A06
+  lesson: 9-3
+  check:
+    kind: replay
+    t:
+    - T23
+    tests:
+    - test_s9_03_input_limits.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F43
+  title: 쿠폰 수량과 1인 한도를 확인한 뒤 저장하고, 수량은 count-1로 덮어쓴다(경쟁 조건)
+  severity: 중간
+  category: L1
+  lesson: 10-1·10-2
+  check:
+    kind: replay
+    t:
+    - T25
+    tests:
+    - test_s10_02_race.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F44
+  title: 결제 알림에 금액 대조와 이벤트 중복 기록이 없다(status=0 조건 하나에만 기대고 있다). 거래 조회 API가 로그인 …
+  severity: 중간
+  category: A08·L6
+  lesson: 10-3·10-4
+  check:
+    kind: replay
+    t:
+    - T26
+    tests:
+    - test_s10_04_webhook.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F45
+  title: 가격을 요청에서 받지 않는다. 장바구니 담기·주문 확인·주문 생성마다 SKU 가격을 서버가 다시 읽는다. 요청 가격과 서버 …
+  severity: 높음
+  category: A06·A04
+  lesson: 10-8
+  check:
+    kind: replay
+    t:
+    - T37
+    tests:
+    - test_s10_08_server_price.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F46
+  title: 값이 비면 400으로 거절(입력 검증). /error를 인증 없이 열고 공통 오류 응답으로 500을 돌려준다. 예외 로그에 …
+  severity: 중간
+  category: A10
+  lesson: 9-2 확장
+  check:
+    kind: tests
+    tests:
+    - test_s9_02_fail_closed.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F47
+  title: exp를 초 단위로, 만료를 짧게, 서버에서 만료 확인
+  severity: 확인 필요
+  category: A07
+  lesson: 4-8
+  check:
+    kind: tests
+    tests:
+    - test_s4_08_token_lifetime.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: F48
+  title: 금액은 주문 항목에서 다시 계산, 처리자는 로그인 사용자, 상태 전이표, 고액은 승인 서비스(A10)
+  severity: 높음(확인 필요)
+  category: A01·A06
+  lesson: 13-3
+  check:
+    kind: tests
+    tests:
+    - test_s13_03_approval_policy.py
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E01
+  title: 세션 쿠키 서명값 기본값이 공개된 고정 문자열
+  severity: 높음
+  category: A02
+  lesson: 6-3
+  check:
+    kind: diff
+    diffs:
+    - diffs/s6-03/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E02
+  title: 운영 모드에서 쿠키 Secure를 끔
+  severity: 높음
+  category: A02
+  lesson: 3-5·6-6
+  check:
+    kind: diff
+    diffs:
+    - diffs/s3-05/express.diff
+    - diffs/s6-06/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E03
+  title: SameSite 미지정, 빈 세션도 저장
+  severity: 중간
+  category: A02
+  lesson: 3-5·6-6
+  check:
+    kind: diff
+    diffs:
+    - diffs/s3-05/express.diff
+    - diffs/s6-06/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E04
+  title: 로그인 때 세션 재발급 없음(세션 고정), 응답에 sid
+  severity: 중간
+  category: A07
+  lesson: 4-8
+  check:
+    kind: diff
+    diffs: []
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E05
+  title: 로그아웃이 세션을 파기하지 않음, GET 허용
+  severity: 낮음
+  category: A07
+  lesson: 4-8
+  check:
+    kind: diff
+    diffs: []
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E06
+  title: 관리자 로그인 이메일 비교에서 와일드카드 문자 일부 미처리
+  severity: 낮음
+  category: A07
+  lesson: 4-2
+  check:
+    kind: diff
+    diffs: []
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E07
+  title: 없는 계정은 해시 비교를 건너뛰어 응답 시간·문구로 계정 존재가 드러남(실측 필요)
+  severity: 낮음
+  category: A07
+  lesson: 4-4
+  check:
+    kind: diff
+    diffs: []
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E08
+  title: 엄격한 로그인 제한이 토큰 발급·갱신 경로에 안 걸림
+  severity: 중간
+  category: A07
+  lesson: 4-3
+  check:
+    kind: diff
+    diffs: []
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E09
+  title: 앞단 프록시 없이 trust proxy 1 → IP 기준 제한이 흔들림
+  severity: 중간
+  category: A02
+  lesson: 4-3·6-4
+  check:
+    kind: diff
+    diffs:
+    - diffs/s6-04/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E10
+  title: 질의 문서 검증 함수가 잘못 쓰여 검증 규칙이 적용되지 않음, 깊이·비용 제한 없음
+  severity: 중간
+  category: A10·A06
+  lesson: 9-3
+  check:
+    kind: diff
+    diffs:
+    - diffs/s9-03/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E11
+  title: 공개 스키마 조회(인트로스펙션) 켜짐
+  severity: 낮음
+  category: A02
+  lesson: 6-5
+  check:
+    kind: diff
+    diffs:
+    - diffs/s6-05/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E12
+  title: 장바구니 ID만 알면 남의 장바구니를 읽고 고침(ID는 추측 어려움)
+  severity: 중간
+  category: A01
+  lesson: 2-2(Express diff)
+  check:
+    kind: diff
+    diffs: []
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E13
+  title: 업로드 확장자를 원본 그대로 저장, 내용 판별 없음, 정적 서빙이 svg·js 허용
+  severity: 중간
+  category: A06·A05
+  lesson: 3-6
+  check:
+    kind: diff
+    diffs:
+    - diffs/s3-06/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E14
+  title: 같은 이름 파일 덮어쓰기
+  severity: 낮음
+  category: A08
+  lesson: 3-6
+  check:
+    kind: diff
+    diffs:
+    - diffs/s3-06/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E15
+  title: 경로 접두사 비교에 구분자 없음(형제 폴더 통과)
+  severity: 낮음
+  category: A01
+  lesson: 3-6
+  check:
+    kind: diff
+    diffs:
+    - diffs/s3-06/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E16
+  title: 특정 경로에서 응답 없이 요청이 걸려 있음
+  severity: 낮음
+  category: A10
+  lesson: 9-3
+  check:
+    kind: diff
+    diffs:
+    - diffs/s9-03/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E17
+  title: 500 응답에 내부 오류 문구
+  severity: 낮음
+  category: A10
+  lesson: 6-5
+  check:
+    kind: diff
+    diffs:
+    - diffs/s6-05/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E18
+  title: 운영에서 오류·인증 실패를 기록하지 않음
+  severity: 중간
+  category: A09
+  lesson: 8-3
+  check:
+    kind: diff
+    diffs:
+    - diffs/s8-03/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E19
+  title: CSRF 토큰 없음(멀티파트 업로드, 로그인 폼)
+  severity: 중간
+  category: A01
+  lesson: 6-6
+  check:
+    kind: diff
+    diffs:
+    - diffs/s6-06/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E20
+  title: 보안 헤더 없음, x-powered-by
+  severity: 중간
+  category: A02
+  lesson: 3-5·6-6
+  check:
+    kind: diff
+    diffs:
+    - diffs/s3-05/express.diff
+    - diffs/s6-06/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E21
+  title: 토큰 속 권한을 DB 재확인 없이 신뢰, 갱신 토큰 폐기 없음
+  severity: 낮음
+  category: A07
+  lesson: 4-8·5-2
+  check:
+    kind: diff
+    diffs:
+    - diffs/s5-02/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E22
+  title: 이메일 변경에 재인증 없음
+  severity: 낮음
+  category: A07
+  lesson: 4-7
+  check:
+    kind: diff
+    diffs: []
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E23
+  title: 재설정 토큰 48시간, 비밀번호 최소 6자
+  severity: 낮음
+  category: A07
+  lesson: 4-5
+  check:
+    kind: diff
+    diffs: []
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E24
+  title: DB 기본 계정, DB 포트 노출, latest 이미지
+  severity: 중간
+  category: A02
+  lesson: 6-4
+  check:
+    kind: diff
+    diffs:
+    - diffs/s6-04/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E25
+  title: root 실행, npm install
+  severity: 낮음
+  category: A03·A02
+  lesson: 7-5
+  check:
+    kind: diff
+    diffs:
+    - diffs/s7-05/express.diff
+  result: ''
+  evidence: ''
+  residual: ''
+- id: E26
+  title: 결제 의도 생성에 주문 소유 확인·멱등 키 없음(금액은 서버 값)
+  severity: 낮음
+  category: A06
+  lesson: 10-4
+  check:
+    kind: diff
+    diffs:
+    - diffs/s10-04/express.diff
+  result: ''
+  evidence: ''
+  residual: ''

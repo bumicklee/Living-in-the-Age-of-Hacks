@@ -1,0 +1,44 @@
+# 다온마켓 A5 · 손으로 쓴 경보 규칙(수업 12-4). SECURITY_EVENTS.md 표에서 만들지 않는다(한 줄 이벤트가 아니라 합계라서. 8-4 bulk.yaml과 같은 방식).
+#
+#   partner.export.bulk   파트너별 10분 내보내기 행 수: partner.export 줄의 count(내보낸 행 수)를 actor(partner:<앱>)별 10분 합계로.
+#                         랩 기준선은 고정 값 100행/10분(analytics-01이 하루 한 번 21행 정도 내보낸다고 본다), 경보는 그 3배(300) 초과.
+#
+# 운영에서는 「지난 7일 같은 시간대 평균의 3배」처럼 파트너마다 기준선을 쓴다. 기준선이 없는 첫 주에는 이 경보가 뜻이 없다(고정 값으로 시작).
+# 응답 본문은 로그에 없다. 건수만 더한다. 기준값을 바꾸면 make alert-rules(Grafana만 다시 띄운다).
+apiVersion: 1
+groups:
+- orgId: 1
+  name: partner-export
+  folder: 다온마켓 경보
+  interval: 30s
+  rules:
+  - uid: partner-export-bulk
+    title: partner.export.bulk
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange: {from: 600, to: 0}
+      datasourceUid: loki
+      model:
+        refId: A
+        queryType: instant
+        editorMode: code
+        expr: sum by (actor) (sum_over_time({stream="security", event="partner.export"} | json actor="actor", count="count" | unwrap count | __error__="" [10m]))
+    - refId: C
+      relativeTimeRange: {from: 0, to: 0}
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator: {type: gt, params: [300]}
+    noDataState: OK
+    execErrState: OK
+    for: 0s
+    labels: {event: partner.export, severity: P2, lesson: 12-4, source: partner.yaml}
+    annotations:
+      summary: 'partner.export.bulk: 한 파트너가 10분 동안 300행 넘게 내보냄(기준선 100의 3배)'
+      description: 'partner.export count 합계(actor별 10분) > 300. 담당자는 make partner-audit 대장에서, 첫 조치는 make partner-revoke APP=<앱>'
+      runbook_url: docs/runbooks/partner.export.bulk.md
+    isPaused: false

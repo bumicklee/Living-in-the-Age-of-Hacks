@@ -1,0 +1,28 @@
+# 다온마켓 승인 정책(A10 승인 서비스가 읽는다). 숫자는 모두 교육용 가짜 기준이다. 회사 값이 아니다.
+# 바꾸면 승인 서비스 이미지가 다시 빌드된다(make up). 정책 변경은 배포다: 코드 검토와 같은 절차를 거친다.
+
+refund:
+  max_single: 2000000          # 1회 한도(원). 넘으면 approval.denied.policy_limit
+  max_per_order_per_day: 3     # 같은 주문의 하루 환불 승인 횟수
+  high_value: 300000           # 고액 기준(원). 이상이면 두 사람 승인(13-4)
+  token_minutes: 5             # 승인 토큰 수명(분). 실행기는 이 안에만 실행한다
+  # 대상 계좌 규칙: 환불은 원래 결제 수단으로만 돌려준다(결제사가 주문 번호로 찾는다). 요청에 계좌를 받는 칸이 없다.
+
+dual:                          # 13-4
+  second_approver_roles: [재무 담당]
+  cancel_roles: [재무 담당, 운영 책임]     # 요청자·두 번째 승인자도 취소할 수 있다
+  confirm_minutes: 5           # 메일 확인 번호 수명(분), 한 번만
+  confirm_max_tries: 5
+  confirm_mail_to: finance@daon.example
+  delay_seconds: 10            # 지연 실행 창. 랩 10초 / 회사 기본 30분(1800)
+
+breaker:                       # 13-4 출금(환불) 서킷 브레이커
+  window_minutes: 60
+  max_count: 6                 # 창 안의 승인 토큰 수가 이 값에 닿으면 연다
+  max_amount: 1000000          # 창 안의 합계가 이 값을 넘으면 연다(원)
+  close_roles: [재무 담당, 운영 책임]       # 다시 닫기는 이 역할의 서로 다른 두 사람
+
+elevation:                     # 13-6 운영 권한 상승(JIT)
+  max_minutes: 60
+  approver_roles: [운영 책임]
+  groups: [admin-accounts]

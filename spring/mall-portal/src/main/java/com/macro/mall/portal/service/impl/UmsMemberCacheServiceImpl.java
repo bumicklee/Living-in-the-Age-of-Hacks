@@ -1,10 +1,15 @@
 package com.macro.mall.portal.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.macro.mall.security.cache.CacheTypeGuard;
 import com.macro.mall.common.service.RedisService;
 import com.macro.mall.mapper.UmsMemberMapper;
 import com.macro.mall.model.UmsMember;
 import com.macro.mall.portal.service.UmsMemberCacheService;
 import com.macro.mall.security.annotation.CacheException;
+import com.macro.mall.security.crypto.FieldCrypto;
+import com.macro.mall.security.crypto.PiiMask;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -42,13 +47,21 @@ public class UmsMemberCacheServiceImpl implements UmsMemberCacheService {
     @Override
     public UmsMember getMember(String username) {
         String key = REDIS_DATABASE + ":" + REDIS_KEY_MEMBER + ":" + username;
-        return (UmsMember) redisService.get(key);
+        // 다온마켓 7-미션: 7-7의 형식 고정 읽기를 회원 캐시에도 쓴다
+        return CacheTypeGuard.get(redisService, key, "cache:" + REDIS_DATABASE + ":" + REDIS_KEY_MEMBER + ":*", new TypeReference<UmsMember>() { });
     }
 
     @Override
     public void setMember(UmsMember member) {
+        // 다온마켓 5-3: 캐시에는 전화번호를 가린 값만 둔다(캐시도 평문 개인정보를 두지 않는다). 전화번호가 필요한 곳은 DB에서 다시 읽는다
+        UmsMember cached = member;
+        if (FieldCrypto.enabled() && member.getPhone() != null) {
+            cached = new UmsMember();
+            BeanUtils.copyProperties(member, cached);
+            cached.setPhone(PiiMask.phone(member.getPhone()));
+        }
         String key = REDIS_DATABASE + ":" + REDIS_KEY_MEMBER + ":" + member.getUsername();
-        redisService.set(key, member, REDIS_EXPIRE);
+        CacheTypeGuard.put(redisService, key, cached, REDIS_EXPIRE);
     }
 
     @CacheException

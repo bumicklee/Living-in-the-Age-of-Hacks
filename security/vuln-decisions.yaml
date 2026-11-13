@@ -1,0 +1,67 @@
+# 다온마켓 7-2 · 취약점 결정 기록
+# make kev 가 「KEV 일치」와 「높음 이상 런타임 권고」 부품마다 결정이 있는지 본다.
+# decision: upgraded(올림) | removed(뺌) | exception(예외: reason·until·owner 모두 필요, until이 지나면 다시 경고)
+# 소유자·기한은 랩용 가짜 값이다.
+- component: pkg:maven/org.mybatis.generator/mybatis-generator-core@1.4.2
+  decision: removed
+  reason: "provided 범위로 바꿔 운영 jar에서 뺐다(F36). 코드를 만들 때만 쓴다."
+- component: pkg:maven/dom4j/dom4j@1.6.1
+  decision: exception
+  reason: "결제 SDK(alipay-sdk-java) 내부 의존성. mall-portal에서 이 XML 파서를 부르는 경로가 있는지 확인 중. 확인이 끝나면 SDK를 올리거나 파서를 막는다."
+  until: 2026-11-16
+  owner: 결제 담당(가짜)
+- component: pkg:maven/org.springframework/spring-webmvc@6.2.18
+  decision: exception
+  reason: "Spring Boot 패치 묶음으로 한 번에 올린다(Spring Boot 3.5.x 최신 패치). 올린 뒤 OSV 권고 수를 다시 센다."
+  until: 2026-12-18
+  owner: 플랫폼팀(가짜)
+- component: pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@10.1.54
+  decision: exception
+  reason: "Spring Boot 패치 묶음에 들어 있다."
+  until: 2026-12-18
+  owner: 플랫폼팀(가짜)
+- component: pkg:maven/com.fasterxml.jackson.core/jackson-core@2.21.2
+  decision: exception
+  reason: "Spring Boot 패치 묶음에 들어 있다."
+  until: 2026-12-18
+  owner: 플랫폼팀(가짜)
+- component: pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.21.2
+  decision: exception
+  reason: "Spring Boot 패치 묶음에 들어 있다."
+  until: 2026-12-18
+  owner: 플랫폼팀(가짜)
+- component: pkg:maven/org.springframework.data/spring-data-mongodb@4.5.11
+  decision: exception
+  reason: "Spring Boot 패치 묶음에 들어 있다."
+  until: 2026-12-18
+  owner: 플랫폼팀(가짜)
+- component: pkg:maven/io.netty/netty-codec@4.1.132.Final
+  decision: exception
+  reason: "Spring Boot 패치 묶음에 들어 있다."
+  until: 2026-12-18
+  owner: 플랫폼팀(가짜)
+- component: pkg:maven/io.netty/netty-handler@4.1.132.Final
+  decision: exception
+  reason: "Spring Boot 패치 묶음에 들어 있다. 앱이 직접 네티 서버를 열지는 않는다(드라이버가 쓴다)."
+  until: 2026-12-18
+  owner: 플랫폼팀(가짜)
+- component: pkg:maven/org.bouncycastle/bcprov-jdk18on@1.84
+  decision: exception
+  reason: "키 처리에 쓴다(5장). 같은 줄의 최신 패치로 올릴 때 서명 시험(5-2)을 다시 돌린다."
+  until: 2026-12-18
+  owner: 플랫폼팀(가짜)
+- component: pkg:maven/com.google.guava/guava@33.4.8-jre
+  decision: exception
+  reason: "다른 라이브러리가 끌고 온 것이다. 호출 경로를 확인한 뒤 올린다."
+  until: 2026-12-18
+  owner: 플랫폼팀(가짜)
+- component: pkg:maven/com.rabbitmq/amqp-client@5.25.0
+  decision: exception
+  reason: "RabbitMQ 클라이언트. 서버 쪽 계정은 6-4에서 닫았다. 올릴 때 주문 취소 큐 시험을 같이 돌린다."
+  until: 2026-12-18
+  owner: 플랫폼팀(가짜)
+- component: pkg:maven/org.xerial.snappy/snappy-java@1.1.10.7
+  decision: exception
+  reason: "MongoDB 드라이버가 압축에 쓴다. 압축을 쓰지 않도록 설정했는지 확인한 뒤 올린다."
+  until: 2026-12-18
+  owner: 플랫폼팀(가짜)

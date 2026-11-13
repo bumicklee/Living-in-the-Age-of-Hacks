@@ -1,0 +1,80 @@
+# 다온마켓 감사 로그(AUDIT) 설계 · 수업 8-2
+#
+# SECURITY 로그는 거부·의심만 남긴다. AUDIT 로그는 개인정보가 나가는 「정상」 조회를 모두 남긴다.
+# 이 파일은 8-3(Spring @Audited·AuditAspect, Express lib/log/audit.ts)이 따르는 약속이다.
+# 값은 모두 랩 예시이고, 운영에서는 회사의 업무량·법적 보관 기준에 맞춰 정한다.
+
+version: 1
+logger: AUDIT                    # 앱 로그와 다른 로거 이름. 앱 로그에 섞지 않는다(additivity=false)
+output:
+  spring: /var/logs/daon/audit.jsonl   # 한 줄 JSON. 8-4부터 수집기가 stream=audit으로 읽는다
+  express: stdout(AUDIT 표식) + 같은 JSON
+  separate_store: 8-4 Loki의 audit 스트림. 앱을 다루는 사람이 지울 수 없어야 한다(8-6에서 막는다)
+
+# 필수 필드 8개(한 줄에 모두 있어야 한다)
+required_fields:
+  - name: ts
+    meaning: 시각(+09:00)
+  - name: trace_id
+    meaning: 요청 추적 번호. 응답 헤더 X-Trace-Id와 같다(랩-설계 11절)
+  - name: actor
+    meaning: 누가. admin:<계정 이름>
+  - name: action
+    meaning: 무엇을. 아래 actions 표의 이름
+  - name: target
+    meaning: 대상 종류와 ID, 또는 조회 조건 요약(member:list?page=1&size=20, order:9001). 개인정보 원문은 넣지 않는다
+  - name: count
+    meaning: 실제로 돌려준 건수(페이지 크기·전체 건수가 아니다)
+  - name: reason
+    meaning: 업무 사유. 요청 헤더 X-Access-Reason(상담 번호 등, 100자까지). 목록은 선택, 내보내기는 필수
+  - name: result
+    meaning: ok · denied · error
+
+# 넣지 않는 것(SECURITY 로그 규칙과 같다)
+never_include:
+  - 이름
+  - 전화
+  - 주소
+  - 이메일
+  - 토큰
+  - 비밀번호
+  - 요청 본문
+  - 응답 본문
+
+# 무엇을 남기나: 개인정보가 나가는 관리자 조회는 모두. 상품 목록처럼 개인정보가 없는 조회는 남기지 않는다
+actions:
+  - path: GET /daon/customer/list
+    action: customer.list
+    pii: [이름, 전화(5-4부터 가림), 포인트]
+  - path: GET /order/list
+    action: order.list
+    pii: [수령인 이름, 전화, 주소]
+  - path: GET /order/{id}
+    action: order.detail
+    pii: [수령인 이름, 전화, 주소]
+  - path: GET /returnApply/list
+    action: return.list
+    pii: [반품 신청자 이름, 전화]
+  - path: (내보내기, 아직 없음)
+    action: customer.export
+    pii: [이름, 전화, 포인트]
+    reason_required: true
+
+# 대량 조회 기준(SECURITY data.read.bulk, 8-3). 랩은 시드 회원 40명으로 보이게 30건. 운영에서는 업무량에 맞춰 정한다
+bulk_threshold: 30
+
+# Express(EverShop) 관리자 GraphQL 질의 → 같은 action 이름
+express:
+  - query: customers
+    action: customer.list
+  - query: customer(id)
+    action: customer.detail
+  - query: orders
+    action: order.list
+  - note: 'E18(운영 모드에서 오류·인증 실패를 남기지 않음) · 오류 쪽은 6-5 diff, 인증 실패는 8-4 diff(auth.denied.token)'
+
+# 8-4에서 이 필드로 만들 경보(미리 적어 둔다)
+alerts_planned:
+  - 계정별 10분 누적 건수(actor별 count 합계 > 30)
+  - 사유 없는 내보내기(action customer.export 이고 reason 비어 있음)
+  - 업무 시간 밖 대량 조회

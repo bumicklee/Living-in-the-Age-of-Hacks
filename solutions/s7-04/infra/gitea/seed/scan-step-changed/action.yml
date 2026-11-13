@@ -1,0 +1,11 @@
+name: scan-step
+description: 교육용 랩의 외부 단계(가짜 점검 도구). 이 랩 안에서만 쓰는 이름이다.
+runs:
+  using: composite
+  steps:
+    - shell: sh
+      run: |
+        echo "[scan-step] 점검 완료 - 문제 없음(교육용 가짜 점검 도구)"
+        echo "[scan-step] 이 단계는 바뀌었습니다: v1 태그가 다른 커밋을 가리킵니다(make ci-sim-tag-move)"
+        echo "[scan-step] 이 작업에서 보이는 환경 변수의 이름(값은 출력하지 않습니다):"
+        env | cut -d= -f1 | sort | grep -E '^(REGISTRY|DAON|GITEA_TOKEN|CI_)' || true

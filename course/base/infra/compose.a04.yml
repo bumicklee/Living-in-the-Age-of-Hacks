@@ -1,0 +1,72 @@
+# 다온마켓 랩 · 아키텍처 A4 「키 금고」(수업 5-2, 5-3·5-4가 이어서 쓴다)
+#
+#   infra/arch.txt에 a04 줄이 있으면 daon 명령이 compose.yml(+ a02 · a03) 위에 이 파일을 함께 쓴다.
+#
+# 바뀌는 것
+#   - OpenBao 1대(파일 저장소). UI는 이 PC에서만 http://127.0.0.1:8200
+#   - openbao-init(한 번 돌고 끝남): 봉인 해제, transit 키 daon-jwt(ECDSA P-256, 5-2)·daon-pii(AES-GCM, 5-3),
+#     KV secret/daon/pii-hmac(검색용 키, 5-4), 앱별 AppRole(daon-portal·daon-admin), 감사 로그
+#   - 고객 앱·관리자 앱은 AppRole 값을 읽기 전용으로 붙이고 OpenBao 주소를 받는다
+#
+# 한계(수업에서 말한다)
+#   - 봉인 해제 키를 랩 볼륨에 둔다(랩 전용). 회사에서는 자동 봉인 해제(KMS·HSM)나 여러 사람이 나눠 갖는다.
+#   - 랩 내부 망이라 TLS를 껐다. 회사에서는 켠다.
+
+services:
+  openbao:
+    profiles: [spring]
+    image: openbao/openbao:2.4.1
+    command: ["server", "-config=/openbao/config/config.hcl"]
+    volumes:
+      - ./openbao/config.hcl:/openbao/config/config.hcl:ro
+      - bao-data:/openbao/file
+      - bao-logs:/openbao/logs
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_OPENBAO_PORT:-8200}:8200"]
+    cap_add: [IPC_LOCK]
+    healthcheck:
+      test: ["CMD-SHELL", "BAO_ADDR=http://127.0.0.1:8200 bao status >/dev/null 2>&1; rc=$$?; [ $$rc -eq 0 ] || [ $$rc -eq 2 ]"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+    mem_limit: 256m
+    networks: [daon]
+
+  openbao-init:
+    profiles: [spring]
+    image: openbao/openbao:2.4.1
+    entrypoint: ["/bin/sh", "/init.sh"]
+    volumes:
+      - ./openbao/init.sh:/init.sh:ro
+      - bao-lab:/bao-lab
+      - bao-creds:/bao-creds
+    depends_on:
+      openbao: { condition: service_healthy }
+    # ✏️ 6-3: KV·동적 DB 자격증명(database 엔진)을 켜려면 환경 변수 두 개와 DB 준비 단계(db-init)가 필요하다
+    # ✏️ 6-4: 저장소 앱 계정의 비밀(MongoDB·RabbitMQ·MinIO)을 KV에 넣을 환경 변수가 더 필요하다
+    restart: "no"
+    mem_limit: 64m
+    networks: [daon]
+
+  mall-portal:
+    environment:
+      DAON_OPENBAO_ADDR: http://openbao:8200
+      DAON_OPENBAO_ROLE: portal
+    volumes:
+      - bao-creds:/run/openbao:ro
+    depends_on:
+      openbao-init: { condition: service_completed_successfully }
+
+  mall-admin:
+    environment:
+      DAON_OPENBAO_ADDR: http://openbao:8200
+      DAON_OPENBAO_ROLE: admin
+    volumes:
+      - bao-creds:/run/openbao:ro
+    depends_on:
+      openbao-init: { condition: service_completed_successfully }
+
+volumes:
+  bao-data: {}
+  bao-logs: {}
+  bao-lab: {}
+  bao-creds: {}

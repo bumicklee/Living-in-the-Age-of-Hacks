@@ -3,8 +3,12 @@ package com.macro.mall.controller;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import com.macro.mall.common.api.CommonResult;
+import com.macro.mall.common.api.IErrorCode;
+import com.macro.mall.daon.UploadValidator;
 import com.macro.mall.dto.BucketPolicyConfigDto;
 import com.macro.mall.dto.MinioUploadDto;
+import com.macro.mall.security.event.SecurityEventLogger;
+import com.macro.mall.security.securekit.SecureKitSwitch;
 import io.minio.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +38,9 @@ public class MinioController {
     private static final Logger LOGGER = LoggerFactory.getLogger(MinioController.class);
     @Value("${minio.endpoint}")
     private String ENDPOINT;
+    // 내부 저장 주소와 브라우저가 읽을 공개 주소는 다르다.
+    @Value("${minio.public-endpoint:}")
+    private String PUBLIC_ENDPOINT;
     @Value("${minio.bucketName}")
     private String BUCKET_NAME;
     @Value("${minio.accessKey}")
@@ -41,7 +51,26 @@ public class MinioController {
     @Operation(summary = "파일 업로드")
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
-    public CommonResult upload(@RequestPart("file") MultipartFile file) {
+    public ResponseEntity<CommonResult> upload(@RequestPart("file") MultipartFile file) {
+        // 다온마켓 3-6: 형식은 내용(앞 바이트)으로 정한다. 이름·Content-Type은 서버가 새로 만든다
+        String objectName;
+        String contentType;
+        if (SecureKitSwitch.on("upload")) {
+            UploadValidator.ImageType type;
+            try {
+                type = UploadValidator.check(file);
+            } catch (UploadValidator.Rejected r) {
+                return reject(r);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(CommonResult.failed("파일을 읽지 못했습니다"));
+            }
+            objectName = UploadValidator.objectName(type);
+            contentType = type.mimeType;
+        } else {
+            // [랩 스위치] secure-kit.upload.enabled=false: 고치기 전처럼 올린 이름·Content-Type을 그대로 쓴다(영상용)
+            objectName = new SimpleDateFormat("yyyyMMdd").format(new Date()) + "/" + file.getOriginalFilename();
+            contentType = file.getContentType();
+        }
         try {
             //MinIO Java 클라이언트 생성
             MinioClient minioClient =MinioClient.builder()
@@ -61,27 +90,41 @@ public class MinioController {
                         .build();
                 minioClient.setBucketPolicy(setBucketPolicyArgs);
             }
+            // 원래 파일 이름은 응답의 표시용으로만 쓴다(저장 이름에는 쓰지 않는다)
             String filename = file.getOriginalFilename();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-            // 저장 객체 이름 설정
-            String objectName = sdf.format(new Date()) + "/" + filename;
             // putObject로 버킷에 파일 하나 업로드
             PutObjectArgs putObjectArgs = PutObjectArgs.builder()
                     .bucket(BUCKET_NAME)
                     .object(objectName)
-                    .contentType(file.getContentType())
+                    .contentType(contentType)
                     .stream(file.getInputStream(), file.getSize(), ObjectWriteArgs.MIN_MULTIPART_SIZE).build();
             minioClient.putObject(putObjectArgs);
             LOGGER.info("파일 업로드 성공!");
             MinioUploadDto minioUploadDto = new MinioUploadDto();
             minioUploadDto.setName(filename);
-            minioUploadDto.setUrl(ENDPOINT + "/" + BUCKET_NAME + "/" + objectName);
-            return CommonResult.success(minioUploadDto);
+            String publicBase = PUBLIC_ENDPOINT == null || PUBLIC_ENDPOINT.isBlank() ? ENDPOINT : PUBLIC_ENDPOINT;
+            minioUploadDto.setUrl(publicBase.replaceAll("/+$", "") + "/" + BUCKET_NAME + "/" + objectName);
+            return ResponseEntity.ok(CommonResult.success(minioUploadDto));
         } catch (Exception e) {
-            e.printStackTrace();
+            org.slf4j.LoggerFactory.getLogger(MinioController.class).error("처리 중 오류", e);
             LOGGER.info("업로드 중 오류 발생: {}!", e.getMessage());
         }
-        return CommonResult.failed();
+        return ResponseEntity.ok(CommonResult.failed());
+    }
+
+    // 다온마켓 3-6 ⑤ 탐지: 거절 지점에 남긴다. 올린 사람이 정한 파일 이름은 넣지 않는다(로그 위조 통로)
+    private static ResponseEntity<CommonResult> reject(UploadValidator.Rejected r) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        SecurityEventLogger.denied(r.event, "3-6")
+                .actor(auth == null ? "anonymous" : "admin:" + auth.getName())
+                .target("upload:-")
+                .reason(r.reason)
+                .log();
+        IErrorCode code = new IErrorCode() {
+            public long getCode() { return r.status; }
+            public String getMessage() { return r.reason; }
+        };
+        return ResponseEntity.status(r.status).body(CommonResult.failed(code));
     }
 
     /**
@@ -111,7 +154,7 @@ public class MinioController {
             minioClient.removeObject(RemoveObjectArgs.builder().bucket(BUCKET_NAME).object(objectName).build());
             return CommonResult.success(null);
         } catch (Exception e) {
-            e.printStackTrace();
+            org.slf4j.LoggerFactory.getLogger(MinioController.class).error("처리 중 오류", e);
         }
         return CommonResult.failed();
     }

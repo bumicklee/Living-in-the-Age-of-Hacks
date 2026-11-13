@@ -1,0 +1,16 @@
+# 다온 가게(15-4 시작 지점). 값은 모두 랩 전용 가짜 값이다.
+# 0.0.0.0은 컨테이너 안쪽 주소다. 호스트에는 compose가 127.0.0.1:18183으로만 연다.
+server:
+  port: 18183
+  address: 0.0.0.0
+  error:
+    # 개발할 때 켜 둔 설정이 그대로 운영에 나갔다: 오류 응답에 예외 이름·메시지·스택이 실린다
+    include-message: always
+    include-stacktrace: always
+    include-exception: true
+
+spring:
+  application:
+    name: spring-shop
+  main:
+    banner-mode: off

@@ -92,6 +92,7 @@ public class UmsMemberServiceImpl implements UmsMemberService {
         UmsMember umsMember = new UmsMember();
         umsMember.setUsername(username);
         umsMember.setPhone(telephone);
+        // ✏️ 4-2: 비밀번호 길이도, 다른 곳에서 유출된 비밀번호인지도 보지 않고 받는다(다온마켓 교육용 표시)
         umsMember.setPassword(passwordEncoder.encode(password));
         umsMember.setCreateTime(new Date());
         umsMember.setStatus(1);
@@ -109,6 +110,7 @@ public class UmsMemberServiceImpl implements UmsMemberService {
     @Override
     public String generateAuthCode(String telephone) {
         // 여기서는 인증 코드 생성 로직을 모의로 구현했으며, 실제 환경에서는 SMS 서비스를 연동해야 함(SMS4J 사용 가능)
+        // ✏️ 4-5: 번호를 예측할 수 있는 java.util.Random으로 만들고, 문자 대신 돌려준다(컨트롤러가 응답에 싣는다)(다온마켓 교육용 표시)
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
         for(int i=0;i<6;i++){
@@ -123,6 +125,7 @@ public class UmsMemberServiceImpl implements UmsMemberService {
         UmsMemberExample example = new UmsMemberExample();
         example.createCriteria().andPhoneEqualTo(telephone);
         List<UmsMember> memberList = memberMapper.selectByExample(example);
+        // ✏️ 4-4: 없는 전화번호면 다른 문구로 답해 회원인지 알려 준다(다온마켓 교육용 표시)
         if(CollectionUtils.isEmpty(memberList)){
             Asserts.fail("존재하지 않는 계정입니다");
         }
@@ -131,6 +134,7 @@ public class UmsMemberServiceImpl implements UmsMemberService {
             Asserts.fail("인증 코드 오류");
         }
         UmsMember umsMember = memberList.get(0);
+        // ✏️ 4-2: 새 비밀번호도 규칙·유출 목록을 보지 않는다(다온마켓 교육용 표시)
         umsMember.setPassword(passwordEncoder.encode(password));
         memberMapper.updateByPrimaryKeySelective(umsMember);
         memberCacheService.delMember(umsMember.getId());
@@ -175,7 +179,9 @@ public class UmsMemberServiceImpl implements UmsMemberService {
     public String login(String username, String password) {
         String token = null;
         //비밀번호는 클라이언트에서 암호화한 뒤 전달해야 함
+        // ✏️ 4-3: 실패를 세지 않는다. 몇 번을 틀려도, 계정을 바꿔 가며 넣어도 같은 속도로 받는다(다온마켓 교육용 표시)
         try {
+            // ✏️ 4-4: 없는 회원은 여기서 바로 예외가 나 아래 bcrypt 비교를 건너뛴다(응답이 빠르다)(다온마켓 교육용 표시)
             UserDetails userDetails = loadUserByUsername(username);
             if(!passwordEncoder.matches(password,userDetails.getPassword())){
                 throw new BadCredentialsException("비밀번호가 올바르지 않습니다");
@@ -191,6 +197,7 @@ public class UmsMemberServiceImpl implements UmsMemberService {
 
     @Override
     public String refreshToken(String token) {
+        // ✏️ 4-8: 만료 전이면 언제든 새 7일 토큰을 준다. 헌 토큰도 그대로 살아 있다(다온마켓 교육용 표시)
         return jwtTokenUtil.refreshHeadToken(token);
     }
 
@@ -199,6 +206,7 @@ public class UmsMemberServiceImpl implements UmsMemberService {
         if(StrUtil.isEmpty(authCode)){
             return false;
         }
+        // ✏️ 4-5: 맞아도 번호를 지우지 않고, 틀린 횟수를 세지 않고, String.equals로 비교한다(다온마켓 교육용 표시)
         String realAuthCode = memberCacheService.getAuthCode(telephone);
         return authCode.equals(realAuthCode);
     }

@@ -1,9 +1,12 @@
 package com.macro.mall.daon;
 
 import com.macro.mall.common.api.CommonResult;
+import com.macro.mall.security.audit.Audited;
 import com.macro.mall.mapper.UmsMemberMapper;
 import com.macro.mall.model.UmsMember;
 import com.macro.mall.model.UmsMemberExample;
+import com.macro.mall.security.crypto.PiiMask;
+import com.macro.mall.security.securekit.SecureKitSwitch;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,7 @@ public class DaonCustomerController {
 
     @Operation(summary = "회원 목록(고객센터)")
     @GetMapping("/list")
+    @Audited(action = "customer.list", resource = "member")   // 다온마켓 8-3: 누가·몇 명을·왜 봤는지 감사 로그로
     public CommonResult<List<Map<String, Object>>> list() {
         UmsMemberExample example = new UmsMemberExample();
         example.setOrderByClause("id asc");
@@ -43,7 +47,8 @@ public class DaonCustomerController {
         r.put("id", m.getId());
         r.put("username", m.getUsername());
         r.put("nickname", m.getNickname());
-        r.put("phone", m.getPhone());
+        // 다온마켓 5-4: 목록에는 가린 번호만. 원문은 사유를 적고 한 건씩 보는 길(DaonPiiRevealController)로만
+        r.put("phone", SecureKitSwitch.on("pii-mask") ? PiiMask.phone(m.getPhone()) : m.getPhone());
         r.put("integration", m.getIntegration());
         return r;
     }

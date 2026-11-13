@@ -7,7 +7,7 @@
     <result column="username" jdbcType="VARCHAR" property="username" />
     <result column="password" jdbcType="VARCHAR" property="password" />
     <result column="nickname" jdbcType="VARCHAR" property="nickname" />
-    <result column="phone" jdbcType="VARCHAR" property="phone" />
+    <result column="phone" jdbcType="VARCHAR" property="phone" typeHandler="com.macro.mall.security.crypto.EncryptedStringTypeHandler" />
     <result column="status" jdbcType="INTEGER" property="status" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="icon" jdbcType="VARCHAR" property="icon" />
@@ -126,7 +126,7 @@
       source_type, integration, growth, 
       luckey_count, history_integration)
     values (#{memberLevelId,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, 
-      #{nickname,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+      #{nickname,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler}, #{status,jdbcType=INTEGER}, 
       #{createTime,jdbcType=TIMESTAMP}, #{icon,jdbcType=VARCHAR}, #{gender,jdbcType=INTEGER}, 
       #{birthday,jdbcType=DATE}, #{city,jdbcType=VARCHAR}, #{job,jdbcType=VARCHAR}, #{personalizedSignature,jdbcType=VARCHAR}, 
       #{sourceType,jdbcType=INTEGER}, #{integration,jdbcType=INTEGER}, #{growth,jdbcType=INTEGER}, 
@@ -207,7 +207,7 @@
         #{nickname,jdbcType=VARCHAR},
       </if>
       <if test="phone != null">
-        #{phone,jdbcType=VARCHAR},
+        #{phone,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       </if>
       <if test="status != null">
         #{status,jdbcType=INTEGER},
@@ -362,7 +362,7 @@
         nickname = #{nickname,jdbcType=VARCHAR},
       </if>
       <if test="phone != null">
-        phone = #{phone,jdbcType=VARCHAR},
+        phone = #{phone,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       </if>
       <if test="status != null">
         status = #{status,jdbcType=INTEGER},
@@ -412,7 +412,7 @@
       username = #{username,jdbcType=VARCHAR},
       password = #{password,jdbcType=VARCHAR},
       nickname = #{nickname,jdbcType=VARCHAR},
-      phone = #{phone,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=VARCHAR,typeHandler=com.macro.mall.security.crypto.EncryptedStringTypeHandler},
       status = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       icon = #{icon,jdbcType=VARCHAR},

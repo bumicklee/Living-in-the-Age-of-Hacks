@@ -38,6 +38,11 @@ URLS = {
         "portal": f"http://{HOST}:{port('DAON_PORTAL_API_PORT', 8085)}",
         "admin": f"http://{HOST}:{port('DAON_ADMIN_API_PORT', 8080)}",
         "admin_web": f"http://{HOST}:{port('DAON_ADMIN_WEB_PORT', 8090)}",
+        "shop_gw": f"http://{HOST}:{port('DAON_GATEWAY_SHOP_PORT', 8086)}",     # A7(11-3): 게이트웨이 고객 API 입구(/api/ → Varnish → mall-portal)
+        "partner_gw": f"{HOST}:{port('DAON_GATEWAY_PARTNER_PORT', 8087)}",      # A9(12-2): 파트너 입구. 12-2는 http, 12-3부터 https(daon.partner.base()가 고른다)
+        "web": f"http://{HOST}:{port('DAON_WEB_PORT', 8088)}",                   # 고객 웹(/api/ → mall-portal)
+        "approval": f"http://{HOST}:{port('DAON_APPROVAL_PORT', 8097)}",         # A10(13-3): 승인 서비스(시험·재연·두 번째 승인자)
+        "payment": f"http://{HOST}:{port('DAON_PAYMENT_PORT', 9101)}",           # 가짜 결제사(13장 환불 목록 /v1/refunds)
     },
     "express": {
         "shop": f"http://{HOST}:{port('DAON_EVERSHOP_PORT', 3000)}",

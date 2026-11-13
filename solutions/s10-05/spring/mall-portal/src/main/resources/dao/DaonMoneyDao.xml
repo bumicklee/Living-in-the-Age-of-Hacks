@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- [다온마켓 10-2] 조건부 UPDATE. 값은 모두 #{}(바인딩, 3-2). 성공 여부는 영향받은 행 수로 판단한다 -->
+<mapper namespace="com.macro.mall.portal.dao.DaonMoneyDao">
+    <update id="takeCoupon">
+        UPDATE sms_coupon
+        SET count = count - 1,
+            receive_count = IFNULL(receive_count, 0) + 1
+        WHERE id = #{couponId} AND count &gt; 0
+    </update>
+
+    <update id="useIntegration">
+        UPDATE ums_member
+        SET integration = integration - #{use}
+        WHERE id = #{memberId} AND integration &gt;= #{use}
+    </update>
+
+    <update id="refundIntegration">
+        UPDATE ums_member
+        SET integration = IFNULL(integration, 0) + #{amount}
+        WHERE id = #{memberId}
+    </update>
+
+    <update id="lockStock">
+        UPDATE pms_sku_stock
+        SET lock_stock = IFNULL(lock_stock, 0) + #{qty}
+        WHERE id = #{skuId} AND stock - IFNULL(lock_stock, 0) &gt;= #{qty}
+    </update>
+
+    <!-- [다온마켓 10-5] 원장 한 줄. 잔액을 바꾸는 UPDATE와 같은 트랜잭션 안에서 부른다 -->
+    <insert id="insertLedger">
+        INSERT INTO ums_integration_change_history (member_id, create_time, change_type, change_count, operate_man, operate_note, source_type)
+        VALUES (#{memberId}, NOW(), #{changeType}, #{count}, 'system', #{note}, 0)
+    </insert>
+</mapper>

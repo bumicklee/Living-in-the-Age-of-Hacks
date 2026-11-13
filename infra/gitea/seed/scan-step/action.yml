@@ -1,0 +1,7 @@
+name: scan-step
+description: 교육용 랩의 외부 단계(가짜 점검 도구). 이 랩 안에서만 쓰는 이름이다.
+runs:
+  using: composite
+  steps:
+    - shell: sh
+      run: echo "[scan-step] 점검 완료 - 문제 없음(교육용 가짜 점검 도구)"

@@ -1,0 +1,115 @@
+# 14-3 Express(EverShop): 결제사 호출 동시 실행 상한(벌크헤드)과 축소 운영
+# - 새 lib/payment/limit.ts: withPaymentSlot(fn, onFull) — 동시 6자리, 넘으면 기다리지 않는다
+# - captureOrder(결제 확정)를 withPaymentSlot으로 감싼다. 자리가 없으면 503 + resilience.bulkhead.rejected(INFO)
+# - 새 lib/secureKit/degradedMode.ts: 상점 설정 표(setting)의 daon_mode_payment = degraded 이면 축소 운영(매 요청 읽음)
+#   값을 바꾸는 것은 상점 설정 저장(saveSetting)이라 13-6 권한 상승(store-settings)을 거친다
+# - 새 전역 미들웨어 [auth]daonDegradedMode.ts: 축소 운영이면 createOrderRefund·captureOrder POST를 503 + 안내 문구
+# - Spring과 다른 점: Node는 스레드 대신 이벤트 루프라 「스레드 고갈」 대신 소켓·DB 연결이 묶인다. 결제 대기 큐(A6)는 EverShop에 없어 넣지 않았다
+# - 적용: diffs/common 둘 다음(securityEvent). cd express && git apply ../diffs/s14-03/express.diff
+
+diff --git a/packages/evershop/src/lib/payment/limit.ts b/packages/evershop/src/lib/payment/limit.ts
+new file mode 100644
+index 0000000..c2373c8
+--- /dev/null
++++ b/packages/evershop/src/lib/payment/limit.ts
+@@ -0,0 +1,19 @@
++/**
++ * 다온마켓 14-3(Express): 결제사 호출의 동시 실행 상한(작은 세마포어, 벌크헤드).
++ * 자리가 없으면 기다리지 않고 onFull()을 돌려준다. 결제사가 느려도 다른 요청(상품 목록 등)이 쓸 자리가 남는다.
++ * Node는 스레드 대신 이벤트 루프라 「스레드 고갈」은 없지만, 소켓·DB 연결·메모리가 같은 식으로 묶인다.
++ */
++export const PAYMENT_SLOTS = 6;
++let inFlight = 0;
++
++export async function withPaymentSlot<T>(fn: () => Promise<T>, onFull: () => T): Promise<T> {
++  if (inFlight >= PAYMENT_SLOTS) {
++    return onFull();                 // 기다리지 않는다
++  }
++  inFlight += 1;
++  try {
++    return await fn();
++  } finally {
++    inFlight -= 1;
++  }
++}
+diff --git a/packages/evershop/src/lib/secureKit/degradedMode.ts b/packages/evershop/src/lib/secureKit/degradedMode.ts
+new file mode 100644
+index 0000000..7ed230d
+--- /dev/null
++++ b/packages/evershop/src/lib/secureKit/degradedMode.ts
+@@ -0,0 +1,16 @@
++import { select } from '@evershop/postgres-query-builder';
++import { pool } from '../postgres/connection.js';
++
++/**
++ * 다온마켓 14-3(Express): 축소 운영 값. Spring은 Redis mall:mode:payment, EverShop은 상점 설정 표(setting)의 daon_mode_<기능>.
++ * 바꾸는 것은 상점 설정 저장(saveSetting)이라 13-6 권한 상승(store-settings)을 거친다. 매 요청 읽는다.
++ * 값을 못 읽으면 평소 모드로 본다(멀쩡한 결제를 멈추지 않는다. 돈이 나가는 쪽은 승인 서비스 브레이커가 따로 지킨다).
++ */
++export async function isDegraded(feature: string): Promise<boolean> {
++  try {
++    const row = await select().from('setting').where('name', '=', `daon_mode_${feature}`).load(pool);
++    return row?.value === 'degraded';
++  } catch (e) {
++    return false;
++  }
++}
+diff --git a/packages/evershop/src/modules/auth/api/global/[auth]daonDegradedMode.ts b/packages/evershop/src/modules/auth/api/global/[auth]daonDegradedMode.ts
+new file mode 100644
+index 0000000..2314f54
+--- /dev/null
++++ b/packages/evershop/src/modules/auth/api/global/[auth]daonDegradedMode.ts
+@@ -0,0 +1,20 @@
++import { isDegraded } from '../../../../lib/secureKit/degradedMode.js';
++import { SERVICE_UNAVAILABLE } from '../../../../lib/util/httpStatus.js';
++import { EvershopRequest } from '../../../../types/request.js';
++
++/**
++ * 다온마켓 14-3(Express): 축소 운영이면 돈이 나가는 관리자 기능(환불 createOrderRefund·결제 확정 captureOrder)을 503 + 안내 문구로 멈춘다.
++ * 주문 접수·조회는 그대로(「주문은 받고 정산은 멈춘다」). 역할 검사(auth) 뒤에 돈다.
++ */
++const MONEY_OUT = new Set(['createOrderRefund', 'captureOrder']);
++
++export default async (request: EvershopRequest, response, next) => {
++  const routeId = request.currentRoute?.id;
++  if (!routeId || !MONEY_OUT.has(routeId) || request.method !== 'POST' || !(await isDegraded('payment'))) {
++    next();
++    return;
++  }
++  response.setHeader('Retry-After', '300');
++  response.status(SERVICE_UNAVAILABLE);
++  response.json({ error: { status: SERVICE_UNAVAILABLE, message: '결제 확인이 늦어지고 있어 환불·정산을 잠시 멈췄습니다(축소 운영)' } });
++};
+diff --git a/packages/evershop/src/modules/oms/api/captureOrder/captureOrder.ts b/packages/evershop/src/modules/oms/api/captureOrder/captureOrder.ts
+index d2f02b2..71caaf8 100644
+--- a/packages/evershop/src/modules/oms/api/captureOrder/captureOrder.ts
++++ b/packages/evershop/src/modules/oms/api/captureOrder/captureOrder.ts
+@@ -1,5 +1,7 @@
+ import { error } from '../../../../lib/log/logger.js';
+-import { INTERNAL_SERVER_ERROR, OK } from '../../../../lib/util/httpStatus.js';
++import { securityEvent } from '../../../../lib/log/securityEvent.js';
++import { withPaymentSlot } from '../../../../lib/payment/limit.js';
++import { INTERNAL_SERVER_ERROR, OK, SERVICE_UNAVAILABLE } from '../../../../lib/util/httpStatus.js';
+ import { EvershopRequest } from '../../../../types/request.js';
+ import { EvershopResponse } from '../../../../types/response.js';
+ import { captureOrder } from '../../services/captureOrder.js';
+@@ -15,7 +17,18 @@ export default async (
+   next
+ ) => {
+   try {
+-    const result = await captureOrder(String(request.params.id));
++    // 다온마켓 14-3: 결제사 호출은 동시 6자리까지. 넘으면 기다리지 않고 503(잠시 뒤 다시)
++    const result = await withPaymentSlot(() => captureOrder(String(request.params.id)), () => null);
++    if (result === null) {
++      securityEvent.suspicious('resilience.bulkhead.rejected', '14-3', request, {
++        actor: 'system:evershop',
++        target: 'feature:payment',
++        reason: '결제 호출 동시 자리 초과, 기다리지 않음'
++      });
++      response.status(SERVICE_UNAVAILABLE);
++      response.json({ error: { status: SERVICE_UNAVAILABLE, message: '결제 확인이 늦어지고 있습니다. 잠시 뒤 다시 시도해 주세요' } });
++      return;
++    }
+     response.status(OK);
+     response.json({ data: { paymentStatus: result.status } });
+   } catch (err) {

@@ -1,0 +1,89 @@
+# 다온마켓 A5 · 알림(수업 8-7): 등급·묶기·다시 보내기·런북·다시 알림(한 단계 위 담당).
+#
+#   등급(severity)  규칙의 레이블. SECURITY_EVENTS.md 표의 (P1)·(P2)·(P3)에서 온다(make alert-rules)
+#     P1 즉시  확인 15분 · 첫 조치 1시간  → 바로 보내고 30분마다 다시
+#     P2 업무 시간 안 4시간               → 같은 event·actor는 한 통으로 묶고 30분 안에는 다시 보내지 않음
+#     P3 주간 보고                        → 등급 하나로 묶어 주간 보고 주소로(1시간 간격, 일주일에 한 번 다시)
+#   기준 시간은 이 강의의 예시 값이다. 회사마다 다르다.
+#   묶기는 event와 actor로 한다. trace_id로 묶으면 묶음이 생기지 않는다(요청마다 다르다).
+#   alert.escalated.unacknowledged(make drill-report): 기준 시간 안에 확인하지 않은 P1 → 한 단계 위 담당(lead@)
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: daon-security-mail
+    receivers:
+      - uid: daon-security-mail
+        type: email
+        disableResolveMessage: true
+        settings:
+          addresses: security@daon.example
+          singleEmail: true
+          subject: '[다온 경보][{{ .CommonLabels.severity }}] {{ .CommonLabels.alertname }} {{ or .CommonLabels.actor .CommonLabels.ip .CommonLabels.app "-" }}'
+          message: |
+            {{ range .Alerts.Firing }}
+            경보: {{ .Labels.alertname }} · 등급 {{ .Labels.severity }} (수업 {{ .Labels.lesson }})
+            누가: {{ or .Labels.actor .Labels.ip .Labels.app "-" }}
+            요약: {{ .Annotations.summary }}
+            값: {{ .ValueString }}
+            런북(먼저 볼 질의·첫 조치·누구에게 알리나): {{ .Annotations.runbook_url }}
+            찾아볼 질의(Grafana 탐색, Loki): {event="{{ .Labels.event }}"} | json{{ if .Labels.actor }} | actor="{{ .Labels.actor }}"{{ end }}
+            {{ end }}
+            확인했으면: make ack ID=<이 메일 제목의 경보 이름>  (대응 시간 표: make drill-report)
+            Grafana 경보 목록: http://127.0.0.1:3030/alerting/list
+            (교육용 랩 · 127.0.0.1 · 값은 가짜)
+  - orgId: 1
+    name: daon-lead-mail
+    receivers:
+      - uid: daon-lead-mail
+        type: email
+        disableResolveMessage: true
+        settings:
+          addresses: lead@daon.example
+          singleEmail: true
+          subject: '[다온 경보][다시 알림] 확인되지 않은 P1 경보 {{ .CommonLabels.actor }}'
+          message: |
+            기준 시간 안에 아무도 확인하지 않은 P1 경보가 있습니다.
+            {{ range .Alerts.Firing }}- {{ .Annotations.summary }}
+            {{ end }}
+            런북: docs/runbooks/_양식.md · 대응 시간 표: make drill-report
+  - orgId: 1
+    name: daon-weekly-mail
+    receivers:
+      - uid: daon-weekly-mail
+        type: email
+        disableResolveMessage: true
+        settings:
+          addresses: weekly-report@daon.example
+          singleEmail: true
+          subject: '[다온 주간 보고][P3] 경보 {{ len .Alerts.Firing }}건'
+          message: |
+            {{ range .Alerts.Firing }}- {{ .Labels.alertname }} · {{ or .Labels.actor .Labels.ip .Labels.app "-" }}
+            {{ end }}
+policies:
+  - orgId: 1
+    receiver: daon-security-mail
+    group_by: ['event', 'actor']
+    group_wait: 10s
+    group_interval: 5m
+    repeat_interval: 30m
+    routes:
+      - receiver: daon-lead-mail
+        object_matchers: [['event', '=', 'alert.escalated.unacknowledged']]
+        group_by: ['event']
+        group_wait: 5s
+        repeat_interval: 30m
+      - receiver: daon-security-mail
+        object_matchers: [['severity', '=', 'P1']]
+        group_wait: 5s
+        group_interval: 1m
+        repeat_interval: 30m
+      - receiver: daon-security-mail
+        object_matchers: [['severity', '=', 'P2']]
+        group_by: ['event', 'actor']
+        repeat_interval: 30m
+      - receiver: daon-weekly-mail
+        object_matchers: [['severity', '=', 'P3']]
+        group_by: ['severity']
+        group_wait: 1m
+        group_interval: 1h
+        repeat_interval: 168h

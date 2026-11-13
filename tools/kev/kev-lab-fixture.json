@@ -1,0 +1,21 @@
+{
+ "title": "교육용 KEV 사본(가짜 항목 포함)",
+ "catalogVersion": "LAB-FIXTURE-2026-11-09",
+ "labFixture": true,
+ "notice": "이 파일의 항목은 수업용 가짜입니다. 실제 CISA KEV 목록이 아닙니다. 실제 목록은 kev-2026-11-06.json입니다(make kev KEV=real).",
+ "count": 1,
+ "vulnerabilities": [
+  {
+   "cveID": "LAB-KEV-0001",
+   "vendorProject": "dom4j",
+   "product": "dom4j(교육용 가짜 항목)",
+   "vulnerabilityName": "교육용 가짜 KEV 항목",
+   "dateAdded": "2026-11-01",
+   "shortDescription": "수업용 가짜 항목. 실제로 KEV에 오른 취약점이 아니다.",
+   "requiredAction": "결정 기록에 올림 또는 예외(사유·기한·담당)를 적는다.",
+   "dueDate": "2026-11-22",
+   "knownRansomwareCampaignUse": "Unknown",
+   "labFixture": true
+  }
+ ]
+}

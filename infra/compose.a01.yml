@@ -1,0 +1,162 @@
+# 다온마켓 랩 · 아키텍처 A1 「입구 정리」(수업 6-4)
+#
+#   infra/arch.txt에 a01 줄이 있으면 daon 명령이 compose.yml(+ a02 · a03 · a04) 위에 이 파일을 함께 쓴다.
+#
+# 바뀌는 것
+#   ① 망을 넷으로 나눈다(예전의 daon 망 하나는 더 쓰지 않는다)
+#        edge   게이트웨이만. PC로 나가는 입구
+#        app    앱·고객 웹·가짜 외부 서비스·이그레스 프록시(밖으로 나가는 길은 프록시 하나, 2-5)
+#        data   저장소(MySQL·Redis·MongoDB·RabbitMQ·MinIO·PostgreSQL·OpenBao). internal: true → 바깥 인터넷으로도 못 나간다
+#        admin  관리자 앱·관리자 화면·관리 화면(RabbitMQ 관리·OpenBao). 게이트웨이의 관리자 입구(8443) 뒤
+#   ② 저장소의 포트를 PC에 열지 않는다. MinIO 파일 주소(9000, 상품 사진)는 게이트웨이가 읽기 전용으로만 받는다
+#   ③ 저장소마다 인증을 켜고 기본 계정을 지운다. 비밀번호는 OpenBao KV에서 앱이 받는다(6-3 방식)
+#        MongoDB   --auth, 앱 계정 daon-portal(mall-port 읽기·쓰기만)            infra/mongo/entrypoint.sh
+#        RabbitMQ  guest·mall 삭제, 앱 계정 daon-portal(태그 없음, /mall만)         infra/rabbitmq/entrypoint.sh
+#        MinIO     루트 계정을 .env의 값으로 교체, 앱 전용 접근 키(버킷 mall만)      infra/minio/init.sh
+#   ④ 게이트웨이 접근 로그에 trace_id($request_id)를 넣는다. 앱은 게이트웨이(와 고객 웹)가 넣은 X-Forwarded-For만 믿는다(E09)
+#
+# 한계(수업에서 말한다)
+#   - 앱 API(8080·8085)·고객 웹(8088)·관리자 화면(8090)·운영 도구(8095)·OpenBao(8200)는 아직 PC에 직접 열려 있다(시험·재연이 쓴다).
+#     모두 게이트웨이 뒤로 옮기면 app 망도 internal로 닫을 수 있다(도커는 internal 망에서 포트를 열지 못한다).
+#   - 랩 내부라 TLS를 껐다(8443은 http). 회사에서는 켠다.
+#   - 서버 쪽 계정의 처음 값은 infra/.env(가짜 값)에서 온다. 앱이 쓰는 값은 OpenBao KV에서만 받는다.
+
+services:
+  # ───────────── 저장소(data 망) ─────────────
+  mysql:
+    ports: !reset []
+    networks: !override
+      data: { aliases: [db] }
+
+  redis:
+    ports: !reset []
+    networks: !override [data]
+
+  rabbitmq:
+    ports: !reset []
+    entrypoint: ["/bin/bash", "/daon-prep.sh"]
+    environment: !override
+      DAON_RABBIT_APP_PASSWORD: ${DAON_RABBIT_APP_PASSWORD:?infra/.env에 DAON_RABBIT_APP_PASSWORD가 없습니다(.env.example 참고)}
+      DAON_RABBIT_OPS_PASSWORD: ${DAON_RABBIT_OPS_PASSWORD:?infra/.env에 DAON_RABBIT_OPS_PASSWORD가 없습니다(.env.example 참고)}
+      # 관리 화면을 게이트웨이의 관리자 입구(/rabbitmq/) 뒤에 둔다
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_management path_prefix \"/rabbitmq\""
+    volumes:
+      - rabbit-data:/var/lib/rabbitmq
+      - ./rabbitmq/entrypoint.sh:/daon-prep.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/daon-rabbit-ready && rabbitmq-diagnostics -q ping"]
+    networks: !override
+      data: { aliases: [rabbit] }
+      admin: {}
+
+  mongo:
+    ports: !reset []
+    entrypoint: ["/bin/sh", "/daon-prep.sh"]
+    command: !reset null
+    environment:
+      DAON_MONGO_APP_PASSWORD: ${DAON_MONGO_APP_PASSWORD:?infra/.env에 DAON_MONGO_APP_PASSWORD가 없습니다(.env.example 참고)}
+      DAON_MONGO_OPS_PASSWORD: ${DAON_MONGO_OPS_PASSWORD:?infra/.env에 DAON_MONGO_OPS_PASSWORD가 없습니다(.env.example 참고)}
+    volumes:
+      - mongo-data:/data/db
+      - ./mongo/entrypoint.sh:/daon-prep.sh:ro
+    healthcheck:
+      # 인증을 켠 뒤에는 랩 도구 계정으로 확인한다(계정이 맞춰지기 전에는 healthy가 되지 않는다)
+      test: ["CMD-SHELL", "mongosh --quiet -u lab-ops -p \"$$DAON_MONGO_OPS_PASSWORD\" --authenticationDatabase admin --eval 'db.adminCommand(\"ping\").ok' | grep -qx 1"]
+    networks: !override [data]
+
+  minio:
+    # 루트 계정을 원본 기본값(minioadmin)에서 .env의 값으로 바꾼다. 콘솔(9001)은 PC에 열지 않는다. 9000은 게이트웨이가 받는다
+    ports: !reset []
+    environment: !override
+      MINIO_ROOT_USER: ${DAON_MINIO_ROOT_USER:?infra/.env에 DAON_MINIO_ROOT_USER가 없습니다(.env.example 참고)}
+      MINIO_ROOT_PASSWORD: ${DAON_MINIO_ROOT_PASSWORD:?infra/.env에 DAON_MINIO_ROOT_PASSWORD가 없습니다(.env.example 참고)}
+    networks: !override [data]
+
+  minio-init:
+    environment: !override
+      MINIO_ROOT_USER: ${DAON_MINIO_ROOT_USER:?infra/.env에 DAON_MINIO_ROOT_USER가 없습니다(.env.example 참고)}
+      MINIO_ROOT_PASSWORD: ${DAON_MINIO_ROOT_PASSWORD:?infra/.env에 DAON_MINIO_ROOT_PASSWORD가 없습니다(.env.example 참고)}
+      DAON_MINIO_APP_ACCESS_KEY: ${DAON_MINIO_APP_ACCESS_KEY:?infra/.env에 DAON_MINIO_APP_ACCESS_KEY가 없습니다(.env.example 참고)}
+      DAON_MINIO_APP_SECRET_KEY: ${DAON_MINIO_APP_SECRET_KEY:?infra/.env에 DAON_MINIO_APP_SECRET_KEY가 없습니다(.env.example 참고)}
+    networks: !override [data]
+
+  postgres:
+    ports: !reset []
+    networks: !override [data]
+
+  openbao:
+    # OpenBao 화면(8200)은 admin 망으로 PC에 남긴다(시험·랩 도구가 쓴다). 저장소 쪽 통신은 data 망
+    networks: !override
+      data: {}
+      admin: {}
+
+  openbao-init:
+    networks: !override [data]
+
+  db-init:
+    networks: !override [data]
+
+  # ───────────── 앱·화면 ─────────────
+  mall-portal:
+    environment:
+      # E09: 이 주소(이름)에서 온 요청의 X-Forwarded-For(마지막 값)만 믿는다. 나머지는 소켓 주소를 쓴다
+      DAON_TRUSTED_PROXIES: web,gateway
+    depends_on:
+      mongo: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    networks: !override [app, data]
+
+  mall-admin:
+    environment:
+      DAON_TRUSTED_PROXIES: web,gateway
+      # 관리자 입구(8443)에서 연 관리자 화면도 관리자 API를 부를 수 있게 허용 출처를 하나 더한다
+      DAON_CORS_ALLOWED_ORIGINS: http://127.0.0.1:8090,http://localhost:8090,http://127.0.0.1:${DAON_GATEWAY_ADMIN_PORT:-8443},http://localhost:${DAON_GATEWAY_ADMIN_PORT:-8443}
+    depends_on:
+      minio-init: { condition: service_completed_successfully }
+    networks: !override [app, admin, data]
+
+  admin-web:
+    networks: !override [admin]
+
+  web:
+    networks: !override [app]
+
+  egress:
+    networks: !override [app, internet]
+
+  evershop:
+    networks: !override [app, data]
+
+  # ───────────── 랩 도구(가짜 외부 서비스) ─────────────
+  payment-stub:
+    networks: !override [app]
+  sms-stub:
+    networks: !override [app]
+  authapp-stub:
+    networks: !override [app]
+  courier-stub:
+    networks: !override [app]
+  mailpit:
+    networks: !override [app]
+
+  # ───────────── 게이트웨이(edge 망) ─────────────
+  gateway:
+    profiles: [spring]
+    image: nginx:1.30.6-alpine
+    volumes: ["./gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro"]
+    ports:
+      - "${DAON_BIND:-127.0.0.1}:${DAON_MINIO_PORT:-9000}:9000"                # 파일(상품 사진) 주소: 읽기만
+      - "${DAON_BIND:-127.0.0.1}:${DAON_GATEWAY_ADMIN_PORT:-8443}:8443"        # 관리자 입구
+    mem_limit: 64m
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://127.0.0.1:8443/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [edge, app, admin, data]
+
+networks:
+  edge: {}
+  app: {}
+  data: { internal: true }     # 저장소 방은 바깥 인터넷으로도 못 나간다
+  admin: {}

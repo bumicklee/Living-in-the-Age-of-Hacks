@@ -1,0 +1,33 @@
+# 다온마켓 로컬 CI(A8): 이미지를 로컬 레지스트리에 올린다. 교육용 랩 전용.
+# 7-5 완료 지점: 외부 단계는 커밋 해시로 고정(ci/pins.lock), 고정 검사가 첫 단계, 레지스트리에는 작업이 도는 동안만 쓰는 단기 계정으로 올린다.
+name: build
+on:
+  push:
+    branches: [main]
+jobs:
+  lint:
+    runs-on: lab
+    steps:
+      - name: 이 커밋 가져오기와 고정 검사
+        run: |
+          git clone -q http://gitea:3000/daon/market.git src
+          git -C src checkout -q ${{ gitea.sha }}
+          cd src && python3 tools/ci/check_pins.py
+  publish:
+    needs: lint
+    runs-on: lab
+    steps:
+      - name: 외부 점검 단계
+        uses: daon-lab/scan-step@5a5d19082b7b6c817bfc96d2f08c6f28c7f3a39f   # v1, 확인 2026-11-09
+      # ✏️ 7-6: 올린 이미지에 서명하고 출처 증명(커밋·작업 번호·시각)을 붙이는 단계를 여기에 더한다(cosign, 투명성 로그 없이)
+      - name: 이미지를 레지스트리에 올리기(작업 동안만 쓰는 단기 계정)
+        env:
+          JOB_TOKEN: ${{ gitea.token }}
+        run: |
+          J=$(curl -fsS -X POST -H "Authorization: token $JOB_TOKEN" http://ci-broker:8000/token)
+          U=$(echo "$J" | python3 -c 'import sys,json;print(json.load(sys.stdin)["username"])')
+          P=$(echo "$J" | python3 -c 'import sys,json;print(json.load(sys.stdin)["password"])')
+          echo "단기 계정 $U 로 올립니다(비밀번호는 출력하지 않습니다)"
+          skopeo copy --dest-tls-verify=false --dest-creds "$U:$P" \
+            docker-archive:/ci-in/mall-portal.tar docker://registry:5000/daon/mall-portal:lesson
+          echo "올렸습니다: daon/mall-portal:lesson"

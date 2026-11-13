@@ -90,7 +90,7 @@ describe('normalizeNameParts', () => {
     recipient: 'Jane Smith',
     given_name: 'Jane',
     family_name: 'Smith',
-    telephone: '+1 650 253 0000',
+    telephone: '+1 650 555 0100',
     country: 'US'
   };
 
@@ -161,10 +161,10 @@ describe('normalizeNameParts', () => {
     ).toEqual({ recipient: ' Jane Smith ' });
     expect(
       normalizeNameParts(
-        { telephone: '+1 650 253 0001' },
+        { telephone: '+1 650 555 0101' },
         { nameFormat: 'single', nameOrder: 'given_first', previous }
       )
-    ).toEqual({ telephone: '+1 650 253 0001' });
+    ).toEqual({ telephone: '+1 650 555 0101' });
   });
 
   it('does not clear parts on create or when parts travel with the recipient', () => {

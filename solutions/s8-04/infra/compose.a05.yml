@@ -1,0 +1,112 @@
+# 다온마켓 랩 · 아키텍처 A5 「기록 모으기와 경보」(수업 8-4). 교육용 랩 전용, 값은 모두 가짜.
+#
+#   infra/arch.txt에 a05 줄이 있으면 daon 명령이 이 파일을 함께 쓴다(make up 으로 같이 뜬다). 두 스택 모두.
+#
+# 서비스(메모리 상한 합계 약 +800MB, 실제 사용은 약 450~650MB 예상 · 실측 예정)
+#   loki          로그 저장소(한 덩어리 모드, 파일 시스템, 7일 보관, 삭제 API 끔). PC에는 127.0.0.1:3100(시험·make 명령용)
+#   alloy         수집기(Grafana Alloy). 컨테이너 로그·감사 로그 파일·도구 이벤트 파일을 읽어 Loki로 보낸다   infra/observability/alloy/
+#   docker-proxy  도커 API 문지기. 수집기는 도커 소켓을 직접 받지 않고 이 문지기를 거쳐 「컨테이너 목록·로그 읽기」만 한다(POST 0)
+#   grafana       대시보드·경보 규칙·알림. PC에는 http://127.0.0.1:3030 (admin / infra/.env의 DAON_GRAFANA_ADMIN_PASSWORD)
+#                 알림은 랩 도구 Mailpit(SMTP mailpit:1025) → 받은 편지함 http://127.0.0.1:8025
+#
+# 레이블은 app·stream·event·level·lesson만 쓴다. actor·target·trace_id는 값이 많아 레이블로 두지 않고 질의할 때 JSON으로 꺼낸다.
+#   stream=security  앱의 SECURITY 줄(줄 내용은 JSON 부분만)
+#   stream=audit     감사 로그 파일(mall-admin /var/logs/daon/audit.jsonl, 8-3)
+#   stream=tool      도구 이벤트 파일(reports/security-events.jsonl, 섹션 7·8)
+#   stream=app       나머지 컨테이너 로그(게이트웨이·이그레스 접근 로그 포함)
+#
+# 망: obs(Loki·Alloy·Grafana·Mailpit) / obs-sock(internal, Alloy·문지기). 앱(mall-admin 등)은 obs에 없다:
+#     앱 자격증명으로는 Loki에 닿지도, 지우지도 못한다(8-6 머리 해시를 이 저장소에 맡기는 이유).
+
+name: daon
+
+x-obs: &obs
+  profiles: [spring, express]
+  restart: unless-stopped
+
+services:
+  loki:
+    <<: *obs
+    image: grafana/loki:3.7.9
+    command: ["-config.file=/etc/loki/loki.yaml"]
+    environment:
+      GOMEMLIMIT: 200MiB
+    volumes:
+      - ./observability/loki.yaml:/etc/loki/loki.yaml:ro
+      - loki-data:/loki
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_LOKI_PORT:-3100}:3100"]
+    mem_limit: 256m
+    networks: [obs]
+
+  docker-proxy:
+    <<: *obs
+    image: tecnativa/docker-socket-proxy:v0.4.2
+    environment:
+      CONTAINERS: 1        # 컨테이너 목록·정보·로그 읽기
+      NETWORKS: 1          # 수집기의 도커 탐색이 망 이름을 읽는다
+      POST: 0              # 만들기·지우기·실행은 모두 거부
+      EVENTS: 0
+      INFO: 0
+    volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]
+    mem_limit: 32m
+    networks: [obs-sock]
+
+  alloy:
+    <<: *obs
+    image: grafana/alloy:v1.20.1
+    command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "--storage.path=/var/lib/alloy/data", "--disable-reporting", "/etc/alloy/config.alloy"]
+    environment:
+      GOMEMLIMIT: 150MiB
+    volumes:
+      - ./observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+      - audit-logs:/daon/audit:ro            # 8-3 감사 로그(mall-admin과 같은 볼륨, 읽기 전용)
+      - ../reports:/daon/reports:ro          # 섹션 7·8 도구 이벤트(reports/security-events.jsonl)
+    depends_on: [loki, docker-proxy]
+    mem_limit: 192m
+    networks: [obs, obs-sock]
+
+  grafana:
+    <<: *obs
+    image: grafana/grafana:12.4.13
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${DAON_GRAFANA_ADMIN_PASSWORD:?infra/.env에 DAON_GRAFANA_ADMIN_PASSWORD가 없습니다(.env.example 참고)}
+      GF_SERVER_ROOT_URL: http://127.0.0.1:${DAON_GRAFANA_PORT:-3030}/
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"          # 뜰 때 인터넷에서 플러그인을 받지 않는다
+      GF_DATE_FORMATS_DEFAULT_TIMEZONE: Asia/Seoul
+      GF_UNIFIED_ALERTING_MIN_INTERVAL: 10s
+      # 알림 메일은 랩 도구 Mailpit으로(가짜 받은 편지함). 바깥으로 나가는 메일은 없다
+      GF_SMTP_ENABLED: "true"
+      GF_SMTP_HOST: mailpit:1025
+      GF_SMTP_FROM_ADDRESS: alerts@daon.example
+      GF_SMTP_FROM_NAME: 다온 경보
+      GF_SMTP_STARTTLS_POLICY: NoStartTLS
+      GOMEMLIMIT: 220MiB
+    volumes:
+      - ./observability/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./observability/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/daon.yaml:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./observability/rules:/etc/grafana/provisioning/alerting:ro   # make alert-rules가 만든 security.yaml + 손으로 쓴 bulk.yaml + 알림(notify.yaml)
+    ports: ["${DAON_BIND:-127.0.0.1}:${DAON_GRAFANA_PORT:-3030}:3000"]
+    depends_on: [loki]
+    mem_limit: 320m
+    networks: [obs]
+
+  # 랩 도구 Mailpit(compose.lab.yml)을 obs 망에도 붙인다: Grafana가 경보 메일을 여기로 보낸다
+  mailpit:
+    networks: [obs]
+
+networks:
+  obs: {}
+  obs-sock: { internal: true }   # 도커 API 문지기는 바깥과도, 앱과도 닿지 않는다
+
+volumes:
+  loki-data: {}
+  alloy-data: {}
+  audit-logs: {}

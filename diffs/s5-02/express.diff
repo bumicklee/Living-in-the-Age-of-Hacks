@@ -1,0 +1,222 @@
+# 5-2 Express(EverShop)에서 고칠 곳: 관리자 토큰의 「토큰 버전」(점검표 E21, 교재 5.2 Express)
+# - 고칠 곳 1(jwt.ts): jwt.sign·jwt.verify에 서명 방식 고정(algorithms). 지금 구조는 비밀값 하나라 HS256이다.
+# - 고칠 곳 2([context]jwtUserAuth[getCurrentUser].ts): 토큰 속 사용자 정보를 믿지 않고 DB의 token_version·status를 다시 확인한다.
+#   리프레시(refreshToken.ts)도 같은 버전을 확인하고, 토큰에 넣는 값은 buildAdminUserPayload가 DB 값을 담는다.
+# - 새 칸: admin_user.token_version(마이그레이션 Version-1.0.3.ts). 올리는 곳: bumpAdminTokenVersion(권한 변경·잠금·비밀번호 변경 때 부른다).
+#   이 diff는 bin/user/changePassword.js 한 곳에만 붙였다.
+# - 적용: cd express && git apply ../diffs/s5-02/express.diff  (그 뒤 서버를 다시 띄우면 마이그레이션이 돈다)
+# - 주의: 적용 전에 나간 토큰에는 버전이 없어 모두 거부된다. 한 번 다시 로그인한다.
+# - 교재와 다른 점: 「JWKS에서 kid로 공개키 고르기」는 A4(OpenBao)가 붙은 뒤 일이라 이 diff에 넣지 않았다.
+
+diff --git a/packages/evershop/src/bin/user/changePassword.js b/packages/evershop/src/bin/user/changePassword.js
+index 2ea8304..7293127 100644
+--- a/packages/evershop/src/bin/user/changePassword.js
++++ b/packages/evershop/src/bin/user/changePassword.js
+@@ -4,6 +4,7 @@ import yargs from 'yargs';
+ import { error, success } from '../../lib/log/logger.js';
+ import { pool } from '../../lib/postgres/connection.js';
+ import { hashPassword } from '../../lib/util/passwordHelper.js';
++import { bumpAdminTokenVersion } from '../../modules/auth/services/adminTokenVersion.js';
+ 
+ function isValidPassword(password) {
+   return password.length >= 8;
+@@ -56,6 +57,8 @@ async function updatePassword() {
+       })
+       .where('admin_user_id', '=', user.admin_user_id)
+       .execute(pool);
++    // 다온마켓 5-2: 비밀번호를 바꾸면 이전에 나간 토큰을 한꺼번에 무효로 만든다
++    await bumpAdminTokenVersion(user.admin_user_id);
+     success('Password is updated successfully');
+     process.exit(0);
+   } catch (e) {
+diff --git a/packages/evershop/src/lib/util/jwt.ts b/packages/evershop/src/lib/util/jwt.ts
+index 83eb096..49aea07 100644
+--- a/packages/evershop/src/lib/util/jwt.ts
++++ b/packages/evershop/src/lib/util/jwt.ts
+@@ -6,6 +6,9 @@ export const TOKEN_TYPES = {
+   CUSTOMER: 'customer'
+ } as const;
+ 
++// 다온마켓 5-2: 지금은 비밀값(HS256) 하나. 비대칭 서명(ES256)으로 옮길 때 이 한 곳만 바꾼다
++const JWT_ALGORITHM = 'HS256' as const;
++
+ export type TokenType = (typeof TOKEN_TYPES)[keyof typeof TOKEN_TYPES];
+ 
+ /**
+@@ -85,6 +88,7 @@ export function generateToken(
+     },
+     secret,
+     {
++      algorithm: JWT_ALGORITHM,
+       expiresIn: expiresIn || (defaultExpiry as number),
+       issuer: jwtConfig.issuer,
+       audience: tokenType
+@@ -105,6 +109,8 @@ export function verifyToken(token: string, tokenType: TokenType) {
+ 
+   try {
+     const decoded = jwt.verify(token, secret, {
++      // 다온마켓 5-2: 받을 서명 방식을 스스로 고정한다(헤더의 alg를 믿지 않는다)
++      algorithms: [JWT_ALGORITHM],
+       issuer: jwtConfig.issuer,
+       audience: tokenType
+     }) as DecodedAccessToken;
+@@ -158,6 +164,7 @@ export function generateRefreshToken(
+     },
+     secret,
+     {
++      algorithm: JWT_ALGORITHM,
+       expiresIn: refreshExpiry as number,
+       issuer: jwtConfig.issuer,
+       audience: tokenType
+@@ -179,6 +186,8 @@ export function verifyRefreshToken(token: string, tokenType: TokenType) {
+ 
+   try {
+     const decoded = jwt.verify(token, secret, {
++      // 다온마켓 5-2: 받을 서명 방식을 스스로 고정한다(헤더의 alg를 믿지 않는다)
++      algorithms: [JWT_ALGORITHM],
+       issuer: jwtConfig.issuer,
+       audience: tokenType
+     }) as DecodedRefreshToken;
+diff --git a/packages/evershop/src/modules/auth/api/global/[context]jwtUserAuth[getCurrentUser].ts b/packages/evershop/src/modules/auth/api/global/[context]jwtUserAuth[getCurrentUser].ts
+index 564bbe2..fa39e8d 100644
+--- a/packages/evershop/src/modules/auth/api/global/[context]jwtUserAuth[getCurrentUser].ts
++++ b/packages/evershop/src/modules/auth/api/global/[context]jwtUserAuth[getCurrentUser].ts
+@@ -5,8 +5,9 @@ import {
+   verifyToken
+ } from '../../../../lib/util/jwt.js';
+ import { EvershopRequest } from '../../../../types/request.js';
++import { assertAdminTokenVersion } from '../../services/adminTokenVersion.js';
+ 
+-export default (request: EvershopRequest, response, next) => {
++export default async (request: EvershopRequest, response, next) => {
+   try {
+     // Get token from Authorization header
+     const authHeader = request.headers.authorization;
+@@ -26,6 +27,12 @@ export default (request: EvershopRequest, response, next) => {
+     // Verify token
+     const decoded = verifyToken(token, TOKEN_TYPES.ADMIN);
+ 
++    // 다온마켓 5-2: 토큰 속 정보를 믿지 않고 DB의 토큰 버전·활성 상태를 다시 확인한다
++    await assertAdminTokenVersion(
++      decoded.user.admin_user_id,
++      decoded.user.token_version
++    );
++
+     // Attach user info to request
+     request.locals = request.locals || {};
+     request.locals.user = decoded.user;
+diff --git a/packages/evershop/src/modules/auth/api/refreshUserToken/refreshToken.ts b/packages/evershop/src/modules/auth/api/refreshUserToken/refreshToken.ts
+index 3348318..cb24b82 100644
+--- a/packages/evershop/src/modules/auth/api/refreshUserToken/refreshToken.ts
++++ b/packages/evershop/src/modules/auth/api/refreshUserToken/refreshToken.ts
+@@ -42,6 +42,16 @@ export default async (request, response, next) => {
+       });
+     }
+ 
++    // 다온마켓 5-2: 새 토큰을 내주기 전에 이 리프레시 토큰의 버전이 DB와 같은지 본다
++    if (decoded.user.token_version !== (adminUser.token_version ?? 0)) {
++      return response.status(UNAUTHORIZED).json({
++        error: {
++          status: UNAUTHORIZED,
++          message: 'Token version mismatch'
++        }
++      });
++    }
++
+     // Generate new access token using fresh user data
+     const userPayload = buildAdminUserPayload(adminUser);
+     const newAccessToken = generateToken(
+diff --git a/packages/evershop/src/modules/auth/migration/Version-1.0.3.ts b/packages/evershop/src/modules/auth/migration/Version-1.0.3.ts
+new file mode 100644
+index 0000000..eb99280
+--- /dev/null
++++ b/packages/evershop/src/modules/auth/migration/Version-1.0.3.ts
+@@ -0,0 +1,13 @@
++import type { PoolClient } from 'pg';
++import { execute } from '@evershop/postgres-query-builder';
++
++/**
++ * 다온마켓 5-2: 관리자 토큰 버전 칸. 기존 계정은 0에서 시작한다.
++ * 이 칸이 없던 때 나간 토큰에는 버전이 없으므로 적용 뒤 한 번 다시 로그인해야 한다.
++ */
++export default async (connection: PoolClient) => {
++  await execute(
++    connection,
++    `ALTER TABLE "admin_user" ADD COLUMN IF NOT EXISTS "token_version" INT NOT NULL DEFAULT 0;`
++  );
++};
+diff --git a/packages/evershop/src/modules/auth/services/adminTokenVersion.ts b/packages/evershop/src/modules/auth/services/adminTokenVersion.ts
+new file mode 100644
+index 0000000..3ffc830
+--- /dev/null
++++ b/packages/evershop/src/modules/auth/services/adminTokenVersion.ts
+@@ -0,0 +1,31 @@
++import { execute, select } from '@evershop/postgres-query-builder';
++import { pool } from '../../../lib/postgres/connection.js';
++
++/**
++ * 다온마켓 5-2: 관리자 토큰 버전.
++ * 토큰을 만들 때 DB의 token_version을 넣고, 확인할 때 DB의 현재 값과 같은지 본다.
++ * 권한을 바꾸거나 계정을 잠글 때 bumpAdminTokenVersion을 부르면 이전 토큰이 한꺼번에 무효가 된다.
++ */
++export async function assertAdminTokenVersion(
++  adminUserId: number,
++  tokenVersion: number | undefined
++): Promise<void> {
++  const adminUser = await select('token_version')
++    .from('admin_user')
++    .where('admin_user_id', '=', adminUserId)
++    .and('status', '=', 1)
++    .load(pool);
++  // 계정이 없거나 잠겼거나 버전이 다르면 같은 문구로 거부한다(이유를 알려 주지 않는다)
++  if (!adminUser || adminUser.token_version !== tokenVersion) {
++    throw new Error('Invalid token');
++  }
++}
++
++export async function bumpAdminTokenVersion(
++  adminUserId: number
++): Promise<void> {
++  await execute(
++    pool,
++    `UPDATE "admin_user" SET "token_version" = "token_version" + 1 WHERE "admin_user_id" = ${Number(adminUserId)}`
++  );
++}
+diff --git a/packages/evershop/src/modules/auth/services/buildAdminUserPayload.ts b/packages/evershop/src/modules/auth/services/buildAdminUserPayload.ts
+index 9e0eae7..6f6ecd8 100644
+--- a/packages/evershop/src/modules/auth/services/buildAdminUserPayload.ts
++++ b/packages/evershop/src/modules/auth/services/buildAdminUserPayload.ts
+@@ -16,6 +16,8 @@ export function buildAdminUserPayload(
+     full_name: adminUser.full_name ?? '',
+     status: adminUser.status ? 1 : 0,
+     roles: adminUser.roles || '*',
++    // 다온마켓 5-2: 토큰에 DB의 토큰 버전을 넣는다
++    token_version: adminUser.token_version ?? 0,
+     created_at: adminUser.created_at,
+     updated_at: adminUser.updated_at
+   };
+diff --git a/packages/evershop/src/types/db/index.ts b/packages/evershop/src/types/db/index.ts
+index b00ae93..49f6991 100644
+--- a/packages/evershop/src/types/db/index.ts
++++ b/packages/evershop/src/types/db/index.ts
+@@ -27,6 +27,7 @@ export interface AdminUserRow {
+   email: string;
+   password: string;
+   full_name: string | null;
++  token_version: number;
+   created_at: Date;
+   updated_at: Date;
+ }
+diff --git a/packages/evershop/src/types/request.ts b/packages/evershop/src/types/request.ts
+index 81be294..090e320 100644
+--- a/packages/evershop/src/types/request.ts
++++ b/packages/evershop/src/types/request.ts
+@@ -19,6 +19,8 @@ export interface CurrentUser {
+   full_name: string;
+   status: number;
+   roles: string;
++  /** 다온마켓 5-2: 토큰 버전. DB 값과 다르면 토큰을 거부한다 */
++  token_version: number;
+   created_at: Date;
+   updated_at: Date;
+ }

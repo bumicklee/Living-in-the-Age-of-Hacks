@@ -3,7 +3,7 @@ import pytest
 
 from replay import _logs
 from replay import t01_order_idor as t01
-from replay._http import ACCOUNTS
+from replay._http import ACCOUNTS, new_trace_id
 
 
 def test_bob_cannot_read_alice_order(stack):
@@ -21,8 +21,10 @@ def test_other_order_looks_like_missing_order(stack):
 def test_denial_is_logged(stack):
     since = _logs.now()
     target = ACCOUNTS["alice"]["orders"][0]
-    t01.order_detail("bob", target)
-    e = _logs.wait_event("mall-portal", since, "access.denied.not_owner", "2-2", stack)
+    tid = new_trace_id("s22deny")
+    t01.order_detail_response("bob", target, tid)
+    e = _logs.wait_event("mall-portal", since, "access.denied.not_owner", "2-2", stack,
+                         timeout=15, trace_id=tid)
     assert e, "기대: 거부하면 mall-portal 로그에 SECURITY access.denied.not_owner(2-2) 한 줄이 남아야 합니다"
     assert e.get("actor") == f"member:{ACCOUNTS['bob']['member_id']}" and e.get("target") == f"order:{target}", \
         f"기대: actor=member:102, target=order:{target}(ID만). 실제: {e}"

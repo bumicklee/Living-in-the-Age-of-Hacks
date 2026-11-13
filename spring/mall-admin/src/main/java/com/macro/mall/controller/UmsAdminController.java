@@ -10,6 +10,9 @@ import com.macro.mall.model.UmsAdmin;
 import com.macro.mall.model.UmsRole;
 import com.macro.mall.service.UmsAdminService;
 import com.macro.mall.service.UmsRoleService;
+import com.macro.mall.security.securekit.SecureKitSwitch;
+import com.macro.mall.security.token.TokenService;
+import com.macro.mall.security.util.JwtTokenUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,6 +45,10 @@ public class UmsAdminController {
     private UmsAdminService adminService;
     @Autowired
     private UmsRoleService roleService;
+    @Autowired
+    private TokenService tokenService;
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
 
     @Operation(summary = "사용자 회원가입")
     @RequestMapping(value = "/register", method = RequestMethod.POST)
@@ -59,8 +66,9 @@ public class UmsAdminController {
     @ResponseBody
     public CommonResult login(@Validated @RequestBody UmsAdminLoginParam umsAdminLoginParam) {
         String token = adminService.login(umsAdminLoginParam.getUsername(), umsAdminLoginParam.getPassword());
+        // 다온마켓 4-4: 없는 계정과 틀린 비밀번호가 같은 문구
         if (token == null) {
-            return CommonResult.validateFailed("사용자 이름 또는 비밀번호 오류");
+            return CommonResult.validateFailed("아이디 또는 비밀번호가 올바르지 않습니다");
         }
         Map<String, String> tokenMap = new HashMap<>();
         tokenMap.put("token", token);
@@ -72,6 +80,9 @@ public class UmsAdminController {
     @RequestMapping(value = "/refreshToken", method = RequestMethod.GET)
     @ResponseBody
     public CommonResult refreshToken(HttpServletRequest request) {
+        if (SecureKitSwitch.on("token-revoke")) {
+            return CommonResult.failed("관리자는 15분마다 다시 로그인합니다(다온마켓 4-8)");
+        }
         String token = request.getHeader(tokenHeader);
         String refreshToken = adminService.refreshToken(token);
         if (refreshToken == null) {
@@ -107,7 +118,12 @@ public class UmsAdminController {
     @Operation(summary = "로그아웃 기능")
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
     @ResponseBody
-    public CommonResult logout(Principal principal) {
+    public CommonResult logout(Principal principal, HttpServletRequest request) {
+        // 다온마켓 4-8: 로그아웃하면 이 토큰은 남은 수명 동안 폐기 목록에 들어간다
+        String token = jwtTokenUtil.stripHead(request.getHeader(tokenHeader));
+        if (token != null && SecureKitSwitch.on("token-revoke")) {
+            tokenService.logout(jwtTokenUtil.getJti(token), jwtTokenUtil.getRemainingSeconds(token), null);
+        }
         adminService.logout(principal.getName());
         return CommonResult.success(null);
     }

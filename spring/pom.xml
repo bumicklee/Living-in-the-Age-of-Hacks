@@ -53,7 +53,8 @@
         <mall-common.version>1.0-SNAPSHOT</mall-common.version>
         <mall-mbg.version>1.0-SNAPSHOT</mall-mbg.version>
         <mall-security.version>1.0-SNAPSHOT</mall-security.version>
-        <commons-lang3.version>3.20.0</commons-lang3.version>
+        <commons-lang3.version>3.21.0</commons-lang3.version>
+        <cyclonedx-maven-plugin.version>2.9.3</cyclonedx-maven-plugin.version> <!-- 다온마켓 7-2: SBOM -->
         <bouncycastle.version>1.84</bouncycastle.version>
     </properties>
 
@@ -263,6 +264,18 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <!-- 다온마켓 7-2: SBOM(CycloneDX). `make sbom`이 모듈별 build/sbom/*.cdx.json 을 만든다. 빌드(package)에는 끼지 않는다 -->
+            <plugin>
+                <groupId>org.cyclonedx</groupId>
+                <artifactId>cyclonedx-maven-plugin</artifactId>
+                <version>${cyclonedx-maven-plugin.version}</version>
+                <configuration>
+                    <projectType>application</projectType>
+                    <schemaVersion>1.5</schemaVersion>
+                    <outputFormat>json</outputFormat>
+                    <outputName>bom</outputName>
+                </configuration>
+            </plugin>
             <!--SpringBoot 3.2 Parameter Name Retention 문제 해결-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

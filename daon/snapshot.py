@@ -101,19 +101,17 @@ def _exec(stack: str, service: str, *cmd: str, stdin: Path | bytes | None = None
         raise SystemExit(f"{service}에서 실패했습니다: {' '.join(cmd[:3])} …\n" + "\n".join(err[-5:]))
 
 
+# 6-4: MongoDB에 인증을 켜면 랩 도구 계정(lab-ops)으로 붙는다. 인증이 없는 단계(A0~6-3)에서는 환경 변수가 없어 그냥 붙는다
+_MONGO_DROP = ('if [ -n "$DAON_MONGO_OPS_PASSWORD" ]; then A="-u lab-ops -p $DAON_MONGO_OPS_PASSWORD --authenticationDatabase admin"; fi; '
+               "mongosh --quiet $A --eval \"db.getSiblingDB('mall-port').dropDatabase()\"")
+
+
 def _purge_rabbit() -> None:
-    """이전 주문을 취소하려는 지연 메시지를 비운다. rabbitmqctl(Erlang 기동 2초)보다 관리 API가 빠르다."""
-    import base64
-    import urllib.request
-    from daon.config import ENV
-    auth = base64.b64encode(b"mall:mall").decode()               # [원본 기본값] compose.yml의 mall/mall
+    """이전 주문을 취소하려는 지연 메시지를 비운다. 6-4부터 관리 화면 포트를 PC에 열지 않으므로 컨테이너 안에서 rabbitmqctl로 비운다."""
+    import os
+    name = f"{os.environ.get('COMPOSE_PROJECT_NAME', 'daon')}-rabbitmq-1"
     for q in ("mall.order.cancel", "mall.order.cancel.ttl"):
-        req = urllib.request.Request(f"http://127.0.0.1:{ENV.get('DAON_RABBIT_UI_PORT', 15672)}/api/queues/%2Fmall/{q}/contents",
-                                     method="DELETE", headers={"Authorization": f"Basic {auth}"})
-        try:
-            urllib.request.urlopen(req, timeout=5).close()
-        except Exception:  # noqa: BLE001 - 큐가 아직 없으면(앱이 한 번도 안 떴으면) 비울 것도 없다
-            pass
+        subprocess.run(["docker", "exec", name, "rabbitmqctl", "purge_queue", "-p", "/mall", q], capture_output=True, text=True)   # 큐가 없으면 실패해도 된다
 
 
 MYSQL = ["mysql", "-uroot", "-proot"]          # [원본 기본값] compose.yml의 root/root
@@ -168,7 +166,7 @@ def restore(stack: str) -> float:
         side = []
         with ThreadPoolExecutor(max_workers=3) as pool:
             if _running(stack, "mongo"):
-                side.append(pool.submit(_exec, stack, "mongo", "mongosh", "--quiet", "--eval", "db.getSiblingDB('mall-port').dropDatabase()"))
+                side.append(pool.submit(_exec, stack, "mongo", "sh", "-c", _MONGO_DROP))
             if _running(stack, "rabbitmq"):
                 side.append(pool.submit(_purge_rabbit))
             try:
@@ -179,7 +177,10 @@ def restore(stack: str) -> float:
             for f in side:
                 f.result()
         if _running(stack, "redis"):
-            _exec(stack, "redis", "redis-cli", "FLUSHALL")              # 회원 캐시·주문 번호 카운터(DB를 되돌린 뒤에)
+            # 회원 캐시·주문 번호 카운터·속도 제한·토큰 폐기 목록(DB를 되돌린 뒤에). A3(4-3) 뒤에는 lab-ops 사용자로 붙는다
+            r = st.redis_cli("FLUSHALL")
+            if r.returncode != 0 or "OK" not in r.stdout:
+                raise SystemExit(f"Redis를 비우지 못했습니다: {(r.stdout + r.stderr).strip()[-300:]}")
     else:
         truncate = ("DO $$ DECLARE t text; BEGIN SELECT string_agg(format('%I.%I', schemaname, tablename), ', ') INTO t "
                     "FROM pg_tables WHERE schemaname = 'public' AND tablename <> 'migration'; "

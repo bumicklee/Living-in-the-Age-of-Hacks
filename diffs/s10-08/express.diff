@@ -1,0 +1,33 @@
+# 10-8 Express(EverShop)에서 고칠 곳: 「Express는 원래 막혀 있다, 탐지만 더한다」
+# - 장바구니 항목 가격은 modules/checkout/services/cart/registerCartItemBaseFields.js의 product_price 해석기가 상품 표에서 읽는다.
+#   payloadSchema.json은 additionalProperties: true라 price가 섞여 와도 400이 아니다. 쓰지 않을 뿐이다.
+# - 담기 처리기에 가격이 섞여 오고 상품 가격과 다르면 price.tampered만 남긴다(같은 키의 securityEvent).
+# - 적용: diffs/common/express-security-event.diff 다음. cd express && git apply ../diffs/s10-08/express.diff
+
+diff --git a/packages/evershop/src/modules/checkout/api/addCartItem/addItemToCart.js b/packages/evershop/src/modules/checkout/api/addCartItem/addItemToCart.js
+--- a/packages/evershop/src/modules/checkout/api/addCartItem/addItemToCart.js
++++ b/packages/evershop/src/modules/checkout/api/addCartItem/addItemToCart.js
+@@ -1,5 +1,6 @@
+ import { select } from '@evershop/postgres-query-builder';
+ import { translate } from '../../../../lib/locale/translate/translate.js';
++import { securityEvent } from '../../../../lib/log/securityEvent.js';
+ import { pool } from '../../../../lib/postgres/connection.js';
+ import {
+   INTERNAL_SERVER_ERROR,
+@@ -47,6 +48,16 @@
+       return;
+     }
+ 
++    // 다온마켓 10-8: EverShop은 가격을 상품 표에서 다시 읽는다(registerCartItemBaseFields.js, 좋은 예).
++    // 담기 요청에 가격이 섞여 오면 쓰지 않고(원래도 쓰지 않는다) 조작 시도로 남기기만 한다. 보낸 값은 넣지 않는다
++    const sent = request.body.price ?? request.body.product_price;
++    if (sent !== undefined && Number(sent) !== Number(product.price)) {
++      securityEvent.denied('price.tampered', '10-8', request, {
++        actor: request.locals?.customer ? `customer:${request.locals.customer.uuid}` : 'anonymous',
++        target: `product:${product.product_id}`,
++        reason: '요청 가격이 상품 가격과 다름(서버 가격으로 처리)'
++      });
++    }
+     // If everything is fine, add the product to the cart
+     const item = await cart.addItem(product.product_id, parseInt(qty, 10));
+     await saveCart(cart);

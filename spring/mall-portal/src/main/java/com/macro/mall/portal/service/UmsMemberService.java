@@ -1,6 +1,7 @@
 package com.macro.mall.portal.service;
 
 import com.macro.mall.model.UmsMember;
+import com.macro.mall.portal.domain.UmsMemberUpdateParam;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,9 +50,9 @@ public interface UmsMemberService {
 
     /**
      * [교육용 추가] 로그인한 회원의 정보 수정
-     * ✏️ 2-4: 무엇을 받는지 정한다(다온마켓 교육용 표시)
+     * 다온마켓 2-4: 요청 전용 DTO만 받는다
      */
-    void updateInfo(UmsMember member);
+    void updateInfo(UmsMemberUpdateParam param);
 
     /**
      * 사용자 정보 조회

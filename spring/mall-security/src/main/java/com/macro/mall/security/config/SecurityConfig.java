@@ -27,6 +27,8 @@ public class SecurityConfig {
 
     @Autowired
     private IgnoreUrlsConfig ignoreUrlsConfig;
+    @org.springframework.beans.factory.annotation.Value("${management.server.port:-1}")
+    private int managementPort;
     @Autowired
     private RestfulAccessDeniedHandler restfulAccessDeniedHandler;
     @Autowired
@@ -39,6 +41,10 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(registry -> {
+            // 6-5: 관리 포트(management.server.port)로 들어온 상태 확인만 로그인 없이. 일반 포트의 /actuator/**는 허용 목록에 없다
+            if (managementPort > 0) {
+                registry.requestMatchers(req -> req.getLocalPort() == managementPort && req.getRequestURI().startsWith("/actuator/health")).permitAll();
+            }
             //보호가 필요 없는 리소스 경로는 접근 허용
             for (String url : ignoreUrlsConfig.getUrls()) {
                 registry.requestMatchers(url).permitAll();

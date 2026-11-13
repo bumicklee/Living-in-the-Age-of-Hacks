@@ -1,0 +1,3 @@
+# 관리자 화면 nginx가 뜰 때 먼저 읽는다(nginx 공식 이미지 /docker-entrypoint.d/*.envsh).
+# 방어 스위치(make switch)가 정하지 않은 값은 「켜짐」으로 둔다. 그래야 템플릿(admin-web.conf)의 ${…}가 늘 채워진다.
+export SECUREKIT_HEADERS_ENABLED="${SECUREKIT_HEADERS_ENABLED:-true}"

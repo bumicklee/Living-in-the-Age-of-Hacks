@@ -1,0 +1,51 @@
+# 12-4 Express(EverShop): 같은 이벤트 키의 partner.export 한 줄(건수만). securityEvent에 count(이벤트가 직접 센 값) 칸을 연다
+# - 대장 API·일괄 폐기는 Spring 관리자 앱 몫(Express 관리자 화면은 다루지 않음). 경보 규칙(rules/partner.yaml)은 스택과 상관없이 같은 질의
+# - 적용: diffs/s12-03/express.diff 다음. cd express && git apply ../diffs/s12-04/express.diff
+
+diff --git a/packages/evershop/src/lib/log/securityEvent.ts b/packages/evershop/src/lib/log/securityEvent.ts
+index a8273a2..930876b 100644
+--- a/packages/evershop/src/lib/log/securityEvent.ts
++++ b/packages/evershop/src/lib/log/securityEvent.ts
+@@ -14,7 +14,7 @@ import type { Request } from 'express';
+ const WINDOW_MS = 10 * 60 * 1000;
+ const recent = new Map<string, number[]>();
+ 
+-type Fields = { actor?: string; target?: string; reason?: string };
++type Fields = { actor?: string; target?: string; reason?: string; count?: number };   // count: 이벤트가 직접 센 값(12-4 partner.export는 내보낸 행 수)
+ 
+ function count(key: string): number {
+   const now = Date.now();
+@@ -34,7 +34,7 @@ function write(level: 'WARN' | 'INFO', event: string, lesson: string, request: R
+     ip: request?.ip ?? null,
+     ua: (request?.get('user-agent') || '').slice(0, 120) || null,
+     reason: f.reason ?? null,
+-    count: count(`${event}|${actor}`),
++    count: typeof f.count === 'number' ? f.count : count(`${event}|${actor}`),
+     ts: new Date().toISOString(),
+     trace_id: (request as any)?.traceId || randomUUID().replace(/-/g, '')   // express-trace-id.diff가 정한 번호
+   };
+diff --git a/packages/evershop/src/modules/oms/api/daonPartnerExport/daonPartnerExport.ts b/packages/evershop/src/modules/oms/api/daonPartnerExport/daonPartnerExport.ts
+index 786839f..0ba5615 100644
+--- a/packages/evershop/src/modules/oms/api/daonPartnerExport/daonPartnerExport.ts
++++ b/packages/evershop/src/modules/oms/api/daonPartnerExport/daonPartnerExport.ts
+@@ -1,8 +1,10 @@
+ import { pool } from '../../../../lib/postgres/connection.js';
+ import { kit } from '../../../../lib/secureKit/partnerScope.js';
++import { securityEvent } from '../../../../lib/log/securityEvent.js';
+ 
+ /**
+  * 다온마켓 12-2(T33) · GET /api/partner/orders/export  배정된 주문 한 번에(최대 1000). 범위 orders:export(기본 발급에서 빠짐).
++ * 12-4: 응답마다 partner.export(INFO) 한 줄, count = 내보낸 행 수. 응답 본문은 넣지 않는다(경보는 Grafana 규칙 partner.export.bulk).
+  */
+ export default async (request, response) => {
+   const partner = await kit.partnerScope('orders:export', { bind: true })(request, response);   // 12-3: 인증서 바인딩
+@@ -12,6 +14,9 @@ export default async (request, response) => {
+        FROM "order" o JOIN daon_partner_order po ON po.order_id = o.order_id
+       WHERE po.app_id = $1 ORDER BY o.order_id LIMIT 1000`,
+     [partner.appId])).rows;
++  securityEvent.suspicious('partner.export', '12-4', request, {
++    actor: `partner:${partner.appId}`, target: 'path:/partner/orders/export', reason: '파트너 내보내기(건수만)', count: items.length
++  });
+   response.set('Cache-Control', 'no-store');
+   return response.status(200).json({ count: items.length, items });
+ };

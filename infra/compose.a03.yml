@@ -1,0 +1,74 @@
+# 다온마켓 랩 · 아키텍처 A3 「Redis 접근 제어」(수업 4-3)
+#
+#   infra/arch.txt에 a03 줄이 있으면 daon 명령이 compose.yml(+ a02) 위에 이 파일을 함께 쓴다.
+#
+# 바뀌는 것
+#   - Redis 기본 사용자(default)를 끈다. 비밀번호 없이 붙으면 NOAUTH로 거부된다.
+#   - 앱마다 사용자를 따로 둔다(portal·admin). 쓸 수 있는 키 접두사와 명령을 정한다.
+#       mall:*   원본 캐시(회원·관리자·권한표·주문 번호)        rl:*   로그인 속도 제한(4-3·4-4)
+#       pwreset:* 재설정 토큰(4-5)                            deny:* · rt:*   토큰 폐기 목록·갱신 토큰(4-8)
+#       lab:*    랩 도구(시간 건너뛰기 A13), 앱은 읽기만(%R)
+#     -@dangerous로 FLUSHALL·KEYS·CONFIG·DEBUG 같은 명령을 뺀다. 상태 확인(actuator health)이 INFO를 쓰므로 +info만 되살린다.
+#   - lab-ops: 랩 도구(make wipe의 FLUSHALL, 시험 도우미, healthcheck)가 쓰는 사용자. 회사에서는 사람 계정과 분리해 따로 관리한다.
+#
+# 한계(수업에서 말한다)
+#   - 비밀번호는 아직 infra/.env(가짜 값)에 있다. 6-3에서 시크릿 저장소로 옮긴다.
+#   - Redis 포트는 아직 PC에 열려 있다(T16의 나머지). 망 분리는 A1(6-4)에서 한다.
+
+services:
+  redis:
+    command: !override
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --protected-mode
+      - "no"
+      - --user
+      - default
+      - "off"
+      - --user
+      - portal
+      - "on"
+      - ">${DAON_REDIS_PORTAL_PASSWORD:-lab-fake-portal-redis}"
+      - "~mall:*"
+      - "~rl:*"
+      - "~pwreset:*"
+      - "~deny:*"
+      - "~rt:*"
+      - "%R~lab:*"
+      - "+@all"
+      - "-@dangerous"
+      - "+info"
+      - --user
+      - admin
+      - "on"
+      - ">${DAON_REDIS_ADMIN_PASSWORD:-lab-fake-admin-redis}"
+      - "~mall:*"
+      - "~rl:*"
+      - "~deny:*"
+      - "~rt:*"
+      - "%R~lab:*"
+      - "+@all"
+      - "-@dangerous"
+      - "+info"
+      - --user
+      - lab-ops
+      - "on"
+      - ">${DAON_REDIS_OPS_PASSWORD:-lab-fake-ops-redis}"
+      - "~*"
+      - "&*"
+      - "+@all"
+    environment:
+      REDISCLI_AUTH: ${DAON_REDIS_OPS_PASSWORD:-lab-fake-ops-redis}   # 컨테이너 안 redis-cli(--user lab-ops)가 쓴다
+    healthcheck:
+      test: ["CMD", "redis-cli", "--user", "lab-ops", "--no-auth-warning", "ping"]
+
+  mall-portal:
+    environment:
+      SPRING_DATA_REDIS_USERNAME: portal
+      SPRING_DATA_REDIS_PASSWORD: ${DAON_REDIS_PORTAL_PASSWORD:-lab-fake-portal-redis}
+
+  mall-admin:
+    environment:
+      SPRING_DATA_REDIS_USERNAME: admin
+      SPRING_DATA_REDIS_PASSWORD: ${DAON_REDIS_ADMIN_PASSWORD:-lab-fake-admin-redis}

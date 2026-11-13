@@ -1,0 +1,27 @@
+{
+  "name": "daon-express-mini",
+  "version": "1.0.0",
+  "private": true,
+  "description": "다온마켓 Express 미니: 「해킹 서바이벌 가이드」 Express 실습용 작은 가게. 모든 값은 가짜입니다.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "postinstall": "node tools/setup.js",
+    "start": "node --disable-warning=ExperimentalWarning --env-file-if-exists=.env --watch app/server.js",
+    "lesson": "node --disable-warning=ExperimentalWarning tools/lesson.js",
+    "replay": "node --disable-warning=ExperimentalWarning tools/replay.js",
+    "check": "node --disable-warning=ExperimentalWarning tools/check.js",
+    "compare": "node tools/compare.js",
+    "solution": "node --disable-warning=ExperimentalWarning tools/solution.js",
+    "reset": "node --disable-warning=ExperimentalWarning tools/reset.js",
+    "secret": "node tools/secret.js",
+    "verify-all": "node --disable-warning=ExperimentalWarning tools/verify-all.js"
+  },
+  "dependencies": {
+    "express": "5.1.0",
+    "@secure-kit/express": "file:vendor/secure-kit-express"
+  },
+  "license": "MIT"
+}

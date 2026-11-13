@@ -79,6 +79,17 @@ public class WebLogAspect {
         webLog.setStartTime(startTime);
         webLog.setUri(request.getRequestURI());
         webLog.setUrl(request.getRequestURL().toString());
+        if (LogMask.enabled()) {
+            // 다온마켓 8-5(F35): 응답 본문(result)은 남기지 않는다. 요청 인자는 허용 목록 밖 값을 ***로. 수준은 DEBUG
+            // (logback-spring.xml이 이 로거를 INFO로 두므로 운영에서는 찍히지 않고, 디버깅할 때만 켠다)
+            webLog.setResult(null);
+            webLog.setParameter(allowed(webLog.getParameter()));
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("{} {} {}ms params={}", webLog.getMethod(), webLog.getUri(), webLog.getSpendTime(),
+                        JSONUtil.toJsonStr(webLog.getParameter()));
+            }
+            return result;
+        }
         Map<String,Object> logMap = new HashMap<>();
         logMap.put("url",webLog.getUrl());
         logMap.put("method",webLog.getMethod());
@@ -88,6 +99,40 @@ public class WebLogAspect {
 //        LOGGER.info("{}", JSONUtil.parse(webLog));
         LOGGER.info(Markers.appendEntries(logMap), JSONUtil.parse(webLog).toString());
         return result;
+    }
+
+    /**
+     * 다온마켓 8-5: 요청 인자를 이름 허용 목록(LogMask.ALLOWED_PARAMS)으로 줄인다. 목록 밖 이름은 남기고 값은 ***.
+     * 요청 본문(@RequestBody) 객체도 JSON으로 바꿔 같은 규칙을 적용한다(비밀번호·전화번호·주소가 들어 있을 수 있다).
+     */
+    private static Object allowed(Object parameter) {
+        if (parameter == null) {
+            return null;
+        }
+        try {
+            return keep(JSONUtil.parse(JSONUtil.toJsonStr(parameter)));
+        } catch (RuntimeException e) {
+            return "***";                      // JSON으로 바꿀 수 없는 값은 통째로 가린다
+        }
+    }
+
+    private static Object keep(Object node) {
+        if (node instanceof cn.hutool.json.JSONObject o) {
+            Map<String, Object> out = new java.util.LinkedHashMap<>();
+            for (String k : o.keySet()) {
+                Object v = o.get(k);
+                out.put(k, LogMask.ALLOWED_PARAMS.contains(k) ? keep(v) : "***");
+            }
+            return out;
+        }
+        if (node instanceof cn.hutool.json.JSONArray a) {
+            List<Object> out = new ArrayList<>();
+            for (Object v : a) {
+                out.add(keep(v));
+            }
+            return out;
+        }
+        return node;
     }
 
     /**

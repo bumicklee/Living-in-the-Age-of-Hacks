@@ -1,0 +1,90 @@
+# 14-4 Express(EverShop): 사고 대응 격리 API(고객 잠금 + 그 고객의 세션 모두 지우기)
+# - 새 POST /api/customers/:uuid/lock (관리자 전용, route id daonLockCustomer) {"incidentId":"INC-14-4","reason":"…"}
+#   고객 status=0 → 로그인·현재 고객 읽기가 막힘(원본 getCurrentCustomer·loginCustomerWithEmail은 status=1만 읽는다)
+#   세션 저장소(PostgreSQL session 표, connect-pg-simple)에서 sess.customerID가 그 고객인 줄을 모두 지운다
+#   incident.actor.locked(INFO, target customer:<uuid>)
+# - 13-6 [auth]daonElevation.ts의 고위험 목록에 daonLockCustomer(묶음 incident-response)를 더한다
+# - Spring과 다른 점: Spring은 JWT라 「계정마다 끊은 시각」으로 토큰을 폐기하고, EverShop 고객은 서버 세션이라 세션 줄을 지운다
+#   (EverShop 고객 토큰 API는 랩에서 아직 켜지지 않았다. 켜면 같은 원리로 그 고객의 갱신 토큰도 지워야 한다)
+# - 적용: diffs/s13-06/express.diff 다음. cd express && git apply ../diffs/s14-04/express.diff
+
+diff --git a/packages/evershop/src/modules/auth/api/global/[auth]daonElevation.ts b/packages/evershop/src/modules/auth/api/global/[auth]daonElevation.ts
+index 44cd0c3..c397aeb 100644
+--- a/packages/evershop/src/modules/auth/api/global/[auth]daonElevation.ts
++++ b/packages/evershop/src/modules/auth/api/global/[auth]daonElevation.ts
+@@ -9,7 +9,7 @@ import { EvershopRequest } from '../../../../types/request.js';
+  * 토큰 속 정보(역할·권한)를 그대로 믿지 않는다. 살아 있는 권한 상승이 없으면 403 + ops.denied.no_elevation.
+  * EverShop에는 관리자 계정·역할 관리 API가 없어서, 상점 설정 저장(saveSetting: 결제·배송 설정 포함)을 고위험 묶음으로 둔다.
+  */
+-const HIGH_RISK: Record<string, string> = { saveSetting: 'store-settings' };
++const HIGH_RISK: Record<string, string> = { saveSetting: 'store-settings', daonLockCustomer: 'incident-response' };   // 14-4: 사고 대응 격리
+ 
+ export default async (request: EvershopRequest, response, next) => {
+   const routeId = request.currentRoute?.id;
+diff --git a/packages/evershop/src/modules/customer/api/daonLockCustomer/[context]bodyParser[auth].ts b/packages/evershop/src/modules/customer/api/daonLockCustomer/[context]bodyParser[auth].ts
+new file mode 100644
+index 0000000..7322d7c
+--- /dev/null
++++ b/packages/evershop/src/modules/customer/api/daonLockCustomer/[context]bodyParser[auth].ts
+@@ -0,0 +1,5 @@
++import bodyParser from 'body-parser';
++
++export default (request, response, next) => {
++  bodyParser.json({ inflate: false })(request, response, next);
++};
+diff --git a/packages/evershop/src/modules/customer/api/daonLockCustomer/daonLockCustomer.ts b/packages/evershop/src/modules/customer/api/daonLockCustomer/daonLockCustomer.ts
+new file mode 100644
+index 0000000..5eea007
+--- /dev/null
++++ b/packages/evershop/src/modules/customer/api/daonLockCustomer/daonLockCustomer.ts
+@@ -0,0 +1,39 @@
++import { select, update } from '@evershop/postgres-query-builder';
++import { securityEvent } from '../../../../lib/log/securityEvent.js';
++import { pool } from '../../../../lib/postgres/connection.js';
++import { INVALID_PAYLOAD, NOT_FOUND, OK } from '../../../../lib/util/httpStatus.js';
++import { EvershopRequest } from '../../../../types/request.js';
++
++/**
++ * 다온마켓 14-4(Express): 사고 대응 격리. POST /api/customers/:uuid/lock {"incidentId":"INC-14-4","reason":"…"}
++ * ① 고객 상태 0(잠금) → 로그인·현재 고객 읽기(getCurrentCustomer는 status=1만 읽는다)가 막힌다
++ * ② 그 고객의 세션을 모두 지운다(세션 저장소 = PostgreSQL session 표, sess.customerID) → 지금 쓰는 세션도 끊긴다
++ * ③ incident.actor.locked(INFO). 고위험 기능이라 13-6 권한 상승(묶음 incident-response)을 거친다([auth]daonElevation.ts)
++ * 응답에는 고객 uuid와 지운 세션 수만(개인정보 없음).
++ */
++export default async (request: EvershopRequest, response) => {
++  const uuid = String(request.params.id);
++  const incident = String(request.body?.incidentId || '').trim();
++  const reason = String(request.body?.reason || '').trim();
++  if (!/^[A-Za-z0-9-]{3,40}$/.test(incident) || !reason || reason.length > 100) {
++    response.status(INVALID_PAYLOAD);
++    response.json({ error: { status: INVALID_PAYLOAD, message: '사고 번호(영문·숫자·하이픈)와 사유(100자까지)가 필요합니다' } });
++    return;
++  }
++  const customer = await select('customer_id').from('customer').where('uuid', '=', uuid).load(pool);
++  if (!customer) {
++    response.status(NOT_FOUND);
++    response.json({ error: { status: NOT_FOUND, message: '고객을 찾을 수 없습니다' } });
++    return;
++  }
++  await update('customer').given({ status: 0 }).where('customer_id', '=', customer.customer_id).execute(pool);
++  const killed = await pool.query("DELETE FROM session WHERE sess->>'customerID' = $1", [String(customer.customer_id)]);
++  const user = request.getCurrentUser() as any;
++  securityEvent.suspicious('incident.actor.locked', '14-4', request, {
++    actor: `admin:${user?.uuid}`,
++    target: `customer:${uuid}`,
++    reason: `사고 대응 격리(사고 번호 ${incident})`
++  });
++  response.status(OK);
++  response.json({ data: { customer: uuid, status: 'locked', sessionsDestroyed: killed.rowCount } });
++};
+diff --git a/packages/evershop/src/modules/customer/api/daonLockCustomer/route.json b/packages/evershop/src/modules/customer/api/daonLockCustomer/route.json
+new file mode 100644
+index 0000000..2537cbe
+--- /dev/null
++++ b/packages/evershop/src/modules/customer/api/daonLockCustomer/route.json
+@@ -0,0 +1,5 @@
++{
++  "methods": ["POST"],
++  "path": "/customers/:id/lock",
++  "access": "private"
++}

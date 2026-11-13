@@ -1,0 +1,86 @@
+# spring-kit-demo: secure-kit 부품 24개를 모두 켠 예제. 값은 모두 랩 전용 가짜 값이다.
+# 0.0.0.0은 컨테이너 안쪽 주소다. 호스트에는 compose가 127.0.0.1:18181로만 연다(ports: "127.0.0.1:18181:18181").
+server:
+  port: 18181
+  address: 0.0.0.0
+  tomcat:
+    # 413으로 막은 큰 본문을 끝까지 받아 버려야 연결이 끊기지 않는다(업로드 상한 3MB보다 크게)
+    max-swallow-size: 4MB
+
+spring:
+  application:
+    name: spring-kit-demo
+  main:
+    banner-mode: off
+
+secure-kit:
+  lab:
+    expose: true                       # 랩 전용 /_kit/* (회사 서비스에서는 끈다)
+  host-allowlist:
+    enabled: true
+    hosts: [127.0.0.1, localhost, shop.example]
+  headers:
+    enabled: true
+  cors:
+    allowed-origins: [http://shop.example]
+  error-response:
+    enabled: true
+  rate-limit:
+    login: { per-account: 5/10m, per-ip: 50/10m }
+  password-policy:
+    min-length: 10
+    breached: [password1234, qwerty123456, daon-pass-1!, 1q2w3e4r5t, iloveyou123]
+  reset-link:
+    base-url: http://shop.example
+    ttl: 15m
+  token:
+    enabled: true
+    secret: kit-lab-fake-token-secret-not-for-prod-32
+    kid: k1
+    ttl: 15m
+    audience: kit
+  field-crypto:
+    enabled: true
+    key: "base64:qddsIzr4DTRxWk+iWjZNkkUGM6hfWzsfeBiI9DyB2cU="
+    index-key: "base64:DFRcvmFUkKmU3jXGHKLWBc5FD+kzun/ZRBkzJhN8SsA="
+  log-masking:
+    enabled: true
+    fields: [password, newPassword, token, secret, card, authorization]
+  limits:
+    enabled: true
+    max-body: 1MB
+    paths:
+      "[/kit/upload]": 3MB
+  upload:
+    max-size: 2MB
+  safe-redirect:
+    allowed-hosts: [shop.example]
+  resilient-client:
+    max-retries: 1
+    retry-ratio: 0.1
+    min-retries-per-minute: 3
+    failure-threshold: 5
+    open-for: 20s
+    timeout: 2s
+  webhook:
+    secret: kit-lab-fake-webhook-secret
+    tolerance: 5m
+  budget:
+    sms: { limit: 1/60s }
+  cache-control:
+    enabled: true
+  approval:
+    policies:
+      refund-high-value: { threshold: 300000 }
+
+kit-demo:
+  # 서킷 시험용 의존성(같은 앱의 /_kit/flaky, 늘 503)
+  flaky-url: http://127.0.0.1:${server.port}/_kit/flaky
+  # 데모 사용자(비밀번호는 CONTRACT.md의 가짜 값). PBKDF2-SHA256 100,000번
+  users:
+    - username: kit-user
+      roles: [user]
+      hash: "pbkdf2-sha256$100000$agTQhQG04bTmE9tfO1OntQ==$zju6WGP8hLuIKbZInlhrLfsG6ryFafADBrjvqUBNyb0="
+    - username: kit-admin
+      roles: [admin]
+      hash: "pbkdf2-sha256$100000$senfbnfufjZNtKSvw7zNoA==$Ir0QOOLdRWqj7HpPs2j18WCzB/w5fMt4xy+ifDhgNuc="
